@@ -1,0 +1,6 @@
+#ifndef _NEXRAD_PRODUCTS_H
+#define _NEXRAD_PRODUCTS_H
+
+#define NEXRAD_PRODUCT_NHI 59
+
+#endif /* _NEXRAD_PRODUCTS_H */

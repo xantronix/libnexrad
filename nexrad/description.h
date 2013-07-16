@@ -1,17 +1,14 @@
-#ifndef _NEXRAD_LEVELIII_DESCRIPTION_H
-#define _NEXRAD_LEVELIII_DESCRIPTION_H
+#ifndef _NEXRAD_DESCRIPTION_H
+#define _NEXRAD_DESCRIPTION_H
 
 #include <stdint.h>
 
 #include <nexrad/types.h>
 #include <nexrad/consts.h>
-#include <nexrad/leveliii/modes.h>
-#include <nexrad/leveliii/products.h>
+#include <nexrad/modes.h>
+#include <nexrad/products.h>
 
-#define NEXRAD_LEVELIII_DIVIDER -1
-#define NEXRAD_LEVELIII_VERSION  1
-
-typedef struct _nexrad_leveliii_description {
+typedef struct _nexrad_description {
      int16_t    divider;
      int32_t    site_lat;
      int32_t    site_lon;
@@ -29,6 +26,6 @@ typedef struct _nexrad_leveliii_description {
     uint32_t    symbology_offset;
     uint32_t    graphic_offset;
     uint32_t    tabular_offset;
-} nexrad_leveliii_description;
+} nexrad_description;
 
-#endif /* _NEXRAD_LEVELIII_DESCRIPTION_H */
+#endif /* _NEXRAD_DESCRIPTION_H */
