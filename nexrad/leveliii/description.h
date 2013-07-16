@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <nexrad/types.h>
+#include <nexrad/consts.h>
 #include <nexrad/leveliii/modes.h>
 #include <nexrad/leveliii/products.h>
 
