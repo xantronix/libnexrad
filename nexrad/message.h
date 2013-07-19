@@ -78,4 +78,13 @@ typedef struct _nexrad_alpha {
     uint16_t page_size;
 } nexrad_alpha;
 
+#define NEXRAD_PACKET_TYPE_ALPHA   8
+#define NEXRAD_PACKET_TYPE_VECTOR 10
+#define NEXRAD_PACKET_TYPE_HAIL   19
+
+typedef struct _nexrad_packet_header {
+    uint16_t code;
+    uint16_t size;
+} nexrad_packet_header;
+
 #endif /* _NEXRAD_MESSAGE_H */
