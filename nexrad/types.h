@@ -3,7 +3,7 @@
 
 typedef struct _nexrad_date {
     uint16_t epoch_day;  /* Days since Unix epoch      */
-    uint16_t gmt_second; /* Seconds since midnight GMT */
+    uint32_t gmt_second; /* Seconds since midnight GMT */
 } nexrad_date;
 
 #endif /* _NEXRAD_TYPES_H */
