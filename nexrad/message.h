@@ -11,6 +11,9 @@
 #pragma pack(push)
 #pragma pack(1)
 
+#define NEXRAD_BLOCK_DIVIDER -1
+#define NEXRAD_VERSION        1
+
 typedef struct _nexrad_header {
     uint16_t    type;    /* Product type */
     nexrad_date date;    /* Date of message transmission */
@@ -48,12 +51,15 @@ typedef struct _nexrad_description {
     uint32_t    tabular_offset;   /* Offset to alphanumeric table data block */
 } nexrad_description;
 
-#define NEXRAD_SYMBOLOGY_LAYER_DIVIDER -1
+typedef struct _nexrad_block_header {
+     int16_t divider; /* Divider indicating start of block */
+    uint16_t id;      /* Block ID */
+    uint32_t size;    /* Size of block in entirety, including full header */
+} nexrad_block_header;
+
+#define NEXRAD_SYMBOLOGY_BLOCK_ID 1
 
 typedef struct _nexrad_symbology {
-     int16_t divider; /* Divider indicating start of symbology block */
-    uint16_t id;      /* Block ID (always 1) */
-    uint32_t length;  /* Length of block in entirety (inclusive) */
     uint16_t layers;  /* Number of layers following */
 } nexrad_symbology;
 
@@ -75,8 +81,6 @@ typedef struct _nexrad_packet_hail {
 } nexrad_packet_hail;
 
 typedef struct _nexrad_vector {
-    uint16_t code;      /* Packet code */
-    uint16_t size;
     uint16_t magnitude; /* Vector magnitude in 1/4km increments */
      int16_t i1_start;  /* Cartesian origin vector */
      int16_t j1_start;  /* Cartesian origin vector */
@@ -88,13 +92,11 @@ typedef struct _nexrad_vector {
      int16_t j2_end;    /* Cartesian destination vector */
 } nexrad_vector;
 
+#define NEXRAD_TABULAR_BLOCK_ID 3
+
 typedef struct _nexrad_tabular {
-     int16_t divider;   /* Start of tabular alphanumeric block */
-    uint16_t id;        /* Block ID value 3 */
-    uint32_t size;      /* Size of block, inclusive */
     uint16_t pages;     /* Number of pages to follow */
     uint16_t line_size; /* Number of characters per line */
-    uint16_t page_size;
 } nexrad_tabular;
 
 #pragma pack(pop)
