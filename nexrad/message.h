@@ -15,7 +15,7 @@
 #define NEXRAD_VERSION        1
 
 typedef struct _nexrad_header {
-    uint16_t    type;    /* Product type */
+     int16_t    type;    /* Product type */
     nexrad_date date;    /* Date of message transmission */
     uint32_t    size;    /* Size of message, including header */
     uint16_t    src_id;  /* Message source */
