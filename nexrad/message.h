@@ -59,11 +59,11 @@ typedef struct _nexrad_block_header {
 
 #define NEXRAD_SYMBOLOGY_BLOCK_ID 1
 
-typedef struct _nexrad_symbology {
+typedef struct _nexrad_symbology_block {
     nexrad_block_header header;
 
     uint16_t layers;  /* Number of layers following */
-} nexrad_symbology;
+} nexrad_symbology_block;
 
 #define NEXRAD_PACKET_TYPE_ALPHA   8
 #define NEXRAD_PACKET_TYPE_VECTOR 10
@@ -82,7 +82,7 @@ typedef struct _nexrad_hail_packet {
     uint16_t prob_hail;        /* Probability of hail */
     uint16_t prob_hail_severe; /* Probability of severe hail */
     uint16_t max_hail_size;    /* Maximum size of hail */
-} nexrad_hail_packet ;
+} nexrad_hail_packet;
 
 typedef struct _nexrad_vector_packet {
     nexrad_packet_header header;
@@ -100,7 +100,7 @@ typedef struct _nexrad_vector_packet {
 
 #define NEXRAD_TABULAR_BLOCK_ID 3
 
-typedef struct _nexrad_tabular {
+typedef struct _nexrad_tabular_block {
     nexrad_block_header header;
 
     /*
@@ -118,7 +118,6 @@ typedef struct _nexrad_tabular {
      int16_t divider;   /* Standard block divider */
     uint16_t pages;     /* Number of pages to follow */
     uint16_t line_size; /* Number of characters per line */
-    
 } nexrad_tabular_block;
 
 #pragma pack(pop)
