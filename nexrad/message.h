@@ -14,16 +14,16 @@
 #define NEXRAD_BLOCK_DIVIDER -1
 #define NEXRAD_VERSION        1
 
-typedef struct _nexrad_header {
+typedef struct _nexrad_message_header {
      int16_t    type;    /* Product type */
     nexrad_date date;    /* Date of message transmission */
     uint32_t    size;    /* Size of message, including header */
     uint16_t    src_id;  /* Message source */
     uint16_t    dest_id; /* Message destination */
     uint16_t    blocks;  /* Number of blocks in message (5 or less) */
-} nexrad_header;
+} nexrad_message_header;
 
-typedef struct _nexrad_description {
+typedef struct _nexrad_product_description {
      int16_t    divider;       /* Start of block */
      int32_t    site_lat;      /* Radar site latitude */
      int32_t    site_lon;      /* Radar site longitude */
@@ -34,7 +34,7 @@ typedef struct _nexrad_description {
      int16_t    seq;           /* Request sequence number */
     uint16_t    scan;          /* Volume scan number */
     nexrad_date scan_date;     /* Start of current scan */
-    nexrad_date product_date;  /* Time of radar product generation */
+    nexrad_date gen_date;      /* Time of radar product generation */
     char        _padding[62];  /* Product-specific data */
      uint8_t    version;       /* Version */
      uint8_t    blanking;      /* Spot blanking */
@@ -46,10 +46,10 @@ typedef struct _nexrad_description {
      * offset, multiply the offset by two and add the product to the physical
      * offset of the start of the Product Message Header.
      */
-    uint32_t    symbology_offset; /* Offset to product symbology block */
-    uint32_t    graphic_offset;   /* Offset to graphic product message block */
-    uint32_t    tabular_offset;   /* Offset to alphanumeric table data block */
-} nexrad_description;
+    uint32_t symbology_offset; /* Offset to product symbology block */
+    uint32_t graphic_offset;   /* Offset to graphic product message block */
+    uint32_t tabular_offset;   /* Offset to tabular alphanumeric block */
+} nexrad_product_description;
 
 typedef struct _nexrad_block_header {
      int16_t divider; /* Divider indicating start of block */
@@ -60,6 +60,8 @@ typedef struct _nexrad_block_header {
 #define NEXRAD_SYMBOLOGY_BLOCK_ID 1
 
 typedef struct _nexrad_symbology {
+    nexrad_block_header header;
+
     uint16_t layers;  /* Number of layers following */
 } nexrad_symbology;
 
@@ -72,15 +74,19 @@ typedef struct _nexrad_packet_header {
     uint16_t size;
 } nexrad_packet_header;
 
-typedef struct _nexrad_packet_hail {
+typedef struct _nexrad_hail_packet {
+    nexrad_packet_header header;
+
      int16_t i;                /* Cartesian offset from radar */
      int16_t j;                /* Cartesian offset from radar */
     uint16_t prob_hail;        /* Probability of hail */
     uint16_t prob_hail_severe; /* Probability of severe hail */
     uint16_t max_hail_size;    /* Maximum size of hail */
-} nexrad_packet_hail;
+} nexrad_hail_packet ;
 
-typedef struct _nexrad_vector {
+typedef struct _nexrad_vector_packet {
+    nexrad_packet_header header;
+
     uint16_t magnitude; /* Vector magnitude in 1/4km increments */
      int16_t i1_start;  /* Cartesian origin vector */
      int16_t j1_start;  /* Cartesian origin vector */
@@ -90,14 +96,30 @@ typedef struct _nexrad_vector {
      int16_t j2_start;  /* Cartesian destination vector */
      int16_t i2_end;    /* Cartesian destination vector */
      int16_t j2_end;    /* Cartesian destination vector */
-} nexrad_vector;
+} nexrad_vector_packet;
 
 #define NEXRAD_TABULAR_BLOCK_ID 3
 
 typedef struct _nexrad_tabular {
+    nexrad_block_header header;
+
+    /*
+     * For some inexplicable reason, the tabular alphanumeric block duplicates
+     * the NEXRAD product message header and product description blocks.  Of
+     * particular forensic interest is the fact that this second product
+     * description block refers only to an offset to the previous product
+     * symbology block, but provides null values for the offsets to the graphic
+     * product message block and tabular alphanumeric block.  It has not yet
+     * been determined what the significance of this construct is.
+     */
+    nexrad_product_header      product_header;
+    nexrad_product_description product_description;
+
+     int16_t divider;   /* Standard block divider */
     uint16_t pages;     /* Number of pages to follow */
     uint16_t line_size; /* Number of characters per line */
-} nexrad_tabular;
+    
+} nexrad_tabular_block;
 
 #pragma pack(pop)
 
