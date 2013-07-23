@@ -1,0 +1,6 @@
+#ifndef _NEXRAD_RADAR_H
+#define _NEXRAD_RADAR_H
+
+#define NEXRAD_RADAR_MODE_PRECIP 2
+
+#endif /* _NEXRAD_RADAR_H */
