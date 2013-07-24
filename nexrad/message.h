@@ -4,15 +4,16 @@
 #include <stdint.h>
 
 #include <nexrad/types.h>
-#include <nexrad/consts.h>
-#include <nexrad/modes.h>
 #include <nexrad/products.h>
+#include <nexrad/radar.h>
 
 #pragma pack(push)
 #pragma pack(1)
 
 #define NEXRAD_BLOCK_DIVIDER -1
 #define NEXRAD_VERSION        1
+
+#define NEXRAD_PRODUCT_NHI 59 /* NOAA Hail Index */
 
 typedef struct _nexrad_message_header {
      int16_t    type;    /* Product type */
