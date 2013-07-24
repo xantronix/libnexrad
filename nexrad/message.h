@@ -66,7 +66,7 @@ typedef struct _nexrad_symbology_block {
     uint16_t layers;  /* Number of layers following */
 } nexrad_symbology_block;
 
-#define NEXRAD_PACKET_TYPE_ALPHA   8
+#define NEXRAD_PACKET_TYPE_TEXT    8
 #define NEXRAD_PACKET_TYPE_VECTOR 10
 #define NEXRAD_PACKET_TYPE_HAIL   19
 
@@ -74,6 +74,14 @@ typedef struct _nexrad_packet_header {
     uint16_t code;
     uint16_t size;
 } nexrad_packet_header;
+
+typedef struct _nexrad_text_packet 
+    nexrad_packet_header header;
+
+    uint16_t value; /* I'm sorry, I haven't a clue */
+    uint16_t i;     /* Cartesian offset from radar in 1/4km increments */
+    uint16_t j;     /* Cartesian offset from radar in 1/4km increments */
+} nexrad_text_packet;
 
 typedef struct _nexrad_hail_packet {
     nexrad_packet_header header;
@@ -98,6 +106,22 @@ typedef struct _nexrad_vector_packet {
      int16_t i2_end;    /* Cartesian destination vector */
      int16_t j2_end;    /* Cartesian destination vector */
 } nexrad_vector_packet;
+
+#define NEXRAD_GRAPHIC_BLOCK 2
+
+typedef struct _nexrad_graphic_block {
+    nexrad_block_header header;
+
+     int16_t divider; /* Block divider (-1) */
+    uint16_t id;      /* Block ID (2) */
+    uint32_t size;    /* Size of block (inclusive) */
+    uint16_t pages;   /* Number of alphanumeric pages */
+} nexrad_graphic_block;
+
+typedef struct _nexrad_graphic_page {
+    uint16_t page;
+    uint16_t size;
+} nexrad_graphic_page;
 
 #define NEXRAD_TABULAR_BLOCK_ID 3
 

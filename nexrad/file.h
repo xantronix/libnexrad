@@ -1,10 +1,14 @@
 #ifndef _NEXRAD_FILE_H
 #define _NEXRAD_FILE_H
 
-typedef struct _nexrad_file {
-    int fd;
-} nexrad_file;
+#include <nexrad/message.h>
 
-nexrad_file * nexrad_file_open(const char *filename);
+typedef struct _nexrad_message_file {
+    void *                       message;
+    nexrad_message_header      * header;
+    nexrad_product_description * description;
+    nexrad_symbology_block *     symbology;
+    nexrad_graphic_block *       graphic;
+} nexrad_message_file;
 
 #endif /* _NEXRAD_FILE_H */
