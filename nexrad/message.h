@@ -78,9 +78,9 @@ typedef struct _nexrad_packet_header {
 typedef struct _nexrad_text_packet 
     nexrad_packet_header header;
 
-    uint16_t value; /* I'm sorry, I haven't a clue */
-    uint16_t i;     /* Cartesian offset from radar in 1/4km increments */
-    uint16_t j;     /* Cartesian offset from radar in 1/4km increments */
+    uint16_t color; /* 4-bit color value (0-15) */
+     int16_t i;     /* Cartesian offset from radar in 1/4km increments */
+     int16_t j;     /* Cartesian offset from radar in 1/4km increments */
 } nexrad_text_packet;
 
 typedef struct _nexrad_hail_packet {
