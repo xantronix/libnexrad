@@ -75,7 +75,7 @@ typedef struct _nexrad_packet_header {
     uint16_t size;
 } nexrad_packet_header;
 
-typedef struct _nexrad_text_packet 
+typedef struct _nexrad_text_packet {
     nexrad_packet_header header;
 
     uint16_t color; /* 4-bit color value (0-15) */
