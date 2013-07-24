@@ -75,6 +75,12 @@ typedef struct _nexrad_packet_header {
     uint16_t size;
 } nexrad_packet_header;
 
+typedef struct _nexrad_packet {
+    nexrad_packet_header header;
+
+    void * data;
+} nexrad_packet;
+
 typedef struct _nexrad_text_packet 
     nexrad_packet_header header;
 
@@ -144,6 +150,21 @@ typedef struct _nexrad_tabular_block {
     uint16_t pages;     /* Number of pages to follow */
     uint16_t line_size; /* Number of characters per line */
 } nexrad_tabular_block;
+
+typedef struct _nexrad_message {
+    void *                       message;
+    nexrad_message_header *      header;
+    nexrad_product_description * description;
+    nexrad_symbology_block *     symbology;
+    nexrad_graphic_block *       graphic;
+    nexrad_tabular_block *       tabular;
+} nexrad_message;
+
+nexrad_message * nexrad_message_read(const char *filename);
+void             nexrad_message_destroy(nexrad_message *message);
+nexrad_packet *  nexrad_packet_read_from_symbology_block(nexrad_symbology_block *block);
+nexrad_packet *  nexrad_packet_read_from_graphic_block(nexrad_graphic_block *block);
+nexrad_packet *  nexrad_packet_read_from_tabular_block(nexrad_tabular_block *block);
 
 #pragma pack(pop)
 
