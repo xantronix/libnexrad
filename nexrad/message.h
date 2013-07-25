@@ -2,6 +2,7 @@
 #define _NEXRAD_MESSAGE_H
 
 #include <stdint.h>
+#include <sys/types.h>
 
 #include <nexrad/types.h>
 #include <nexrad/products.h>
@@ -14,6 +15,18 @@
 #define NEXRAD_VERSION        1
 
 #define NEXRAD_PRODUCT_NHI 59 /* NOAA Hail Index */
+
+typedef struct _nexrad_file_header {
+    char region[6];
+    char _whitespace1;
+    char office[4];
+    char _whitespace2;
+    char timestamp[6];
+    char _whitespace3[3];
+    char product[3];
+    char station[3];
+    char _whitespace4[2];
+} nexrad_file_header;
 
 typedef struct _nexrad_message_header {
      int16_t    type;    /* Product type */
@@ -149,8 +162,14 @@ typedef struct _nexrad_tabular_block {
  * Data structures for facilitating file I/O
  */
 typedef struct _nexrad_message {
-    void *                       message;
-    nexrad_message_header *      header;
+    size_t size;
+    size_t page_size;
+    size_t mapped_size;
+    int    fd;
+    void * data;
+
+    nexrad_file_header *         file_header;
+    nexrad_message_header *      message_header;
     nexrad_product_description * description;
     nexrad_symbology_block *     symbology;
     nexrad_graphic_block *       graphic;
@@ -166,8 +185,8 @@ typedef struct _nexrad_packet {
 /*
  * Methods for facilitating file I/O
  */
-nexrad_message * nexrad_message_read(const char *filename);
-void             nexrad_message_destroy(nexrad_message *message);
+nexrad_message * nexrad_message_open(const char *path);
+void             nexrad_message_close(nexrad_message *message);
 nexrad_packet *  nexrad_packet_read_from_symbology_block(nexrad_symbology_block *block);
 nexrad_packet *  nexrad_packet_read_from_graphic_block(nexrad_graphic_block *block);
 nexrad_packet *  nexrad_packet_read_from_tabular_block(nexrad_tabular_block *block);
