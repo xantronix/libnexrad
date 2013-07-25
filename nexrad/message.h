@@ -5,7 +5,6 @@
 #include <sys/types.h>
 
 #include <nexrad/types.h>
-#include <nexrad/products.h>
 #include <nexrad/radar.h>
 
 #pragma pack(push)
@@ -151,7 +150,7 @@ typedef struct _nexrad_tabular_block {
      * product message block and tabular alphanumeric block.  It has not yet
      * been determined what the significance of this construct is.
      */
-    nexrad_product_header      product_header;
+    nexrad_message_header      message_header;
     nexrad_product_description product_description;
 
      int16_t divider;   /* Standard block divider */
