@@ -5,10 +5,9 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <endian.h>
 
 #include <nexrad/message.h>
-
-#define DEBUG(s) fprintf(stderr, "[DEBUG] %s\n", s)
 
 static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
@@ -24,21 +23,19 @@ static int _index_message(nexrad_message *message) {
     nexrad_tabular_block *       tabular;
 
     if (file_header->_whitespace1 != ' ') {
-        DEBUG("Here!");
         goto error_invalid_file_header;
     }
 
-    message_header = (nexrad_message_header *)(file_header + sizeof(nexrad_file_header));
+    message_header = (nexrad_message_header *)((void *)(file_header) + sizeof(nexrad_file_header));
 
-    if (message_header->blocks > 5) {
-        fprintf(stderr, "MAGIKARP: %lu\n", message_header->blocks);
+    if (be16toh(message_header->blocks) > 5) {
         goto error_invalid_message_header;
     }
 
-    description = (nexrad_product_description *)(message_header + sizeof(nexrad_message_header));
-    symbology   = (nexrad_symbology_block *)    (description    + sizeof(nexrad_product_description));
-    graphic     = (nexrad_graphic_block *)      (symbology      + sizeof(nexrad_symbology_block));
-    tabular     = (nexrad_tabular_block *)      (graphic        + sizeof(nexrad_graphic_block));
+    description = (nexrad_product_description *)(((void *)message_header) + sizeof(nexrad_message_header));
+    symbology   = (nexrad_symbology_block *)    (((void *)description)    + sizeof(nexrad_product_description));
+    graphic     = (nexrad_graphic_block *)      (((void *)symbology)      + sizeof(nexrad_symbology_block));
+    tabular     = (nexrad_tabular_block *)      (((void *)graphic)        + sizeof(nexrad_graphic_block));
 
     message->file_header    = file_header;
     message->message_header = message_header;
@@ -59,12 +56,10 @@ nexrad_message *nexrad_message_open(const char *path) {
     struct stat st;
 
     if ((message = malloc(sizeof(nexrad_message))) == NULL) {
-        DEBUG("No, really, THIS time, I mean it...HERE!");
         goto error_malloc;
     }
 
     if (stat(path, &st) < 0) {
-        DEBUG("Poop.  Where?  Here?");
         goto error_stat;
     }
 
@@ -73,17 +68,14 @@ nexrad_message *nexrad_message_open(const char *path) {
     message->mapped_size = _mapped_size(st.st_size, message->page_size);
 
     if ((message->fd = open(path, O_RDONLY)) < 0) {
-        DEBUG("Poo and goo");
         goto error_open;
     }
 
     if ((message->data = mmap(NULL, message->mapped_size, PROT_READ, MAP_PRIVATE, message->fd, 0)) == NULL) {
-        DEBUG("Unsure @___@");
         goto error_mmap;
     }
 
     if (_index_message(message) < 0) {
-        DEBUG("MAGIKARP @___@");
         goto error_index_message;
     }
 

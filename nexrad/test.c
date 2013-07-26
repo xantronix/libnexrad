@@ -18,6 +18,13 @@ int main(int argc, char **argv) {
         usage(argc, argv);
     }
 
+    printf("sizeof(nexrad_file_header):         %lu\n", sizeof(nexrad_file_header));
+    printf("sizeof(nexrad_message_header):      %lu\n", sizeof(nexrad_message_header));
+    printf("sizeof(nexrad_product_description): %lu\n", sizeof(nexrad_product_description));
+    printf("sizeof(nexrad_symbology_block):     %lu\n", sizeof(nexrad_symbology_block));
+    printf("sizeof(nexrad_graphic_block):       %lu\n", sizeof(nexrad_graphic_block));
+    printf("sizeof(nexrad_tabular_block):       %lu\n", sizeof(nexrad_tabular_block));
+
     if ((message = nexrad_message_open(argv[1])) == NULL) {
         perror("nexrad_message_open()");
         exit(1);
