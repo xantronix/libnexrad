@@ -18,21 +18,21 @@ static inline off_t _offset_from_halfword(uint16_t value) {
 }
 
 static inline void *_symbology_block(nexrad_message_header *header, nexrad_product_description *description) {
-    uint16_t offset = be16toh(description->symbology_offset);
+    uint32_t offset = be32toh(description->symbology_offset);
 
-    return (nexrad_symbology_block *)((void *)header) + offset;
+    return (nexrad_symbology_block *)(((void *)header) + offset);
 }
 
 static inline void *_graphic_block(nexrad_message_header *header, nexrad_product_description *description) {
-    uint16_t offset = be16toh(description->graphic_offset);
+    uint32_t offset = be32toh(description->graphic_offset);
 
-    return (nexrad_graphic_block *)((void *)header) + offset;
+    return (nexrad_graphic_block *)(((void *)header) + offset);
 }
 
 static inline void *_tabular_block(nexrad_message_header *header, nexrad_product_description *description) {
-    uint16_t offset = be16toh(description->tabular_offset);
+    uint32_t offset = be32toh(description->tabular_offset);
 
-    return (nexrad_tabular_block *)((void *)header) + offset;
+    return (nexrad_tabular_block *)(((void *)header) + offset);
 }
 
 static int _index_message(nexrad_message *message) {
@@ -40,9 +40,6 @@ static int _index_message(nexrad_message *message) {
 
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
-    nexrad_symbology_block *     symbology;
-    nexrad_graphic_block *       graphic;
-    nexrad_tabular_block *       tabular;
 
     if (file_header->_whitespace1 != ' ') {
         goto error_invalid_file_header;
@@ -56,16 +53,13 @@ static int _index_message(nexrad_message *message) {
 
     description = (nexrad_product_description *)(((void *)message_header) + sizeof(nexrad_message_header));
 
-    symbology = _symbology_block(message_header, description);
-    graphic   = _graphic_block(message_header, description);
-    tabular   = _tabular_block(message_header, description);
-
     message->file_header    = file_header;
     message->message_header = message_header;
     message->description    = description;
-    message->symbology      = symbology;
-    message->graphic        = graphic;
-    message->tabular        = tabular;
+    message->symbology      = _symbology_block(message_header, description);
+    message->graphic        = _graphic_block(message_header, description);
+    message->tabular        = _tabular_block(message_header, description);
+
 
     return 0;
 

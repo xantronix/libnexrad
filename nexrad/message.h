@@ -49,7 +49,7 @@ typedef struct _nexrad_product_description {
     uint16_t    scan;          /* Volume scan number */
     nexrad_date scan_date;     /* Start of current scan */
     nexrad_date gen_date;      /* Time of radar product generation */
-    char        _padding[62];  /* Product-specific data */
+    char        _padding[54];  /* Product-specific data */
      uint8_t    version;       /* Version */
      uint8_t    blanking;      /* Spot blanking */
 

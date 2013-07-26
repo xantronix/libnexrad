@@ -30,5 +30,15 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    printf("Offset to message header:      0x%lx\n", (void *)(message->message_header) - (void *)(message->data));
+    printf("Offset to product description: 0x%lx\n", (void *)(message->description)    - (void *)(message->data));
+    printf("Offset to symbology block:     0x%lx\n", (void *)(message->symbology)      - (void *)(message->data));
+    printf("Offset to graphic block:       0x%lx\n", (void *)(message->graphic)        - (void *)(message->data));
+    printf("Offset to tabular block:       0x%lx\n", (void *)(message->tabular)        - (void *)(message->data));
+
+    printf("Crap: %d\n", be16toh(message->tabular->message_header.type));
+
+    nexrad_message_close(message);
+
     return 0;
 }
