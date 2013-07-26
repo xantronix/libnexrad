@@ -13,6 +13,28 @@ static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }
 
+static inline off_t _offset_from_halfword(uint16_t value) {
+    return sizeof(nexrad_file_header) + (value * 2);
+}
+
+static inline void *_symbology_block(nexrad_message_header *header, nexrad_product_description *description) {
+    uint16_t offset = be16toh(description->symbology_offset);
+
+    return (nexrad_symbology_block *)((void *)header) + offset;
+}
+
+static inline void *_graphic_block(nexrad_message_header *header, nexrad_product_description *description) {
+    uint16_t offset = be16toh(description->graphic_offset);
+
+    return (nexrad_graphic_block *)((void *)header) + offset;
+}
+
+static inline void *_tabular_block(nexrad_message_header *header, nexrad_product_description *description) {
+    uint16_t offset = be16toh(description->tabular_offset);
+
+    return (nexrad_tabular_block *)((void *)header) + offset;
+}
+
 static int _index_message(nexrad_message *message) {
     nexrad_file_header *file_header = message->data;
 
@@ -33,9 +55,10 @@ static int _index_message(nexrad_message *message) {
     }
 
     description = (nexrad_product_description *)(((void *)message_header) + sizeof(nexrad_message_header));
-    symbology   = (nexrad_symbology_block *)    (((void *)description)    + sizeof(nexrad_product_description));
-    graphic     = (nexrad_graphic_block *)      (((void *)symbology)      + sizeof(nexrad_symbology_block));
-    tabular     = (nexrad_tabular_block *)      (((void *)graphic)        + sizeof(nexrad_graphic_block));
+
+    symbology = _symbology_block(message_header, description);
+    graphic   = _graphic_block(message_header, description);
+    tabular   = _tabular_block(message_header, description);
 
     message->file_header    = file_header;
     message->message_header = message_header;
