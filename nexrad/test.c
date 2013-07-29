@@ -43,10 +43,6 @@ int main(int argc, char **argv) {
 
     printf("Block ID: %d\n", be16toh(block->header.id));
 
-    printf("\n");
-
-    nexrad_product_description *desc = message->description;
-
     nexrad_message_close(message);
 
     return 0;
