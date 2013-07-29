@@ -10,6 +10,8 @@
 
 #include <nexrad/message.h>
 
+#define nexrad_block_after(data, prev) ((void *)(data) + sizeof(prev))
+
 static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }
@@ -66,7 +68,7 @@ static int _index_message(nexrad_message *message) {
         goto error_invalid_message_header;
     }
 
-    message_header = (nexrad_message_header *)((void *)(message->data) + sizeof(nexrad_file_header));
+    message_header = (nexrad_message_header *)nexrad_block_after(file_header, nexrad_file_header);
 
     if (be16toh(message_header->blocks) > 5) {
         goto error_invalid_message_header;
@@ -78,7 +80,7 @@ static int _index_message(nexrad_message *message) {
         goto error_invalid_product_description;
     }
 
-    description = (nexrad_product_description *)(((void *)message_header) + sizeof(nexrad_message_header));
+    description = (nexrad_product_description *)nexrad_block_after(message_header, nexrad_message_header);
 
     if ((symbology = _symbology_block(message, description)) == NULL) {
         goto error_invalid_symbology_block_offset;
