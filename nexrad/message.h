@@ -161,11 +161,7 @@ typedef struct _nexrad_tabular_block {
 /*
  * Data structures for facilitating file I/O
  */
-typedef struct _nexrad_packet {
-    nexrad_packet_header header;
-
-    void * data;
-} nexrad_packet;
+typedef nexrad_packet_header nexrad_packet;
 
 typedef struct _nexrad_message {
     size_t size;
