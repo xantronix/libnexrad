@@ -163,6 +163,12 @@ typedef struct _nexrad_tabular_block {
  */
 typedef nexrad_packet_header nexrad_packet;
 
+typedef struct _nexrad_packet_type {
+    int    id;
+    char   name[8];
+    size_t size;
+} nexrad_packet_type;
+
 typedef struct _nexrad_message {
     size_t size;
     size_t page_size;
@@ -187,9 +193,15 @@ typedef struct _nexrad_message {
  */
 nexrad_message * nexrad_message_open(const char *path);
 void             nexrad_message_close(nexrad_message *message);
-nexrad_packet *  nexrad_message_read_symbology_packet(nexrad_message *message, size_t *size);
-nexrad_packet *  nexrad_message_read_graphic_packet(nexrad_message *message, size_t *size);
-nexrad_packet *  nexrad_message_read_tabular_packet(nexrad_message *message, size_t *size);
+
+/*
+ * Methods for reading product packets
+ */
+nexrad_packet * nexrad_message_read_symbology_packet(nexrad_message *message, size_t *size);
+nexrad_packet * nexrad_message_read_graphic_packet(nexrad_message *message, size_t *size);
+nexrad_packet * nexrad_message_read_tabular_packet(nexrad_message *message, size_t *size);
+
+nexrad_packet_type * nexrad_packet_lookup_type(nexrad_packet *packet);
 
 #pragma pack(pop)
 

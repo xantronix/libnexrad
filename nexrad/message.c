@@ -197,3 +197,21 @@ void nexrad_message_close(nexrad_message *message) {
 
     return;
 }
+
+nexrad_packet *nexrad_read_symbology_packet(nexrad_message *message, size_t *size) {
+    nexrad_symbology_block *symbology;
+
+    if (message == NULL) {
+        return NULL;
+    }
+
+    symbology = message->symbology;
+}
+
+nexrad_packet *nexrad_read_graphic_packet(nexrad_message *message, size_t *size) {
+    return NULL;
+}
+
+nexrad_packet *nexrad_read_tabular_packet(nexrad_message *message, size_t *size) {
+    return NULL;
+}
