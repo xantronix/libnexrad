@@ -13,26 +13,26 @@ static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }
 
-static inline off_t _offset_from_halfword(uint16_t value) {
-    return sizeof(nexrad_file_header) + (value * 2);
+static inline off_t _halfword_offset(uint32_t value) {
+    return sizeof(nexrad_file_header) + (be32toh(value) * 2);
 }
 
-static inline void *_symbology_block(nexrad_message_header *header, nexrad_product_description *description) {
-    uint32_t offset = be32toh(description->symbology_offset);
+static inline nexrad_symbology_block *_symbology_block(nexrad_message *message) {
+    uint32_t offset = _halfword_offset(message->description->symbology_offset);
 
-    return (nexrad_symbology_block *)(((void *)header) + offset);
+    return (nexrad_symbology_block *)(((void *)message->data) + offset);
 }
 
-static inline void *_graphic_block(nexrad_message_header *header, nexrad_product_description *description) {
-    uint32_t offset = be32toh(description->graphic_offset);
+static inline nexrad_graphic_block *_graphic_block(nexrad_message *message) {
+    uint32_t offset = _halfword_offset(message->description->graphic_offset);
 
-    return (nexrad_graphic_block *)(((void *)header) + offset);
+    return (nexrad_graphic_block *)(((void *)message->data) + offset);
 }
 
-static inline void *_tabular_block(nexrad_message_header *header, nexrad_product_description *description) {
-    uint32_t offset = be32toh(description->tabular_offset);
+static inline nexrad_tabular_block *_tabular_block(nexrad_message *message) {
+    uint32_t offset = _halfword_offset(message->description->tabular_offset);
 
-    return (nexrad_tabular_block *)(((void *)header) + offset);
+    return (nexrad_tabular_block *)(((void *)message->data) + offset);
 }
 
 static int _index_message(nexrad_message *message) {
@@ -56,10 +56,9 @@ static int _index_message(nexrad_message *message) {
     message->file_header    = file_header;
     message->message_header = message_header;
     message->description    = description;
-    message->symbology      = _symbology_block(message_header, description);
-    message->graphic        = _graphic_block(message_header, description);
-    message->tabular        = _tabular_block(message_header, description);
-
+    message->symbology      = _symbology_block(message);
+    message->graphic        = _graphic_block(message);
+    message->tabular        = _tabular_block(message);
 
     return 0;
 
