@@ -161,6 +161,12 @@ typedef struct _nexrad_tabular_block {
 /*
  * Data structures for facilitating file I/O
  */
+typedef struct _nexrad_packet {
+    nexrad_packet_header header;
+
+    void * data;
+} nexrad_packet;
+
 typedef struct _nexrad_message {
     size_t size;
     size_t page_size;
@@ -174,22 +180,20 @@ typedef struct _nexrad_message {
     nexrad_symbology_block *     symbology;
     nexrad_graphic_block *       graphic;
     nexrad_tabular_block *       tabular;
+
+    nexrad_packet * current_symbology_packet;
+    nexrad_packet * current_graphic_packet;
+    nexrad_packet * current_tabular_packet;
 } nexrad_message;
-
-typedef struct _nexrad_packet {
-    nexrad_packet_header header;
-
-    void * data;
-} nexrad_packet;
 
 /*
  * Methods for facilitating file I/O
  */
 nexrad_message * nexrad_message_open(const char *path);
 void             nexrad_message_close(nexrad_message *message);
-nexrad_packet *  nexrad_packet_read_from_symbology_block(nexrad_symbology_block *block);
-nexrad_packet *  nexrad_packet_read_from_graphic_block(nexrad_graphic_block *block);
-nexrad_packet *  nexrad_packet_read_from_tabular_block(nexrad_tabular_block *block);
+nexrad_packet *  nexrad_message_read_symbology_packet(nexrad_message *message, size_t *size);
+nexrad_packet *  nexrad_message_read_graphic_packet(nexrad_message *message, size_t *size);
+nexrad_packet *  nexrad_message_read_tabular_packet(nexrad_message *message, size_t *size);
 
 #pragma pack(pop)
 

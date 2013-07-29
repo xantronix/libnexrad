@@ -130,6 +130,10 @@ nexrad_message *nexrad_message_open(const char *path) {
     message->page_size   = (size_t)sysconf(_SC_PAGESIZE);
     message->mapped_size = _mapped_size(st.st_size, message->page_size);
 
+    message->current_symbology_packet = NULL;
+    message->current_graphic_packet   = NULL;
+    message->current_tabular_packet   = NULL;
+
     if ((message->fd = open(path, O_RDONLY)) < 0) {
         goto error_open;
     }
@@ -184,6 +188,10 @@ void nexrad_message_close(nexrad_message *message) {
     message->symbology      = NULL;
     message->graphic        = NULL;
     message->tabular        = NULL;
+
+    message->current_symbology_packet = NULL;
+    message->current_graphic_packet   = NULL;
+    message->current_tabular_packet   = NULL;
 
     free(message);
 
