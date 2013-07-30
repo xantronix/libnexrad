@@ -13,7 +13,14 @@
 #define NEXRAD_BLOCK_DIVIDER -1
 #define NEXRAD_VERSION        1
 
-#define NEXRAD_PRODUCT_NHI 59 /* NOAA Hail Index */
+typedef enum {
+    NEXRAD_PRODUCT_NHI = 59
+} nexrad_product_id;
+
+typedef struct _nexrad_product {
+    int  id;
+    char name[8];
+} nexrad_product;
 
 typedef struct _nexrad_file_header {
     char region[6];
