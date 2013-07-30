@@ -201,11 +201,9 @@ void nexrad_message_close(nexrad_message *message) {
 nexrad_packet *nexrad_read_symbology_packet(nexrad_message *message, size_t *size) {
     nexrad_symbology_block *symbology;
 
-    if (message == NULL) {
-        return NULL;
-    }
-
     symbology = message->symbology;
+
+    return NULL;
 }
 
 nexrad_packet *nexrad_read_graphic_packet(nexrad_message *message, size_t *size) {

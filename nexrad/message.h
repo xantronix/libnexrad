@@ -5,7 +5,6 @@
 #include <sys/types.h>
 
 #include <nexrad/message/format.h>
-#include <nexrad/radar.h>
 
 #pragma pack(push)
 #pragma pack(1)
@@ -29,6 +28,10 @@ enum nexrad_packet_type_id {
     NEXRAD_PACKET_TYPE_TEXT   =  8,
     NEXRAD_PACKET_TYPE_VECTOR = 10,
     NEXRAD_PACKET_TYPE_HAIL   = 19
+};
+
+enum nexrad_radar_mode_id {
+    NEXRAD_RADAR_MODE_PRECIP = 2
 };
 
 typedef struct _nexrad_product {
