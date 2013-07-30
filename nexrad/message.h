@@ -13,13 +13,13 @@
 #define NEXRAD_BLOCK_DIVIDER -1
 #define NEXRAD_VERSION        1
 
-typedef enum {
+enum nexrad_product_id {
     NEXRAD_PRODUCT_NHI = 59
-} nexrad_product_id;
+};
 
 typedef struct _nexrad_product {
-    int  id;
-    char name[8];
+    enum nexrad_product_id id;
+    char                   name[8];
 } nexrad_product;
 
 typedef struct _nexrad_file_header {
