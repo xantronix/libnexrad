@@ -77,7 +77,7 @@ typedef struct _nexrad_symbology_block {
 typedef struct _nexrad_symbology_layer {
      int16_t divider; /* Layer divider */
     uint32_t size;    /* Size of data to follow */
-} nexrad_sybmology_layer;
+} nexrad_symbology_layer;
 
 typedef struct _nexrad_packet_header {
     uint16_t code;
