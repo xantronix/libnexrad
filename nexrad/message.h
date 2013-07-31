@@ -61,6 +61,13 @@ typedef struct _nexrad_message {
     nexrad_graphic_block *       graphic;
     nexrad_tabular_block *       tabular;
 
+    /*
+     * Attributes to keep track of product message parts while reading
+     * incrementally
+     */
+    nexrad_symbology_layer * current_symbology_layer;
+    nexrad_graphic_page *    current_graphic_page;
+
     nexrad_packet * current_symbology_packet;
     nexrad_packet * current_graphic_packet;
     nexrad_packet * current_tabular_packet;
@@ -75,6 +82,8 @@ void             nexrad_message_close(nexrad_message *message);
 /*
  * Methods for reading product packets
  */
+nexrad_symbology_layer *nexrad_read_symbology_layer(nexrad_message *message, size_t *size);
+
 nexrad_packet * nexrad_message_read_symbology_packet(nexrad_message *message, size_t *size);
 nexrad_packet * nexrad_message_read_graphic_packet(nexrad_message *message, size_t *size);
 nexrad_packet * nexrad_message_read_tabular_packet(nexrad_message *message, size_t *size);

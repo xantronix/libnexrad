@@ -198,10 +198,23 @@ void nexrad_message_close(nexrad_message *message) {
     return;
 }
 
-nexrad_packet *nexrad_read_symbology_packet(nexrad_message *message, size_t *size) {
-    nexrad_symbology_block *symbology;
+nexrad_symbology_layer *nexrad_read_symbology_layer(nexrad_message *message, size_t *size) {
+    nexrad_symbology_block *block;
+    nexrad_symbology_layer *current;
 
-    symbology = message->symbology;
+    if (message->current_symbology_layer == NULL) {
+        message->current_symbology_layer = (void *)block + sizeof(*block);
+    }
+
+    current = message->current_symbology_layer;
+
+    return current;
+}
+
+nexrad_packet *nexrad_read_symbology_packet(nexrad_message *message, size_t *size) {
+    nexrad_symbology_block *block;
+
+    block = message->symbology;
 
     return NULL;
 }
