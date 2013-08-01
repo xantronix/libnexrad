@@ -199,14 +199,45 @@ void nexrad_message_close(nexrad_message *message) {
 }
 
 nexrad_symbology_layer *nexrad_read_symbology_layer(nexrad_message *message, size_t *size) {
-    nexrad_symbology_block *block;
-    nexrad_symbology_layer *current;
+    nexrad_symbology_block *block   = message->symbology;
+    nexrad_symbology_layer *current = message->current_sybmology_layer;
 
-    if (message->current_symbology_layer == NULL) {
-        message->current_symbology_layer = (void *)block + sizeof(*block);
+    /*
+     * If there is no product symbology block, then return null immediately.
+     */
+    if (block == NULL) {
+        return NULL;
     }
 
-    current = message->current_symbology_layer;
+    /*
+     * If the current symbology block has no layers, then return null
+     * immediately.
+     */
+    if (be16toh(block.layers) == 0) { /* I know 0 is 0 in either endianness... */
+        return NULL;
+    }
+
+    /*
+     * If there is no current symbology layer selected, then select the first
+     * one in the layer sequence, which always comes immediately after the
+     * symbology block header.
+     */
+    if (current == NULL) {
+        current = (void *)block + sizeof(*block);
+    }
+
+    /*
+     * If the current layer is beyond the boundaries of the current block, then
+     * return null.
+     */
+    if (current > (void *)block + be32toh(block.header.size)) {
+        return NULL;
+    }
+
+    /*
+     * Update the current symbology block pointer in the message object.
+     */
+    message->current_symbology_block = current;
 
     return current;
 }
