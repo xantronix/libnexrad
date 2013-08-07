@@ -73,6 +73,18 @@ typedef struct _nexrad_message {
     nexrad_packet * current_tabular_packet;
 } nexrad_message;
 
+enum nexrad_chunk_type_id {
+    NEXRAD_CHUNK_SYMBOLOGY_BLOCK,
+    NEXRAD_CHUNK_SYMBOLOGY_LAYER,
+    NEXRAD_CHUNK_SYMBOLOGY_PACKET,
+    NEXRAD_CHUNK_GRAPHIC_BLOCK,
+    NEXRAD_CHUNK_GRAPHIC_PAGE,
+    NEXRAD_CHUNK_GRAPHIC_PACKET,
+    NEXRAD_CHUNK_TABULAR_BLOCK,
+    NEXRAD_CHUNK_TABULAR_PAGE,
+    NEXRAD_CHUNK_TABULAR_PACKET
+};
+
 /*
  * Methods for facilitating file I/O
  */
