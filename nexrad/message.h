@@ -86,6 +86,9 @@ enum nexrad_chunk_type_id {
 };
 
 typedef struct _nexrad_chunk_iterator {
+    enum nexrad_chunk_type_id parent_type_id;
+    enum nexrad_chunk_type_id child_type_id;
+
     void * parent;          /* The parent chunk */
     void * first;           /* The first chunk within the parent chunk */
     void * current;         /* The current chunk within the parent chunk */
