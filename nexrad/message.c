@@ -12,20 +12,17 @@
 
 #define nexrad_block_after(data, prev) ((void *)(data) + sizeof(prev))
 
-/*
- * A table of parent/child container type assocations to assist in the generic
- * parsing of radar product data structures in-place.
- */
-static struct {
-    enum nexrad_chunk_type_id parent;
-    enum nexrad_chunk_type_id child;
-} nexrad_chunk_types[] = {
-    { NEXRAD_CHUNK_SYMBOLOGY_BLOCK, NEXRAD_CHUNK_SYMBOLOGY_LAYER  },
-    { NEXRAD_CHUNK_SYMBOLOGY_LAYER, NEXRAD_CHUNK_SYMBOLOGY_PACKET },
-    { NEXRAD_CHUNK_GRAPHIC_BLOCK,   NEXRAD_CHUNK_GRAPHIC_PAGE     },
-    { NEXRAD_CHUNK_GRAPHIC_PAGE,    NEXRAD_CHUNK_GRAPHIC_PACKET   },
-    { NEXRAD_CHUNK_TABULAR_BLOCK,   NEXRAD_CHUNK_TABULAR_PAGE     },
-    { NEXRAD_CHUNK_TABULAR_PAGE,    NEXRAD_CHUNK_TABULAR_PACKET   }
+static enum nexrad_chunk_type_id nexrad_parent_chunk_types[] = {
+    /* none                          => */ 0,
+    /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ 0,
+    /* NEXRAD_CHUNK_GRAPHIC_BLOCK    => */ 0,
+    /* NEXRAD_CHUNK_TABULAR_BLOCK    => */ 0,
+    /* NEXRAD_CHUNK_SYMBOLOGY_LAYER  => */ NEXRAD_CHUNK_SYMBOLOGY_BLOCK,
+    /* NEXRAD_CHUNK_SYMBOLOGY_PACKET => */ NEXRAD_CHUNK_SYMBOLOGY_LAYER,
+    /* NEXRAD_CHUNK_GRAPHIC_PAGE     => */ NEXRAD_CHUNK_GRAPHIC_BLOCK,
+    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ NEXRAD_CHUNK_GRAPHIC_PAGE,
+    /* NEXRAD_CHUNK_TABULAR_PAGE     => */ NEXRAD_CHUNK_TABULAR_BLOCK,
+    /* NEXRAD_CHUNK_TABULAR_PACKET   => */ NEXRAD_CHUNK_TABULAR_PAGE
 };
 
 /*
@@ -76,14 +73,7 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
 
             return be16toh(header->size);
         }
-
-        default: {
-            goto error_unknown_type;
-        }
     }
-
-error_unknown_type:
-    return -1;
 
 error_bad_header:
     return -1;
