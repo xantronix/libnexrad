@@ -100,15 +100,27 @@ error_bad_header:
 
 nexrad_chunk_iterator *nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type) {
     nexrad_chunk_iterator *iterator;
+    size_t size;
+
+    if ((size = nexrad_chunk_size(chunk, type)) < 0) {
+        goto error_bad_chunk;
+    }
 
     if ((iterator = malloc(sizeof(*iterator))) == NULL) {
         goto error_malloc;
     }
 
-    iterator->parent_type_id = type;
-    iterator->child_type_id  = 
+    iterator->parent_type_id  = type;
+    iterator->child_type_id   = nexrad_child_chunk_types[type];
+    iterator->parent          = chunk;
+    iterator->first           = chunk + nexrad_chunk_header_sizes[type];
+    iterator->current         = NULL;
+    iterator->bytes_remaining = size;
+
+    return iterator;
 
 error_malloc:
+error_bad_chunk:
     return NULL;
 }
 

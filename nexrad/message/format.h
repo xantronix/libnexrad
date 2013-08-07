@@ -150,6 +150,11 @@ typedef struct _nexrad_tabular_block {
     uint16_t line_size; /* Number of characters per line */
 } nexrad_tabular_block;
 
+typedef struct _nexrad_tabular_page {
+    uint16_t page;
+    uint16_t size;
+} nexrad_tabular_page;
+
 #pragma pack(pop)
 
 #endif /* _NEXRAD_MESSAGE_FORMAT_H */
