@@ -25,6 +25,19 @@ static enum nexrad_chunk_type_id nexrad_parent_chunk_types[] = {
     /* NEXRAD_CHUNK_TABULAR_PACKET   => */ NEXRAD_CHUNK_TABULAR_PAGE
 };
 
+static enum nexrad_chunk_type_id nexrad_child_chunk_types[] = {
+    /* none                          => */ 0,
+    /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ NEXRAD_CHUNK_SYMBOLOGY_LAYER,
+    /* NEXRAD_CHUNK_GRAPHIC_BLOCK    => */ NEXRAD_CHUNK_GRAPHIC_PAGE,
+    /* NEXRAD_CHUNK_TABULAR_BLOCK    => */ NEXRAD_CHUNK_TABULAR_PAGE,
+    /* NEXRAD_CHUNK_SYMBOLOGY_LAYER  => */ NEXRAD_CHUNK_SYMBOLOGY_PACKET,
+    /* NEXRAD_CHUNK_SYMBOLOGY_PACKET => */ 0,
+    /* NEXRAD_CHUNK_GRAPHIC_PAGE     => */ NEXRAD_CHUNK_GRAPHIC_PACKET,
+    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ 0,
+    /* NEXRAD_CHUNK_TABULAR_PAGE     => */ NEXRAD_CHUNK_TABULAR_PACKET,
+    /* NEXRAD_CHUNK_TABULAR_PACKET   => */ 0
+};
+
 /*
  * A table corresponding to the IDs listed in enum nexrad_chunk_type_id which
  * allows quick lookup of product block header sizes.
@@ -86,7 +99,8 @@ nexrad_chunk_iterator *nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id 
         goto error_malloc;
     }
 
-    
+    iterator->parent_type_id = type;
+    iterator->child_type_id  = 
 
 error_malloc:
     return NULL;
