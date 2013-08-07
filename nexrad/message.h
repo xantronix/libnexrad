@@ -81,7 +81,6 @@ typedef struct _nexrad_chunk_iterator {
     void * parent;          /* The parent chunk */
     void * first;           /* The first chunk within the parent chunk */
     void * current;         /* The current chunk within the parent chunk */
-    int    count;           /* Number of chunks within the parent */
     size_t bytes_remaining; /* Number of bytes left in parent chunk */
 } nexrad_chunk_iterator;
 
