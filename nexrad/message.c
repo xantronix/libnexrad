@@ -40,13 +40,19 @@ static enum nexrad_chunk_type_id nexrad_child_chunk_types[] = {
 
 /*
  * A table corresponding to the IDs listed in enum nexrad_chunk_type_id which
- * allows quick lookup of product block header sizes.
+ * allows quick lookup of chunk header sizes.
  */
-static size_t nexrad_block_header_sizes[] = {
-    0,
-    sizeof(nexrad_symbology_block),
-    sizeof(nexrad_graphic_block),
-    sizeof(nexrad_tabular_block)
+static size_t nexrad_chunk_header_sizes[] = {
+    /* none => */ 0,
+    /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ sizeof(nexrad_symbology_block),
+    /* NEXRAD_CHUNK_GRAPHIC_BLOCK    => */ sizeof(nexrad_graphic_block),
+    /* NEXRAD_CHUNK_TABULAR_BLOCK    => */ sizeof(nexrad_tabular_block),
+    /* NEXRAD_CHUNK_SYMBOLOGY_LAYER  => */ sizeof(nexrad_symbology_layer),
+    /* NEXRAD_CHUNK_SYMBOLOGY_PACKET => */ sizeof(nexrad_packet_header),
+    /* NEXRAD_CHUNK_GRAPHIC_PAGE     => */ sizeof(nexrad_graphic_page),
+    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ sizeof(nexrad_packet_header),
+    /* NEXRAD_CHUNK_TABULAR_PAGE     => */ sizeof(nexrad_tabular_page),
+    /* NEXRAD_CHUNK_TABULAR_PACKET   => */ sizeof(nexrad_packet_header)
 };
 
 ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
@@ -58,10 +64,10 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
 
             if ((int16_t)be16toh(header->divider) != -1
               || be16toh(header->id)   != type
-              || be32toh(header->size) >= nexrad_block_header_sizes[type]
+              || be32toh(header->size) >= nexrad_chunk_header_sizes[type]
             ) goto error_bad_header;
 
-            return be32toh(header->size) - nexrad_block_header_sizes[type];
+            return be32toh(header->size) - nexrad_chunk_header_sizes[type];
         }
 
         case NEXRAD_CHUNK_SYMBOLOGY_PACKET:
