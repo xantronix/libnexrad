@@ -112,6 +112,19 @@ error_malloc:
     return NULL;
 }
 
+void nexrad_chunk_close(nexrad_chunk_iterator *iterator) {
+    if (iterator == NULL) return;
+
+    iterator->parent_type_id  = 0;
+    iterator->child_type_id   = 0;
+    iterator->parent          = NULL;
+    iterator->first           = NULL;
+    iterator->current         = NULL;
+    iterator->bytes_remaining = 0;
+
+    free(iterator);
+}
+
 static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }
