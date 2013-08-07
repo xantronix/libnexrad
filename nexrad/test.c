@@ -39,9 +39,9 @@ int main(int argc, char **argv) {
     printf("Offset to graphic block:       0x%lx\n", (void *)(message->graphic)        - (void *)(message->data));
     printf("Offset to tabular block:       0x%lx\n", (void *)(message->tabular)        - (void *)(message->data));
 
-    nexrad_tabular_block *block = message->tabular;
-
-    printf("Size of tabular block: %ld\n", nexrad_chunk_size(block, NEXRAD_CHUNK_TABULAR_BLOCK));
+    printf("Size of symbology block: %lu\n", nexrad_chunk_size(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK));
+    printf("Size of tabular block:   %lu\n", nexrad_chunk_size(message->tabular,   NEXRAD_CHUNK_TABULAR_BLOCK));
+    printf("Size of graphic block:   %lu\n", nexrad_chunk_size(message->graphic,   NEXRAD_CHUNK_GRAPHIC_BLOCK));
 
     nexrad_message_close(message);
 

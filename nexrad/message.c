@@ -28,6 +28,17 @@ static struct {
     { NEXRAD_CHUNK_TABULAR_PAGE,    NEXRAD_CHUNK_TABULAR_PACKET   }
 };
 
+/*
+ * A table corresponding to the IDs listed in enum nexrad_chunk_type_id which
+ * allows quick lookup of product block header sizes.
+ */
+static size_t nexrad_block_header_sizes[] = {
+    0,
+    sizeof(nexrad_symbology_block),
+    sizeof(nexrad_graphic_block),
+    sizeof(nexrad_tabular_block)
+};
+
 ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
     switch (type) {
         case NEXRAD_CHUNK_SYMBOLOGY_BLOCK:
@@ -38,7 +49,7 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
             if ((int16_t)be16toh(header->divider) != -1) goto error_bad_header;
             if (be16toh(header->id)      != type)        goto error_bad_header;
 
-            return be32toh(header->size);
+            return be32toh(header->size) - nexrad_block_header_sizes[type];
         }
 
         case NEXRAD_CHUNK_SYMBOLOGY_PACKET:
