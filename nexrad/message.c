@@ -124,6 +124,40 @@ error_bad_chunk:
     return NULL;
 }
 
+void *nexrad_chunk_read(nexrad_chunk_iterator *iterator, size_t *size) {
+    if (iterator == NULL) return NULL;
+
+    /*
+     * If there are no more bytes remaining, then return null.
+     */
+    if (iterator->bytes_remaining == 0) {
+        return NULL;
+    }
+
+    if (iterator->current == NULL) {
+        /*
+         * If the current iterator is null, then set it to the first.
+         */
+        iterator->current = iterator->first;
+    } else {
+        /*
+         * Otherwise, update the current chunk to a pointer after the previously
+         * set current.
+         */
+        iterator->current += nexrad_chunk_size(iterator->current, iterator->child_type_id);
+    }
+
+    /*
+     * Decrement the number of bytes remaining appropriately.
+     */
+    iterator->bytes_remaining -= nexrad_chunk_size(iterator->current, iterator->child_type_id);
+
+    /*
+     * Return the current chunk.
+     */
+    return iterator->current;
+}
+
 void nexrad_chunk_close(nexrad_chunk_iterator *iterator) {
     if (iterator == NULL) return;
 
