@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 
     nexrad_tabular_block *block = message->tabular;
 
-    printf("Block ID: %d\n", be16toh(block->header.id));
+    printf("Size of tabular block: %ld\n", nexrad_chunk_size(block, NEXRAD_CHUNK_TABULAR_BLOCK));
 
     nexrad_message_close(message);
 

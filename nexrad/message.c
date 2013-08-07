@@ -35,8 +35,8 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
         case NEXRAD_CHUNK_TABULAR_BLOCK: {
             nexrad_block_header *header = chunk;
 
-            if (be16toh(header->divider) != -1)   goto error_bad_header;
-            if (be16toh(header->id)      != type) goto error_bad_header;
+            if ((int16_t)be16toh(header->divider) != -1) goto error_bad_header;
+            if (be16toh(header->id)      != type)        goto error_bad_header;
 
             return be32toh(header->size);
         }
@@ -52,7 +52,7 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
         case NEXRAD_CHUNK_SYMBOLOGY_LAYER: {
             nexrad_symbology_layer *header = chunk;
 
-            if (be16toh(header->divider) != -1) goto error_bad_header;
+            if ((int16_t)be16toh(header->divider) != -1) goto error_bad_header;
 
             return be16toh(header->size);
         }
