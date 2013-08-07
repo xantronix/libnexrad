@@ -60,17 +60,6 @@ typedef struct _nexrad_message {
     nexrad_symbology_block *     symbology;
     nexrad_graphic_block *       graphic;
     nexrad_tabular_block *       tabular;
-
-    /*
-     * Attributes to keep track of product message parts while reading
-     * incrementally
-     */
-    nexrad_symbology_layer * current_symbology_layer;
-    nexrad_graphic_page *    current_graphic_page;
-
-    nexrad_packet * current_symbology_packet;
-    nexrad_packet * current_graphic_packet;
-    nexrad_packet * current_tabular_packet;
 } nexrad_message;
 
 enum nexrad_chunk_type_id {
@@ -103,9 +92,11 @@ nexrad_message * nexrad_message_open(const char *path);
 void             nexrad_message_close(nexrad_message *message);
 
 /*
- * Methods for reading product packets
+ * Generic interface for reading radar product data chunks
  */
-nexrad_symbology_layer *nexrad_read_symbology_layer(nexrad_message *message, size_t *size);
+nexrad_chunk_iterator * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
+void *                  nexrad_chunk_read(nexrad_chunk_iterator *chunk, size_t *size);
+void                    nexrad_chunk_close(nexrad_chunk_iterator *iterator);
 
 #pragma pack(pop)
 
