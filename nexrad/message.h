@@ -96,12 +96,6 @@ void             nexrad_message_close(nexrad_message *message);
  */
 nexrad_symbology_layer *nexrad_read_symbology_layer(nexrad_message *message, size_t *size);
 
-nexrad_packet * nexrad_message_read_symbology_packet(nexrad_message *message, size_t *size);
-nexrad_packet * nexrad_message_read_graphic_packet(nexrad_message *message, size_t *size);
-nexrad_packet * nexrad_message_read_tabular_packet(nexrad_message *message, size_t *size);
-
-nexrad_packet_type * nexrad_packet_lookup_type(nexrad_packet *packet);
-
 #pragma pack(pop)
 
 #endif /* _NEXRAD_MESSAGE_H */
