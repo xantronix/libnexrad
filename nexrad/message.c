@@ -12,6 +12,10 @@
 
 #define nexrad_block_after(data, prev) ((void *)(data) + sizeof(prev))
 
+/*
+ * A table of parent/child container type assocations to assist in the generic
+ * parsing of radar product data structures in-place.
+ */
 static struct {
     enum nexrad_chunk_type_id parent;
     enum nexrad_chunk_type_id child;
@@ -23,6 +27,67 @@ static struct {
     { NEXRAD_CHUNK_TABULAR_BLOCK,   NEXRAD_CHUNK_TABULAR_PAGE     },
     { NEXRAD_CHUNK_TABULAR_PAGE,    NEXRAD_CHUNK_TABULAR_PACKET   }
 };
+
+ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
+    switch (type) {
+        case NEXRAD_CHUNK_SYMBOLOGY_BLOCK:
+        case NEXRAD_CHUNK_GRAPHIC_BLOCK:
+        case NEXRAD_CHUNK_TABULAR_BLOCK: {
+            nexrad_block_header *header = chunk;
+
+            if (be16toh(header->divider) != -1)   goto error_bad_header;
+            if (be16toh(header->id)      != type) goto error_bad_header;
+
+            return be32toh(header->size);
+        }
+
+        case NEXRAD_CHUNK_SYMBOLOGY_PACKET:
+        case NEXRAD_CHUNK_GRAPHIC_PACKET:
+        case NEXRAD_CHUNK_TABULAR_PACKET: {
+            nexrad_packet_header *header = chunk;
+
+            return be16toh(header->size);
+        }
+
+        case NEXRAD_CHUNK_SYMBOLOGY_LAYER: {
+            nexrad_symbology_layer *header = chunk;
+
+            if (be16toh(header->divider) != -1) goto error_bad_header;
+
+            return be16toh(header->size);
+        }
+
+        case NEXRAD_CHUNK_GRAPHIC_PAGE:
+        case NEXRAD_CHUNK_TABULAR_PAGE: {
+            nexrad_graphic_page *header = chunk;
+
+            return be16toh(header->size);
+        }
+
+        default: {
+            goto error_unknown_type;
+        }
+    }
+
+error_unknown_type:
+    return -1;
+
+error_bad_header:
+    return -1;
+}
+
+nexrad_chunk_iterator *nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type) {
+    nexrad_chunk_iterator *iterator;
+
+    if ((iterator = malloc(sizeof(*iterator))) == NULL) {
+        goto error_malloc;
+    }
+
+    
+
+error_malloc:
+    return NULL;
+}
 
 static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
@@ -142,10 +207,6 @@ nexrad_message *nexrad_message_open(const char *path) {
     message->page_size   = (size_t)sysconf(_SC_PAGESIZE);
     message->mapped_size = _mapped_size(st.st_size, message->page_size);
 
-    message->current_symbology_packet = NULL;
-    message->current_graphic_packet   = NULL;
-    message->current_tabular_packet   = NULL;
-
     if ((message->fd = open(path, O_RDONLY)) < 0) {
         goto error_open;
     }
@@ -200,10 +261,6 @@ void nexrad_message_close(nexrad_message *message) {
     message->symbology      = NULL;
     message->graphic        = NULL;
     message->tabular        = NULL;
-
-    message->current_symbology_packet = NULL;
-    message->current_graphic_packet   = NULL;
-    message->current_tabular_packet   = NULL;
 
     free(message);
 

@@ -63,13 +63,14 @@ typedef struct _nexrad_message {
 } nexrad_message;
 
 enum nexrad_chunk_type_id {
-    NEXRAD_CHUNK_SYMBOLOGY_BLOCK,
+    NEXRAD_CHUNK_SYMBOLOGY_BLOCK = 1,
+    NEXRAD_CHUNK_GRAPHIC_BLOCK   = 2,
+    NEXRAD_CHUNK_TABULAR_BLOCK   = 3,
+
     NEXRAD_CHUNK_SYMBOLOGY_LAYER,
     NEXRAD_CHUNK_SYMBOLOGY_PACKET,
-    NEXRAD_CHUNK_GRAPHIC_BLOCK,
     NEXRAD_CHUNK_GRAPHIC_PAGE,
     NEXRAD_CHUNK_GRAPHIC_PACKET,
-    NEXRAD_CHUNK_TABULAR_BLOCK,
     NEXRAD_CHUNK_TABULAR_PAGE,
     NEXRAD_CHUNK_TABULAR_PACKET
 };
@@ -94,6 +95,7 @@ void             nexrad_message_close(nexrad_message *message);
 /*
  * Generic interface for reading radar product data chunks
  */
+ssize_t                 nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type);
 nexrad_chunk_iterator * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
 void *                  nexrad_chunk_read(nexrad_chunk_iterator *chunk, size_t *size);
 void                    nexrad_chunk_close(nexrad_chunk_iterator *iterator);
