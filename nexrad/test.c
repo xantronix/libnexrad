@@ -15,6 +15,7 @@ static void usage(int argc, char **argv) {
 int main(int argc, char **argv) {
     nexrad_message *message;
     nexrad_chunk *chunk;
+    size_t size;
 
     if (argc != 2) {
         usage(argc, argv);
@@ -28,6 +29,10 @@ int main(int argc, char **argv) {
     if ((chunk = nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK)) == NULL) {
         perror("nexrad_chunk_open()");
         exit(1);
+    }
+
+    while (nexrad_chunk_read(chunk, &size)) {
+        fprintf(stderr, "Got a chunk!\n");
     }
 
     nexrad_chunk_close(chunk);

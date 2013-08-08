@@ -68,7 +68,7 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
                 goto error_bad_header;
             }
 
-            return be32toh(header->size) - nexrad_chunk_header_sizes[type];
+            return be32toh(header->size);
         }
 
         case NEXRAD_CHUNK_SYMBOLOGY_PACKET:
@@ -76,7 +76,7 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
         case NEXRAD_CHUNK_TABULAR_PACKET: {
             nexrad_packet_header *header = chunk;
 
-            return be16toh(header->size);
+            return be16toh(header->size) + nexrad_chunk_header_sizes[type];
         }
 
         case NEXRAD_CHUNK_SYMBOLOGY_LAYER: {
@@ -84,14 +84,14 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
 
             if ((int16_t)be16toh(header->divider) != -1) goto error_bad_header;
 
-            return be16toh(header->size);
+            return be32toh(header->size) + nexrad_chunk_header_sizes[type];
         }
 
         case NEXRAD_CHUNK_GRAPHIC_PAGE:
         case NEXRAD_CHUNK_TABULAR_PAGE: {
             nexrad_graphic_page *header = chunk;
 
-            return be16toh(header->size);
+            return be16toh(header->size) + nexrad_chunk_header_sizes[type];
         }
     }
 
@@ -116,7 +116,7 @@ nexrad_chunk *nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type) {
     iterator->parent          = chunk;
     iterator->first           = chunk + nexrad_chunk_header_sizes[type];
     iterator->current         = NULL;
-    iterator->bytes_remaining = size;
+    iterator->bytes_remaining = size - nexrad_chunk_header_sizes[type];
 
     return iterator;
 
@@ -126,6 +126,8 @@ error_bad_chunk:
 }
 
 void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *size) {
+    size_t chunk_size;
+
     if (iterator == NULL) return NULL;
 
     /*
@@ -140,18 +142,26 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *size) {
          * If the current chunk is null, then set it to the first.
          */
         iterator->current = iterator->first;
+
+        chunk_size = nexrad_chunk_size(iterator->current, iterator->child_type_id);
     } else {
         /*
          * Otherwise, update the current chunk to a pointer after the previously
          * set current.
          */
-        iterator->current += nexrad_chunk_size(iterator->current, iterator->child_type_id);
+        chunk_size = nexrad_chunk_size(iterator->current, iterator->child_type_id);
+
+        iterator->current += chunk_size;
+    }
+
+    if (size != NULL) {
+        *size = chunk_size;
     }
 
     /*
      * Decrement the number of bytes remaining appropriately.
      */
-    iterator->bytes_remaining -= nexrad_chunk_size(iterator->current, iterator->child_type_id);
+    iterator->bytes_remaining -= chunk_size;
 
     /*
      * Return the current chunk.
