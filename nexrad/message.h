@@ -74,7 +74,7 @@ enum nexrad_chunk_type_id {
     NEXRAD_CHUNK_TABULAR_PACKET   = 9
 };
 
-typedef struct _nexrad_chunk_iterator {
+typedef struct _nexrad_chunk {
     enum nexrad_chunk_type_id parent_type_id;
     enum nexrad_chunk_type_id child_type_id;
 
@@ -82,7 +82,7 @@ typedef struct _nexrad_chunk_iterator {
     void * first;           /* The first chunk within the parent chunk */
     void * current;         /* The current chunk within the parent chunk */
     size_t bytes_remaining; /* Number of bytes left in parent chunk */
-} nexrad_chunk_iterator;
+} nexrad_chunk;
 
 /*
  * Methods for facilitating file I/O
@@ -93,10 +93,10 @@ void             nexrad_message_close(nexrad_message *message);
 /*
  * Generic interface for reading radar product data chunks
  */
-ssize_t                 nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type);
-nexrad_chunk_iterator * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
-void *                  nexrad_chunk_read(nexrad_chunk_iterator *chunk, size_t *size);
-void                    nexrad_chunk_close(nexrad_chunk_iterator *iterator);
+ssize_t        nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type);
+nexrad_chunk * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
+void *         nexrad_chunk_read(nexrad_chunk *chunk, size_t *size);
+void           nexrad_chunk_close(nexrad_chunk *chunk);
 
 #pragma pack(pop)
 
