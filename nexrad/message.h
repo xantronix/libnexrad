@@ -75,13 +75,10 @@ enum nexrad_chunk_type_id {
 };
 
 typedef struct _nexrad_chunk {
-    enum nexrad_chunk_type_id parent_type_id;
-    enum nexrad_chunk_type_id child_type_id;
+    enum nexrad_chunk_type_id type;
 
-    void * parent;          /* The parent chunk */
-    void * first;           /* The first chunk within the parent chunk */
-    void * current;         /* The current chunk within the parent chunk */
-    size_t bytes_remaining; /* Number of bytes left in parent chunk */
+    void * current;    /* The current chunk within the parent chunk */
+    size_t bytes_left; /* Number of bytes left in parent chunk */
 } nexrad_chunk;
 
 /*
@@ -93,7 +90,6 @@ void             nexrad_message_close(nexrad_message *message);
 /*
  * Generic interface for reading radar product data chunks
  */
-ssize_t        nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type);
 nexrad_chunk * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
 void *         nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, void **body);
 void           nexrad_chunk_close(nexrad_chunk *iterator);

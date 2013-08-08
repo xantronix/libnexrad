@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 #include <endian.h>
 
 #include <nexrad/message.h>
@@ -32,6 +33,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    fprintf(stderr, "Opened symbology block, %lu bytes left to read\n", symbology_reader->bytes_left);
+
     while ((layer = nexrad_chunk_read(symbology_reader, NULL, NULL)) != NULL) {
         nexrad_chunk *  layer_reader;
         nexrad_packet * packet;
@@ -41,8 +44,14 @@ int main(int argc, char **argv) {
             exit(1);
         }
 
-        while ((packet = nexrad_chunk_read(layer_reader, NULL, NULL)) != NULL) {
-            printf("Wee, read a packet!\n");
+        fprintf(stderr, "Opened symbology layer, %lu bytes left to read\n", layer_reader->bytes_left);
+
+        size_t size;
+        void *data;
+
+        while ((packet = nexrad_chunk_read(layer_reader, &size, &data)) != NULL) {
+            //printf("Read %lu byte packet\n", size);
+            write(1, data, size);
         }
 
         nexrad_chunk_close(layer_reader);
