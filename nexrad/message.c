@@ -64,8 +64,9 @@ ssize_t nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
 
             if ((int16_t)be16toh(header->divider) != -1
               || be16toh(header->id)   != type
-              || be32toh(header->size) >= nexrad_chunk_header_sizes[type]
-            ) goto error_bad_header;
+              || be32toh(header->size) <= nexrad_chunk_header_sizes[type]) {
+                goto error_bad_header;
+            }
 
             return be32toh(header->size) - nexrad_chunk_header_sizes[type];
         }
