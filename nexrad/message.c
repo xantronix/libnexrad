@@ -354,3 +354,24 @@ void nexrad_message_close(nexrad_message *message) {
 
     return;
 }
+
+nexrad_chunk *nexrad_symbology_block_open(nexrad_message *message) {
+    return nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK);
+}
+
+nexrad_chunk *nexrad_symbology_block_read_layer(nexrad_chunk *block) {
+    void *data;
+
+    if (nexrad_chunk_read(block, NULL, NULL, &data) == NULL) {
+        goto error_chunk_read;
+    }
+
+    return nexrad_chunk_open(data, NEXRAD_CHUNK_SYMBOLOGY_LAYER);
+
+error_chunk_read:
+    return NULL;
+}
+
+nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer) {
+    return nexrad_chunk_read(layer, NULL, NULL, NULL);
+}
