@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    while (nexrad_chunk_read(chunk, &size)) {
+    while (nexrad_chunk_read(chunk, &size, NULL)) {
         fprintf(stderr, "Got a chunk!\n");
     }
 

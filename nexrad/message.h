@@ -95,7 +95,7 @@ void             nexrad_message_close(nexrad_message *message);
  */
 ssize_t        nexrad_chunk_size(void *chunk, enum nexrad_chunk_type_id type);
 nexrad_chunk * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
-void *         nexrad_chunk_read(nexrad_chunk *iterator, size_t *size);
+void *         nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, void **body);
 void           nexrad_chunk_close(nexrad_chunk *iterator);
 
 #pragma pack(pop)
