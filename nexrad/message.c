@@ -113,10 +113,10 @@ error_bad_chunk:
     return NULL;
 }
 
-void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, void **body) {
+void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, void **data) {
     size_t chunk_size;
     size_t header_size = nexrad_chunk_header_sizes[iterator->type];
-    void *data;
+    void *ret;
 
     if (iterator == NULL) return NULL;
 
@@ -128,7 +128,7 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, void **body) {
     }
 
     chunk_size = find_chunk_size(iterator->current, iterator->type);
-    data       = iterator->current;
+    ret        = iterator->current;
 
     iterator->current += chunk_size + header_size;
 
@@ -146,17 +146,17 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, void **body) {
     }
 
     /*
-     * If a pointer was provided to store the chunk data body address in, then
+     * If a pointer was provided to store the chunk data address in, then
      * provide that value as well.
      */
-    if (body != NULL) {
-        *body = iterator->current + nexrad_chunk_header_sizes[iterator->type];
+    if (data != NULL) {
+        *data = iterator->current + nexrad_chunk_header_sizes[iterator->type];
     }
 
     /*
      * Return the requested chunk.
      */
-    return data;
+    return ret;
 }
 
 void nexrad_chunk_close(nexrad_chunk *iterator) {
