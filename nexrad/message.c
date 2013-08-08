@@ -80,6 +80,10 @@ static ssize_t find_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
 
             return be16toh(header->size);
         }
+
+        case NEXRAD_CHUNK_UNKNOWN: {
+            break;
+        }
     }
 
 error_bad_header:
