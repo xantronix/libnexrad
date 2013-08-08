@@ -1,5 +1,5 @@
 CC	= cc
-CFLAGS	= -g -std=c99 -fno-inline -Wall -O2 -I..
+CFLAGS	= -g -fno-inline -Wall -O2 -I..
 LDFLAGS	=
 HEADERS	= message.h message/format.h types.h
 OBJS	= message.o test.o
