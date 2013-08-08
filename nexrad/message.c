@@ -12,19 +12,6 @@
 
 #define nexrad_block_after(data, prev) ((void *)(data) + sizeof(prev))
 
-static enum nexrad_chunk_type_id nexrad_parent_chunk_types[] = {
-    /* none                          => */ 0,
-    /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ 0,
-    /* NEXRAD_CHUNK_GRAPHIC_BLOCK    => */ 0,
-    /* NEXRAD_CHUNK_TABULAR_BLOCK    => */ 0,
-    /* NEXRAD_CHUNK_SYMBOLOGY_LAYER  => */ NEXRAD_CHUNK_SYMBOLOGY_BLOCK,
-    /* NEXRAD_CHUNK_SYMBOLOGY_PACKET => */ NEXRAD_CHUNK_SYMBOLOGY_LAYER,
-    /* NEXRAD_CHUNK_GRAPHIC_PAGE     => */ NEXRAD_CHUNK_GRAPHIC_BLOCK,
-    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ NEXRAD_CHUNK_GRAPHIC_PAGE,
-    /* NEXRAD_CHUNK_TABULAR_PAGE     => */ NEXRAD_CHUNK_TABULAR_BLOCK,
-    /* NEXRAD_CHUNK_TABULAR_PACKET   => */ NEXRAD_CHUNK_TABULAR_PAGE
-};
-
 static enum nexrad_chunk_type_id nexrad_child_chunk_types[] = {
     /* none                          => */ 0,
     /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ NEXRAD_CHUNK_SYMBOLOGY_LAYER,
