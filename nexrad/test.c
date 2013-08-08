@@ -14,8 +14,6 @@ static void usage(int argc, char **argv) {
 
 int main(int argc, char **argv) {
     nexrad_message *message;
-    nexrad_chunk *chunk;
-    size_t size;
 
     if (argc != 2) {
         usage(argc, argv);
@@ -26,16 +24,32 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    if ((chunk = nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK)) == NULL) {
+    nexrad_chunk *           symbology_reader;
+    nexrad_symbology_layer * layer;
+
+    if ((symbology_reader = nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK)) == NULL) {
         perror("nexrad_chunk_open()");
         exit(1);
     }
 
-    while (nexrad_chunk_read(chunk, &size, NULL)) {
-        fprintf(stderr, "Got a chunk!\n");
+    while ((layer = nexrad_chunk_read(symbology_reader, NULL, NULL)) != NULL) {
+        nexrad_chunk *  layer_reader;
+        nexrad_packet * packet;
+
+        if ((layer_reader = nexrad_chunk_open(layer, NEXRAD_CHUNK_SYMBOLOGY_LAYER)) == NULL) {
+            perror("nexrad_chunk_open()");
+            exit(1);
+        }
+
+        while ((packet = nexrad_chunk_read(layer_reader, NULL, NULL)) != NULL) {
+            printf("Wee, read a packet!\n");
+        }
+
+        nexrad_chunk_close(layer_reader);
     }
 
-    nexrad_chunk_close(chunk);
+    nexrad_chunk_close(symbology_reader);
+
     nexrad_message_close(message);
 
     return 0;
