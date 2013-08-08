@@ -107,7 +107,7 @@ nexrad_chunk *nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type) {
         goto error_bad_chunk;
     }
 
-    if ((chunk = malloc(sizeof(*chunk))) == NULL) {
+    if ((iterator = malloc(sizeof(*iterator))) == NULL) {
         goto error_malloc;
     }
 
