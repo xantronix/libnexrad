@@ -95,6 +95,27 @@ nexrad_chunk * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
 void *         nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data);
 void           nexrad_chunk_close(nexrad_chunk *iterator);
 
+/*
+ * Specialized interface for reading product symbology data
+ */
+nexrad_chunk *  nexrad_symbology_block_open(nexrad_message *message);
+nexrad_chunk *  nexrad_symbology_block_read_layer(nexrad_chunk *block);
+nexrad_packet * nexrad_symbology_layer_read_packet(nexrad_chunk *layer);
+void            nexrad_symbology_layer_close(nexrad_chunk *layer);
+void            nexrad_symbology_block_close(nexrad_chunk *block);
+
+nexrad_chunk *  nexrad_graphic_block_open(nexrad_message *message);
+nexrad_chunk *  nexrad_graphic_block_read_page(nexrad_chunk *block);
+nexrad_packet * nexrad_graphic_page_read_packet(nexrad_chunk *page);
+void            nexrad_graphic_page_close(nexrad_chunk *page);
+void            nexrad_graphic_block_close(nexrad_chunk *block);
+
+nexrad_chunk *  nexrad_tabular_block_open(nexrad_message *message);
+nexrad_chunk *  nexrad_tabular_block_read_page(nexrad_chunk *block);
+nexrad_packet * nexrad_tabular_page_read_packet(nexrad_chunk *page);
+void            nexrad_tabular_page_close(nexrad_chunk *page);
+void            nexrad_tabular_block_close(nexrad_chunk *block);
+
 #pragma pack(pop)
 
 #endif /* _NEXRAD_MESSAGE_H */
