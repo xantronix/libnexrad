@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
     fprintf(stderr, "Opened symbology block, %lu bytes left to read\n", symbology_reader->bytes_left);
 
-    while ((layer = nexrad_chunk_read(symbology_reader, NULL, NULL)) != NULL) {
+    while ((layer = nexrad_chunk_read(symbology_reader, NULL, NULL, NULL)) != NULL) {
         nexrad_chunk *  layer_reader;
         nexrad_packet * packet;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
         size_t size;
         void *data;
 
-        while ((packet = nexrad_chunk_read(layer_reader, &size, &data)) != NULL) {
+        while ((packet = nexrad_chunk_read(layer_reader, NULL, &size, &data)) != NULL) {
             //printf("Read %lu byte packet\n", size);
             write(1, data, size);
         }
