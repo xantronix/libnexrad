@@ -355,23 +355,75 @@ void nexrad_message_close(nexrad_message *message) {
     return;
 }
 
-nexrad_chunk *nexrad_symbology_block_open(nexrad_message *message) {
-    return nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK);
-}
-
-nexrad_chunk *nexrad_symbology_block_read_layer(nexrad_chunk *block) {
+static nexrad_chunk *block_read_layer(nexrad_chunk *block, enum nexrad_chunk_type_id type) {
     void *data;
 
     if (nexrad_chunk_read(block, NULL, NULL, &data) == NULL) {
         goto error_chunk_read;
     }
 
-    return nexrad_chunk_open(data, NEXRAD_CHUNK_SYMBOLOGY_LAYER);
+    return nexrad_chunk_open(data, type);
 
 error_chunk_read:
     return NULL;
 }
 
+nexrad_chunk *nexrad_symbology_block_open(nexrad_message *message) {
+    return nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK);
+}
+
+nexrad_chunk *nexrad_symbology_block_read_layer(nexrad_chunk *block) {
+    return block_read_layer(block, NEXRAD_CHUNK_SYMBOLOGY_LAYER);
+}
+
 nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer) {
     return nexrad_chunk_read(layer, NULL, NULL, NULL);
+}
+
+void nexrad_symbology_layer_close(nexrad_chunk *layer) {
+    nexrad_chunk_close(layer);
+}
+
+void nexrad_symbology_block_close(nexrad_chunk *block) {
+    nexrad_chunk_close(block);
+}
+
+nexrad_chunk *nexrad_graphic_block_open(nexrad_message *message) {
+    return nexrad_chunk_open(message->graphic, NEXRAD_CHUNK_GRAPHIC_BLOCK);
+}
+
+nexrad_chunk *nexrad_graphic_block_read_page(nexrad_chunk *block) {
+    return block_read_layer(block, NEXRAD_CHUNK_GRAPHIC_PAGE);
+}
+
+nexrad_packet *nexrad_graphic_page_read_packet(nexrad_chunk *page) {
+    return nexrad_chunk_read(page, NULL, NULL, NULL);
+}
+
+void nexrad_graphic_page_close(nexrad_chunk *page) {
+    nexrad_chunk_close(page);
+}
+
+void nexrad_graphic_block_close(nexrad_chunk *block) {
+    nexrad_chunk_close(block);
+}
+
+nexrad_chunk *nexrad_tabular_block_open(nexrad_message *message) {
+    return nexrad_chunk_open(message->tabular, NEXRAD_CHUNK_TABULAR_BLOCK);
+}
+
+nexrad_chunk *nexrad_tabular_block_read_page(nexrad_chunk *block) {
+    return block_read_layer(block, NEXRAD_CHUNK_TABULAR_PAGE);
+}
+
+nexrad_packet *nexrad_tabular_page_read_packet(nexrad_chunk *page) {
+    return nexrad_chunk_read(page, NULL, NULL, NULL);
+}
+
+void nexrad_tabular_page_close(nexrad_chunk *page) {
+    nexrad_chunk_close(page);
+}
+
+void nexrad_tabular_block_close(nexrad_chunk *block) {
+    nexrad_chunk_close(block);
 }
