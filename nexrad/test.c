@@ -25,39 +25,33 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    nexrad_chunk *           symbology_reader;
-    nexrad_symbology_layer * layer;
+    nexrad_chunk *block;
+    nexrad_chunk *layer;
 
-    if ((symbology_reader = nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK)) == NULL) {
+    if ((block = nexrad_symbology_block_open(message)) == NULL) {
         perror("nexrad_chunk_open()");
         exit(1);
     }
 
-    fprintf(stderr, "Opened symbology block, %lu bytes left to read\n", symbology_reader->bytes_left);
+    fprintf(stderr, "Opened symbology block, %lu bytes left to read\n", block->bytes_left);
 
-    while ((layer = nexrad_chunk_read(symbology_reader, NULL, NULL, NULL)) != NULL) {
-        nexrad_chunk *  layer_reader;
+    while ((layer = nexrad_symbology_block_read_layer(block)) != NULL) {
         nexrad_packet * packet;
 
-        if ((layer_reader = nexrad_chunk_open(layer, NEXRAD_CHUNK_SYMBOLOGY_LAYER)) == NULL) {
-            perror("nexrad_chunk_open()");
-            exit(1);
-        }
-
-        fprintf(stderr, "Opened symbology layer, %lu bytes left to read\n", layer_reader->bytes_left);
+        fprintf(stderr, "Opened symbology layer, %lu bytes left to read\n", layer->bytes_left);
 
         size_t size;
         void *data;
 
-        while ((packet = nexrad_chunk_read(layer_reader, NULL, &size, &data)) != NULL) {
-            //printf("Read %lu byte packet\n", size);
+        while ((packet = nexrad_symbology_layer_read_packet(layer, NULL, &size, &data)) != NULL) {
+            fprintf(stderr, "Read %lu byte packet\n", size);
             write(1, data, size);
         }
 
-        nexrad_chunk_close(layer_reader);
+        nexrad_symbology_layer_close(layer);
     }
 
-    nexrad_chunk_close(symbology_reader);
+    nexrad_symbology_block_close(block);
 
     nexrad_message_close(message);
 

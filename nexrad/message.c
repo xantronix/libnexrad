@@ -356,13 +356,13 @@ void nexrad_message_close(nexrad_message *message) {
 }
 
 static nexrad_chunk *block_read_layer(nexrad_chunk *block, enum nexrad_chunk_type_id type) {
-    void *data;
+    void *layer;
 
-    if (nexrad_chunk_read(block, NULL, NULL, &data) == NULL) {
+    if ((layer = nexrad_chunk_read(block, NULL, NULL, NULL)) == NULL) {
         goto error_chunk_read;
     }
 
-    return nexrad_chunk_open(data, type);
+    return nexrad_chunk_open(layer, type);
 
 error_chunk_read:
     return NULL;
@@ -376,8 +376,8 @@ nexrad_chunk *nexrad_symbology_block_read_layer(nexrad_chunk *block) {
     return block_read_layer(block, NEXRAD_CHUNK_SYMBOLOGY_LAYER);
 }
 
-nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer) {
-    return nexrad_chunk_read(layer, NULL, NULL, NULL);
+nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *total_size, size_t *data_size, void **data) {
+    return nexrad_chunk_read(layer, total_size, data_size, data);
 }
 
 void nexrad_symbology_layer_close(nexrad_chunk *layer) {
@@ -396,8 +396,8 @@ nexrad_chunk *nexrad_graphic_block_read_page(nexrad_chunk *block) {
     return block_read_layer(block, NEXRAD_CHUNK_GRAPHIC_PAGE);
 }
 
-nexrad_packet *nexrad_graphic_page_read_packet(nexrad_chunk *page) {
-    return nexrad_chunk_read(page, NULL, NULL, NULL);
+nexrad_packet *nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *total_size, size_t *data_size, void **data) {
+    return nexrad_chunk_read(page, total_size, data_size, data);
 }
 
 void nexrad_graphic_page_close(nexrad_chunk *page) {
@@ -416,8 +416,8 @@ nexrad_chunk *nexrad_tabular_block_read_page(nexrad_chunk *block) {
     return block_read_layer(block, NEXRAD_CHUNK_TABULAR_PAGE);
 }
 
-nexrad_packet *nexrad_tabular_page_read_packet(nexrad_chunk *page) {
-    return nexrad_chunk_read(page, NULL, NULL, NULL);
+nexrad_packet *nexrad_tabular_page_read_packet(nexrad_chunk *page, size_t *total_size, size_t *data_size, void **data) {
+    return nexrad_chunk_read(page, total_size, data_size, data);
 }
 
 void nexrad_tabular_page_close(nexrad_chunk *page) {
