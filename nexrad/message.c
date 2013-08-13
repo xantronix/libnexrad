@@ -76,7 +76,7 @@ static ssize_t find_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
 
         case NEXRAD_CHUNK_GRAPHIC_PAGE:
         case NEXRAD_CHUNK_TABULAR_PAGE: {
-            nexrad_graphic_page *header = chunk;
+            nexrad_page *header = chunk;
 
             return be16toh(header->size);
         }

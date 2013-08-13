@@ -125,10 +125,13 @@ typedef struct _nexrad_graphic_block {
     uint16_t pages;   /* Number of alphanumeric pages */
 } nexrad_graphic_block;
 
-typedef struct _nexrad_graphic_page {
+typedef struct _nexrad_page {
     uint16_t page;
     uint16_t size;
-} nexrad_graphic_page;
+} nexrad_page;
+
+typedef struct _nexrad_page nexrad_graphic_page;
+typedef struct _nexrad_page nexrad_tabular_page;
 
 typedef struct _nexrad_tabular_block {
     nexrad_block_header header;
@@ -149,11 +152,6 @@ typedef struct _nexrad_tabular_block {
     uint16_t pages;     /* Number of pages to follow */
     uint16_t line_size; /* Number of characters per line */
 } nexrad_tabular_block;
-
-typedef struct _nexrad_tabular_page {
-    uint16_t page;
-    uint16_t size;
-} nexrad_tabular_page;
 
 #pragma pack(pop)
 
