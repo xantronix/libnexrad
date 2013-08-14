@@ -79,6 +79,14 @@ typedef struct _nexrad_symbology_layer {
     uint32_t size;    /* Size of data to follow */
 } nexrad_symbology_layer;
 
+typedef struct _nexrad_page {
+    uint16_t page;
+    uint16_t size;
+} nexrad_page;
+
+typedef struct _nexrad_page nexrad_graphic_page;
+typedef struct _nexrad_page nexrad_tabular_page;
+
 typedef struct _nexrad_packet_header {
     uint16_t code;
     uint16_t size;
@@ -119,19 +127,8 @@ typedef struct _nexrad_vector_packet {
 typedef struct _nexrad_graphic_block {
     nexrad_block_header header;
 
-     int16_t divider; /* Block divider (-1) */
-    uint16_t id;      /* Block ID (2) */
-    uint32_t size;    /* Size of block (inclusive) */
-    uint16_t pages;   /* Number of alphanumeric pages */
+    uint16_t pages; /* Number of alphanumeric pages */
 } nexrad_graphic_block;
-
-typedef struct _nexrad_page {
-    uint16_t page;
-    uint16_t size;
-} nexrad_page;
-
-typedef struct _nexrad_page nexrad_graphic_page;
-typedef struct _nexrad_page nexrad_tabular_page;
 
 typedef struct _nexrad_tabular_block {
     nexrad_block_header header;
