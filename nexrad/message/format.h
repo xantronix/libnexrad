@@ -79,13 +79,10 @@ typedef struct _nexrad_symbology_layer {
     uint32_t size;    /* Size of data to follow */
 } nexrad_symbology_layer;
 
-typedef struct _nexrad_page {
+typedef struct _nexrad_graphic_page {
     uint16_t page;
     uint16_t size;
-} nexrad_page;
-
-typedef struct _nexrad_page nexrad_graphic_page;
-typedef struct _nexrad_page nexrad_tabular_page;
+} nexrad_graphic_page;
 
 typedef struct _nexrad_packet_header {
     uint16_t code;

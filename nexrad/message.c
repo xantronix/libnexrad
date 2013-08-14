@@ -16,13 +16,11 @@ static enum nexrad_chunk_type_id nexrad_chunk_child_types[] = {
     /* none                          => */ 0,
     /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ NEXRAD_CHUNK_SYMBOLOGY_LAYER,
     /* NEXRAD_CHUNK_GRAPHIC_BLOCK    => */ NEXRAD_CHUNK_GRAPHIC_PAGE,
-    /* NEXRAD_CHUNK_TABULAR_BLOCK    => */ NEXRAD_CHUNK_TABULAR_PAGE,
+    /* NEXRAD_CHUNK_TABULAR_BLOCK    => */ 0,
     /* NEXRAD_CHUNK_SYMBOLOGY_LAYER  => */ NEXRAD_CHUNK_SYMBOLOGY_PACKET,
     /* NEXRAD_CHUNK_SYMBOLOGY_PACKET => */ 0,
     /* NEXRAD_CHUNK_GRAPHIC_PAGE     => */ NEXRAD_CHUNK_GRAPHIC_PACKET,
-    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ 0,
-    /* NEXRAD_CHUNK_TABULAR_PAGE     => */ NEXRAD_CHUNK_TABULAR_PACKET,
-    /* NEXRAD_CHUNK_TABULAR_PACKET   => */ 0
+    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ 0
 };
 
 /*
@@ -37,9 +35,7 @@ static size_t nexrad_chunk_header_sizes[] = {
     /* NEXRAD_CHUNK_SYMBOLOGY_LAYER  => */ sizeof(nexrad_symbology_layer),
     /* NEXRAD_CHUNK_SYMBOLOGY_PACKET => */ sizeof(nexrad_packet_header),
     /* NEXRAD_CHUNK_GRAPHIC_PAGE     => */ sizeof(nexrad_graphic_page),
-    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ sizeof(nexrad_packet_header),
-    /* NEXRAD_CHUNK_TABULAR_PAGE     => */ sizeof(nexrad_tabular_page),
-    /* NEXRAD_CHUNK_TABULAR_PACKET   => */ sizeof(nexrad_packet_header)
+    /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ sizeof(nexrad_packet_header)
 };
 
 static ssize_t find_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
@@ -59,8 +55,7 @@ static ssize_t find_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
         }
 
         case NEXRAD_CHUNK_SYMBOLOGY_PACKET:
-        case NEXRAD_CHUNK_GRAPHIC_PACKET:
-        case NEXRAD_CHUNK_TABULAR_PACKET: {
+        case NEXRAD_CHUNK_GRAPHIC_PACKET: {
             nexrad_packet_header *header = chunk;
 
             return be16toh(header->size);
@@ -74,9 +69,8 @@ static ssize_t find_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
             return be32toh(header->size);
         }
 
-        case NEXRAD_CHUNK_GRAPHIC_PAGE:
-        case NEXRAD_CHUNK_TABULAR_PAGE: {
-            nexrad_page *header = chunk;
+        case NEXRAD_CHUNK_GRAPHIC_PAGE: {
+            nexrad_graphic_page *header = chunk;
 
             return be16toh(header->size);
         }
@@ -410,18 +404,6 @@ void nexrad_graphic_block_close(nexrad_chunk *block) {
 
 nexrad_chunk *nexrad_tabular_block_open(nexrad_message *message) {
     return nexrad_chunk_open(message->tabular, NEXRAD_CHUNK_TABULAR_BLOCK);
-}
-
-nexrad_chunk *nexrad_tabular_block_read_page(nexrad_chunk *block) {
-    return block_read_layer(block, NEXRAD_CHUNK_TABULAR_PAGE);
-}
-
-nexrad_packet *nexrad_tabular_page_read_packet(nexrad_chunk *page, size_t *total_size, size_t *data_size, void **data) {
-    return nexrad_chunk_read(page, total_size, data_size, data);
-}
-
-void nexrad_tabular_page_close(nexrad_chunk *page) {
-    nexrad_chunk_close(page);
 }
 
 void nexrad_tabular_block_close(nexrad_chunk *block) {

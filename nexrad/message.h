@@ -70,9 +70,7 @@ enum nexrad_chunk_type_id {
     NEXRAD_CHUNK_SYMBOLOGY_LAYER,
     NEXRAD_CHUNK_SYMBOLOGY_PACKET,
     NEXRAD_CHUNK_GRAPHIC_PAGE,
-    NEXRAD_CHUNK_GRAPHIC_PACKET,
-    NEXRAD_CHUNK_TABULAR_PAGE,
-    NEXRAD_CHUNK_TABULAR_PACKET
+    NEXRAD_CHUNK_GRAPHIC_PACKET
 };
 
 typedef struct _nexrad_chunk {
@@ -111,9 +109,6 @@ void            nexrad_graphic_page_close(nexrad_chunk *page);
 void            nexrad_graphic_block_close(nexrad_chunk *block);
 
 nexrad_chunk *  nexrad_tabular_block_open(nexrad_message *message);
-nexrad_chunk *  nexrad_tabular_block_read_page(nexrad_chunk *block);
-nexrad_packet * nexrad_tabular_page_read_packet(nexrad_chunk *page, size_t *total_size, size_t *data_size, void **data);
-void            nexrad_tabular_page_close(nexrad_chunk *page);
 void            nexrad_tabular_block_close(nexrad_chunk *block);
 
 #pragma pack(pop)
