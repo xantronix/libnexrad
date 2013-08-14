@@ -145,9 +145,8 @@ typedef struct _nexrad_tabular_block {
     nexrad_message_header      message_header;
     nexrad_product_description product_description;
 
-     int16_t divider;   /* Standard block divider */
-    uint16_t pages;     /* Number of pages to follow */
-    uint16_t line_size; /* Number of characters per line */
+     int16_t divider; /* Standard block divider */
+    uint16_t pages;   /* Number of pages to follow */
 } nexrad_tabular_block;
 
 #pragma pack(pop)
