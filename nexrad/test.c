@@ -31,11 +31,16 @@ static void show_graphic_block(nexrad_message *message) {
         fprintf(stderr, "Opened graphic page, %lu bytes left to read\n", page->bytes_left);
 
         size_t size;
-        void *data;
+        while ((packet = nexrad_graphic_page_read_packet(page, &size, NULL, NULL)) != NULL) {
+            if (nexrad_packet_type(packet) != 8) continue;
 
-        while ((packet = nexrad_graphic_page_read_packet(page, NULL, &size, &data)) != NULL) {
-            fprintf(stderr, "Read %lu byte packet type %d\n", size, be16toh(packet->type));
+            void *data;
+
+            data = (char *)packet + sizeof(nexrad_text_packet);
+            size -= sizeof(nexrad_text_packet);
+
             write(1, data, size);
+            write(1, "\n", 1);
         }
 
         nexrad_graphic_page_close(page);
@@ -80,7 +85,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    show_tabular_block(message);
+    show_graphic_block(message);
 
     nexrad_message_close(message);
 
