@@ -107,7 +107,7 @@ error_bad_chunk:
     return NULL;
 }
 
-void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *size, void **data) {
+void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data) {
     size_t chunk_size;
     size_t header_size = nexrad_chunk_header_sizes[iterator->type];
     void *ret;
@@ -143,8 +143,8 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *size
      * If a pointer was provided to store the resultant chunk size in, then
      * provide that value.
      */
-    if (size != NULL) {
-        *size = chunk_size;
+    if (data_size != NULL) {
+        *data_size = chunk_size;
     }
 
     /*
