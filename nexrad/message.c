@@ -496,7 +496,7 @@ ssize_t nexrad_tabular_block_read_line(nexrad_text *block, char **data, int *pag
     /*
      * Advance the current data pointer beyond the current line.
      */
-    block->current += sizeof(uint16_t) + chars;
+    block->current = (char *)block->current + sizeof(uint16_t) + chars;
 
     /*
      * Return the number of characters in the current line.
