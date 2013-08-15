@@ -13,6 +13,57 @@ static void usage(int argc, char **argv) {
     exit(1);
 }
 
+static void show_graphic_block(nexrad_message *message) {
+    nexrad_chunk *block;
+    nexrad_chunk *page;
+
+    if ((block = nexrad_graphic_block_open(message)) == NULL) {
+        perror("nexrad_graphic_block_open()");
+        exit(1);
+    }
+
+    fprintf(stderr, "Opened graphic block, %lu bytes left to read\n", block->bytes_left);
+    fprintf(stderr, "Pages in graphic block: %d\n", be16toh(message->graphic->pages));
+
+    while ((page = nexrad_graphic_block_read_page(block)) != NULL) {
+        nexrad_packet *packet;
+
+        fprintf(stderr, "Opened graphic page, %lu bytes left to read\n", page->bytes_left);
+
+        size_t size;
+        void *data;
+
+        while ((packet = nexrad_graphic_page_read_packet(page, NULL, &size, &data)) != NULL) {
+            fprintf(stderr, "Read %lu byte packet type %d\n", size, be16toh(packet->type));
+            write(1, data, size);
+        }
+
+        nexrad_graphic_page_close(page);
+    }
+
+    nexrad_graphic_block_close(block);
+}
+
+static void show_tabular_block(nexrad_message *message) {
+    nexrad_text *block;
+
+    if ((block = nexrad_tabular_block_open(message)) == NULL) {
+        perror("nexrad_tabular_block_open()");
+        exit(1);
+    }
+
+    size_t len;
+    char *buf;
+    int line;
+    int page;
+
+    while ((len = nexrad_tabular_block_read_line(block, &buf, &line, &page)) > 0) {
+        fprintf(stderr, "Read %lu bytes from page %d, line %d\n", len, page, line);
+    }
+
+    nexrad_tabular_block_close(block);
+}
+
 int main(int argc, char **argv) {
     nexrad_message *message;
 
@@ -25,33 +76,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    nexrad_chunk *block;
-    nexrad_chunk *layer;
-
-    if ((block = nexrad_symbology_block_open(message)) == NULL) {
-        perror("nexrad_chunk_open()");
-        exit(1);
-    }
-
-    fprintf(stderr, "Opened symbology block, %lu bytes left to read\n", block->bytes_left);
-
-    while ((layer = nexrad_symbology_block_read_layer(block)) != NULL) {
-        nexrad_packet * packet;
-
-        fprintf(stderr, "Opened symbology layer, %lu bytes left to read\n", layer->bytes_left);
-
-        size_t size;
-        void *data;
-
-        while ((packet = nexrad_symbology_layer_read_packet(layer, NULL, &size, &data)) != NULL) {
-            fprintf(stderr, "Read %lu byte packet\n", size);
-            write(1, data, size);
-        }
-
-        nexrad_symbology_layer_close(layer);
-    }
-
-    nexrad_symbology_block_close(block);
+    show_tabular_block(message);
 
     nexrad_message_close(message);
 

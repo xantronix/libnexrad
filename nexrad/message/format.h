@@ -85,7 +85,7 @@ typedef struct _nexrad_graphic_page {
 } nexrad_graphic_page;
 
 typedef struct _nexrad_packet_header {
-    uint16_t code;
+    uint16_t type;
     uint16_t size;
 } nexrad_packet_header;
 

@@ -80,6 +80,14 @@ typedef struct _nexrad_chunk {
     size_t bytes_left; /* Number of bytes left in parent chunk */
 } nexrad_chunk;
 
+typedef struct _nexrad_text {
+    char * current;    /* Current pointer */
+    int    page;       /* Current page number */
+    int    line;       /* Line number in current page */
+    int    pages_left; /* Number of pages left in text */
+    size_t bytes_left; /* Number of bytes left in text */
+} nexrad_text;
+
 /*
  * Methods for facilitating file I/O
  */
@@ -108,8 +116,9 @@ nexrad_packet * nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *tota
 void            nexrad_graphic_page_close(nexrad_chunk *page);
 void            nexrad_graphic_block_close(nexrad_chunk *block);
 
-nexrad_chunk *  nexrad_tabular_block_open(nexrad_message *message);
-void            nexrad_tabular_block_close(nexrad_chunk *block);
+nexrad_text *  nexrad_tabular_block_open(nexrad_message *message);
+ssize_t        nexrad_tabular_block_read_line(nexrad_text *text, char **data, int *page, int *line);
+void           nexrad_tabular_block_close(nexrad_text *block);
 
 #pragma pack(pop)
 

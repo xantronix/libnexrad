@@ -97,7 +97,7 @@ nexrad_chunk *nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type) {
     }
 
     iterator->type       = nexrad_chunk_child_types[type];
-    iterator->current    = chunk + nexrad_chunk_header_sizes[type];
+    iterator->current    = (char *)chunk + nexrad_chunk_header_sizes[type];
     iterator->bytes_left = size;
 
     return iterator;
@@ -152,7 +152,7 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *size
      * provide that value as well.
      */
     if (data != NULL) {
-        *data = iterator->current + nexrad_chunk_header_sizes[iterator->type];
+        *data = (char *)iterator->current + nexrad_chunk_header_sizes[iterator->type];
     }
 
     /*
@@ -190,7 +190,7 @@ static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset)
         return NULL;
     }
 
-    return ((void *)message->data) + offset;
+    return (void *)((char *)message->data + offset);
 }
 
 static inline nexrad_symbology_block *_symbology_block(nexrad_message *message, nexrad_product_description *description) {
@@ -402,10 +402,110 @@ void nexrad_graphic_block_close(nexrad_chunk *block) {
     nexrad_chunk_close(block);
 }
 
-nexrad_chunk *nexrad_tabular_block_open(nexrad_message *message) {
-    return nexrad_chunk_open(message->tabular, NEXRAD_CHUNK_TABULAR_BLOCK);
+nexrad_text *nexrad_tabular_block_open(nexrad_message *message) {
+    nexrad_text *block;
+
+    if (message == NULL) return NULL;
+
+    if ((block = malloc(sizeof(*block))) == NULL) {
+        goto error_malloc;
+    }
+
+    block->current    = (void *)((char *)message->symbology + sizeof(nexrad_tabular_block));
+    block->page       = 1;
+    block->line       = 1;
+    block->pages_left = be16toh(message->tabular->pages);
+    block->bytes_left = be32toh(message->tabular->header.size);
+
+    return block;
+
+error_malloc:
+    return NULL;
 }
 
-void nexrad_tabular_block_close(nexrad_chunk *block) {
-    nexrad_chunk_close(block);
+#define NEXRAD_TABULAR_BLOCK_MAX_LINE_SIZE 80
+
+ssize_t nexrad_tabular_block_read_line(nexrad_text *block, char **data, int *page, int *line) {
+    size_t chars;
+
+    if (block == NULL) return -1;
+
+    /*
+     * Return a zero if there are no pages or bytes left in the tabular block.
+     */
+    if (block->pages_left == 0 || block->bytes_left == 0) {
+        return 0;
+    }
+
+    /*
+     * Check and see if we have arrived at an end-of-page flag.  Also, if we
+     * have finished reading the final page, return 0 to indicate the last line
+     * has been read.
+     */
+    if ((int16_t)be16toh((int16_t)*(block->current)) == -1) {
+        block->page++;
+
+        if (block->pages_left-- == 0) {
+            return 0;
+        }
+    }
+
+    /*
+     * Detect the number of characters in the current line.  If this number
+     * seems implausible, then return -1 to indicate an error.
+     */
+    if ((chars = (size_t)be16toh((int16_t)*(block->current))) > NEXRAD_TABULAR_BLOCK_MAX_LINE_SIZE) {
+        return -1;
+    }
+
+    /*
+     * Increment the current line number.
+     */
+    block->line++;
+
+    /*
+     * If the caller has provided a pointer to an address to store the start of
+     * the text line, then populate that.
+     */
+    if (data != NULL) {
+        *data = block->current + sizeof(uint16_t);
+    }
+
+    /*
+     * If the caller has provided a pointer to an address to store the current
+     * page number, then supply that.
+     */
+    if (page != NULL) {
+        *page = block->page;
+    }
+
+    /*
+     * If the caller has provided a pointer to an address to store the current
+     * line number, then supply that.
+     */
+    if (line != NULL) {
+        *line = block->line;
+    }
+
+    /*
+     * Advance the current data pointer beyond the current line.
+     */
+    block->current += sizeof(uint16_t) + chars;
+
+    /*
+     * Return the number of characters in the current line.
+     */
+    return chars;
+}
+
+void nexrad_tabular_block_close(nexrad_text *block) {
+    if (block == NULL) return;
+
+    block->current    = NULL;
+    block->page       = 0;
+    block->line       = 0;
+    block->pages_left = 0;
+    block->bytes_left = 0;
+
+    free(block);
 }
