@@ -25,9 +25,10 @@ enum nexrad_product_id {
 };
 
 enum nexrad_packet_type_id {
-    NEXRAD_PACKET_TYPE_TEXT   =  8,
-    NEXRAD_PACKET_TYPE_VECTOR = 10,
-    NEXRAD_PACKET_TYPE_HAIL   = 19
+    NEXRAD_PACKET_TYPE_UNKNOWN =  0,
+    NEXRAD_PACKET_TYPE_TEXT    =  8,
+    NEXRAD_PACKET_TYPE_VECTOR  = 10,
+    NEXRAD_PACKET_TYPE_HAIL    = 19
 };
 
 enum nexrad_radar_mode_id {
@@ -40,12 +41,6 @@ typedef struct _nexrad_product {
 } nexrad_product;
 
 typedef nexrad_packet_header nexrad_packet;
-
-typedef struct _nexrad_packet_type {
-    int    id;
-    char   name[8];
-    size_t size;
-} nexrad_packet_type;
 
 typedef struct _nexrad_message {
     size_t size;
@@ -119,6 +114,9 @@ void            nexrad_graphic_block_close(nexrad_chunk *block);
 nexrad_text *  nexrad_tabular_block_open(nexrad_message *message);
 ssize_t        nexrad_tabular_block_read_line(nexrad_text *text, char **data, int *page, int *line);
 void           nexrad_tabular_block_close(nexrad_text *block);
+
+enum nexrad_packet_type_id
+               nexrad_packet_type(nexrad_packet *packet);
 
 #pragma pack(pop)
 
