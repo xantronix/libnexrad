@@ -411,7 +411,7 @@ nexrad_text *nexrad_tabular_block_open(nexrad_message *message) {
         goto error_malloc;
     }
 
-    block->current    = (void *)((char *)message->symbology + sizeof(nexrad_tabular_block));
+    block->current    = (char *)message->tabular + sizeof(nexrad_tabular_block);
     block->page       = 1;
     block->line       = 1;
     block->pages_left = be16toh(message->tabular->pages);
@@ -442,26 +442,27 @@ ssize_t nexrad_tabular_block_read_line(nexrad_text *block, char **data, int *pag
      * have finished reading the final page, return 0 to indicate the last line
      * has been read.
      */
-    if ((int16_t)be16toh((int16_t)*(block->current)) == -1) {
+    if ((int16_t)be16toh(*((int16_t *)block->current)) == -1) {
         block->page++;
+        block->line = 1;
 
         if (block->pages_left-- == 0) {
             return 0;
         }
+
+        /*
+         * Increment the current pointer beyond the end-of-page flag.
+         */
+        block->current += sizeof(int16_t);
     }
 
     /*
      * Detect the number of characters in the current line.  If this number
      * seems implausible, then return -1 to indicate an error.
      */
-    if ((chars = (size_t)be16toh((int16_t)*(block->current))) > NEXRAD_TABULAR_BLOCK_MAX_LINE_SIZE) {
+    if ((chars = (size_t)be16toh(*((uint16_t *)block->current))) > NEXRAD_TABULAR_BLOCK_MAX_LINE_SIZE) {
         return -1;
     }
-
-    /*
-     * Increment the current line number.
-     */
-    block->line++;
 
     /*
      * If the caller has provided a pointer to an address to store the start of
@@ -486,6 +487,11 @@ ssize_t nexrad_tabular_block_read_line(nexrad_text *block, char **data, int *pag
     if (line != NULL) {
         *line = block->line;
     }
+
+    /*
+     * Increment the current line number.
+     */
+    block->line++;
 
     /*
      * Advance the current data pointer beyond the current line.

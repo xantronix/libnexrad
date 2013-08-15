@@ -52,13 +52,17 @@ static void show_tabular_block(nexrad_message *message) {
         exit(1);
     }
 
+    fprintf(stderr, "Pages in tabular block: %d\n", be16toh(message->tabular->pages));
+
     size_t len;
     char *buf;
     int line;
     int page;
 
-    while ((len = nexrad_tabular_block_read_line(block, &buf, &line, &page)) > 0) {
+    while ((len = nexrad_tabular_block_read_line(block, &buf, &page, &line)) > 0) {
         fprintf(stderr, "Read %lu bytes from page %d, line %d\n", len, page, line);
+        write(1, buf, len);
+        write(1, "\n", 1);
     }
 
     nexrad_tabular_block_close(block);
