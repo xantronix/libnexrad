@@ -42,6 +42,8 @@ static void show_symbology_block(nexrad_message *message) {
                 }
 
                 default: {
+                    printf("Read symbology packet type %d\n", type);
+
                     break;
                 }
             }
@@ -85,7 +87,23 @@ static void show_graphic_block(nexrad_message *message) {
                     break;
                 }
 
+                case NEXRAD_PACKET_TYPE_VECTOR: {
+                    nexrad_vector_packet *vector = (nexrad_vector_packet *)packet;
+
+                    printf("Read vector packet with magnitude %u, starting %d,%d, ending %d,%d -> starting %d,%d ending %d,%d\n",
+                        be16toh(vector->magnitude),
+                        (int16_t)be16toh(vector->i1_start), (int16_t)be16toh(vector->j1_start),
+                        (int16_t)be16toh(vector->i1_end),   (int16_t)be16toh(vector->i1_end),
+                        (int16_t)be16toh(vector->i2_start), (int16_t)be16toh(vector->j2_start),
+                        (int16_t)be16toh(vector->i2_end),   (int16_t)be16toh(vector->j2_end)
+                    );
+
+                    break;
+                }
+
                 default: {
+                    printf("Read graphic packet type %d\n", type);
+
                     break;
                 }
             }
