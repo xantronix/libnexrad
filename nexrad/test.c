@@ -24,26 +24,20 @@ static void show_symbology_block(nexrad_message *message) {
 
     while ((layer = nexrad_symbology_block_read_layer(block)) != NULL) {
         nexrad_packet *packet;
+        size_t size;
 
-        size_t total_size, data_size;
-        void *data;
-
-        while ((packet = nexrad_symbology_layer_read_packet(layer, &total_size, &data_size, &data)) != NULL) {
+        while ((packet = nexrad_symbology_layer_read_packet(layer, &size)) != NULL) {
             enum nexrad_packet_type_id type = nexrad_packet_type(packet);
 
-            fprintf(stderr, "Read packet type %d, total size %u, payload %u\n",
-                type, total_size, data_size
-            );
+            fprintf(stderr, "Read packet type %d, size %lu\n", type, size);
 
-            if (type != NEXRAD_PACKET_TYPE_HAIL) {
-                continue;
-            }
+            if (type == NEXRAD_PACKET_TYPE_HAIL) {
+                nexrad_hail_packet *hail = (nexrad_hail_packet *)packet;
 
-            nexrad_hail_packet *hail = packet;
-
-            fprintf(stderr, "Hail %6d,%6d offset from radar, %u/%u probability/severe, %u max hail size\n",
-                hail->i, hail->j, hail->probability, hail->probability_severe, hail->max_size
-            );
+                fprintf(stderr, "Hail %6d,%6d offset from radar, %u/%u probability/severe, %u max hail size\n",
+                    hail->i, hail->j, hail->probability, hail->probability_severe, hail->max_size
+                );
+            } 
         }
 
         nexrad_symbology_layer_close(layer);
@@ -63,16 +57,12 @@ static void show_graphic_block(nexrad_message *message) {
 
     while ((page = nexrad_graphic_block_read_page(block)) != NULL) {
         nexrad_packet *packet;
+        size_t size;
 
-        size_t total_size, data_size;
-        void *data;
-
-        while ((packet = nexrad_graphic_page_read_packet(page, &total_size, &data_size, &data)) != NULL) {
+        while ((packet = nexrad_graphic_page_read_packet(page, &size)) != NULL) {
             enum nexrad_packet_type_id type = nexrad_packet_type(packet);
 
-            fprintf(stderr, "Read packet type %d, total size %u, payload %u\n",
-                type, total_size, data_size
-            );
+            fprintf(stderr, "Read packet type %d, total size %lu\n", type, size);
         }
 
         nexrad_graphic_page_close(page);

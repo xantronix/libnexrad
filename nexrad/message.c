@@ -38,21 +38,6 @@ static size_t nexrad_chunk_header_sizes[] = {
     /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ sizeof(nexrad_packet_header)
 };
 
-static ssize_t find_packet_header_size(nexrad_packet *packet) {
-    if (packet == NULL) {
-        return -1;
-    }
-
-    switch (nexrad_packet_type(packet)) {
-        case NEXRAD_PACKET_TYPE_TEXT:    return sizeof(nexrad_text_packet);
-        case NEXRAD_PACKET_TYPE_VECTOR:  return sizeof(nexrad_vector_packet);
-        case NEXRAD_PACKET_TYPE_HAIL:    return sizeof(nexrad_hail_packet);
-        case NEXRAD_PACKET_TYPE_UNKNOWN: return -1;
-    }
-
-    return -1;
-}
-
 static ssize_t find_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
     switch (type) {
         case NEXRAD_CHUNK_SYMBOLOGY_BLOCK:
@@ -390,8 +375,8 @@ nexrad_chunk *nexrad_symbology_block_read_layer(nexrad_chunk *block) {
     return block_read_layer(block, NEXRAD_CHUNK_SYMBOLOGY_LAYER);
 }
 
-nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *total_size, size_t *data_size, void **data) {
-    return nexrad_chunk_read(layer, total_size, data_size, data);
+nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *size) {
+    return nexrad_chunk_read(layer, size, NULL, NULL);
 }
 
 void nexrad_symbology_layer_close(nexrad_chunk *layer) {
@@ -410,8 +395,8 @@ nexrad_chunk *nexrad_graphic_block_read_page(nexrad_chunk *block) {
     return block_read_layer(block, NEXRAD_CHUNK_GRAPHIC_PAGE);
 }
 
-nexrad_packet *nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *total_size, size_t *data_size, void **data) {
-    return nexrad_chunk_read(page, total_size, data_size, data);
+nexrad_packet *nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *size) {
+    return nexrad_chunk_read(page, size, NULL, NULL);
 }
 
 void nexrad_graphic_page_close(nexrad_chunk *page) {
