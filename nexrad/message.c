@@ -28,7 +28,7 @@ static enum nexrad_chunk_type_id nexrad_chunk_child_types[] = {
  * allows quick lookup of chunk header sizes.
  */
 static size_t nexrad_chunk_header_sizes[] = {
-    /* none => */ 0,
+    /* none => */                          0,
     /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ sizeof(nexrad_symbology_block),
     /* NEXRAD_CHUNK_GRAPHIC_BLOCK    => */ sizeof(nexrad_graphic_block),
     /* NEXRAD_CHUNK_TABULAR_BLOCK    => */ sizeof(nexrad_tabular_block),
@@ -37,6 +37,21 @@ static size_t nexrad_chunk_header_sizes[] = {
     /* NEXRAD_CHUNK_GRAPHIC_PAGE     => */ sizeof(nexrad_graphic_page),
     /* NEXRAD_CHUNK_GRAPHIC_PACKET   => */ sizeof(nexrad_packet_header)
 };
+
+static ssize_t find_packet_header_size(nexrad_packet *packet) {
+    if (packet == NULL) {
+        return -1;
+    }
+
+    switch (nexrad_packet_type(packet)) {
+        case NEXRAD_PACKET_TYPE_TEXT:    return sizeof(nexrad_text_packet);
+        case NEXRAD_PACKET_TYPE_VECTOR:  return sizeof(nexrad_vector_packet);
+        case NEXRAD_PACKET_TYPE_HAIL:    return sizeof(nexrad_hail_packet);
+        case NEXRAD_PACKET_TYPE_UNKNOWN: return -1;
+    }
+
+    return -1;
+}
 
 static ssize_t find_chunk_size(void *chunk, enum nexrad_chunk_type_id type) {
     switch (type) {
@@ -205,6 +220,11 @@ static inline nexrad_tabular_block *_tabular_block(nexrad_message *message, nexr
     return (nexrad_tabular_block *)_block_pointer(message, description->tabular_offset);
 }
 
+/*
+ * Perform an initial parse of the NEXRAD Radar Product Generator Message and
+ * produce a high-level table-of-contents indicating the locations of the five
+ * blocks within the message.
+ */
 static int _index_message(nexrad_message *message) {
     nexrad_file_header *file_header = message->data;
 

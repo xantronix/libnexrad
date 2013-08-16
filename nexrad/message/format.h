@@ -100,11 +100,11 @@ typedef struct _nexrad_text_packet {
 typedef struct _nexrad_hail_packet {
     nexrad_packet_header header;
 
-     int16_t i;                /* Cartesian offset from radar */
-     int16_t j;                /* Cartesian offset from radar */
-    uint16_t prob_hail;        /* Probability of hail */
-    uint16_t prob_hail_severe; /* Probability of severe hail */
-    uint16_t max_hail_size;    /* Maximum size of hail */
+     int16_t i;                  /* Cartesian offset from radar */
+     int16_t j;                  /* Cartesian offset from radar */
+    uint16_t probability;        /* Probability of hail */
+    uint16_t probability_severe; /* Probability of severe hail */
+    uint16_t max_size;           /* Maximum size of hail */
 } nexrad_hail_packet;
 
 typedef struct _nexrad_vector_packet {
