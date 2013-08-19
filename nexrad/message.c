@@ -124,7 +124,7 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data
     chunk_size = find_chunk_size(iterator->current, iterator->type);
     ret        = iterator->current;
 
-    iterator->current += chunk_size + header_size;
+    iterator->current = (char *)iterator->current + chunk_size + header_size;
 
     /*
      * Decrement the number of bytes remaining appropriately.
@@ -458,7 +458,7 @@ ssize_t nexrad_tabular_block_read_line(nexrad_text *block, char **data, int *pag
         /*
          * Increment the current pointer beyond the end-of-page flag.
          */
-        block->current += sizeof(int16_t);
+        block->current = (char *)block->current + sizeof(int16_t);
     }
 
     /*

@@ -152,6 +152,10 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    printf("VCP %d, scan %d\n",
+        be16toh(message->description->vcp), (int16_t)be16toh(message->description->scan)
+    );
+
     show_symbology_block(message);
     show_graphic_block(message);
     show_tabular_block(message);
