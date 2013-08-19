@@ -5,7 +5,6 @@
 #include <sys/types.h>
 
 #include <nexrad/types.h>
-
 #pragma pack(push)
 #pragma pack(1)
 
@@ -120,6 +119,14 @@ typedef struct _nexrad_vector_packet {
      int16_t i2_end;    /* Cartesian destination vector */
      int16_t j2_end;    /* Cartesian destination vector */
 } nexrad_vector_packet;
+
+typedef struct _nexrad_cell_packet {
+    nexrad_packet_header header;
+
+     int16_t i;
+     int16_t j;
+    char     id[2];
+} nexrad_cell_packet;
 
 typedef struct _nexrad_graphic_block {
     nexrad_block_header header;

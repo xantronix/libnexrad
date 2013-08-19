@@ -28,6 +28,7 @@ enum nexrad_packet_type_id {
     NEXRAD_PACKET_TYPE_UNKNOWN =  0,
     NEXRAD_PACKET_TYPE_TEXT    =  8,
     NEXRAD_PACKET_TYPE_VECTOR  = 10,
+    NEXRAD_PACKET_TYPE_CELL    = 15,
     NEXRAD_PACKET_TYPE_HAIL    = 19
 };
 
