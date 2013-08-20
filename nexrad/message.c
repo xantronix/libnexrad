@@ -238,9 +238,7 @@ static int _index_message(nexrad_message *message) {
         goto error_invalid_message_header;
     }
 
-    if (message->size < sizeof(nexrad_file_header)
-      + sizeof(nexrad_message_header)
-      + sizeof(nexrad_product_description)) {
+    if (message->size != sizeof(nexrad_file_header) + be32toh(message_header->size)) {
         goto error_invalid_product_description;
     }
 
