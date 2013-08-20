@@ -227,9 +227,9 @@ static int _index_message(nexrad_message *message) {
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
 
-    nexrad_symbology_block * symbology;
-    nexrad_graphic_block *   graphic;
-    nexrad_tabular_block *   tabular;
+    nexrad_symbology_block * symbology = NULL;
+    nexrad_graphic_block *   graphic   = NULL;
+    nexrad_tabular_block *   tabular   = NULL;
 
     if (message->size < sizeof(nexrad_file_header)) {
         goto error_invalid_file_header;
@@ -255,15 +255,19 @@ static int _index_message(nexrad_message *message) {
 
     description = (nexrad_product_description *)nexrad_block_after(message_header, nexrad_message_header);
 
-    if ((symbology = _symbology_block(message, description)) == NULL) {
+    if ((int16_t)be16toh(description->divider) != -1) {
+        goto error_invalid_product_description;
+    }
+
+    if (description->symbology_offset != 0 && (symbology = _symbology_block(message, description)) == NULL) {
         goto error_invalid_symbology_block_offset;
     }
 
-    if ((graphic = _graphic_block(message, description)) == NULL) {
+    if (description->graphic_offset != 0 && (graphic = _graphic_block(message, description)) == NULL) {
         goto error_invalid_graphic_block_offset;
     }
 
-    if ((tabular = _tabular_block(message, description)) == NULL) {
+    if (description->tabular_offset != 0 && (tabular = _tabular_block(message, description)) == NULL) {
         goto error_invalid_tabular_block_offset;
     }
 
