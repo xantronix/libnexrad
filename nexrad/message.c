@@ -179,8 +179,9 @@ static inline off_t _halfword_offset(uint32_t value) {
     return sizeof(nexrad_file_header) + (be32toh(value) * 2);
 }
 
-static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset) {
+static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset, uint16_t type) {
     uint32_t offset = _halfword_offset(raw_offset);
+    nexrad_block_header *header;
 
     /*
      * Prevent an opportunity for segmentation fault by limiting the message
@@ -190,19 +191,29 @@ static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset)
         return NULL;
     }
 
-    return (void *)((char *)message->data + offset);
+    /*
+     * If the block divider and ID found at the usual locations appear to be
+     * invalid, then return null.
+     */
+    header = (nexrad_block_header *)((char *)message->data + offset);
+
+    if ((int16_t)be16toh(header->divider) != -1 || be16toh(header->id) != type) {
+        return NULL;
+    }
+
+    return (void *)header;
 }
 
 static inline nexrad_symbology_block *_symbology_block(nexrad_message *message, nexrad_product_description *description) {
-    return (nexrad_symbology_block *)_block_pointer(message, description->symbology_offset);
+    return (nexrad_symbology_block *)_block_pointer(message, description->symbology_offset, NEXRAD_BLOCK_SYMBOLOGY);
 }
 
 static inline nexrad_graphic_block *_graphic_block(nexrad_message *message, nexrad_product_description *description) {
-    return (nexrad_graphic_block *)_block_pointer(message, description->graphic_offset);
+    return (nexrad_graphic_block *)_block_pointer(message, description->graphic_offset, NEXRAD_BLOCK_GRAPHIC);
 }
 
 static inline nexrad_tabular_block *_tabular_block(nexrad_message *message, nexrad_product_description *description) {
-    return (nexrad_tabular_block *)_block_pointer(message, description->tabular_offset);
+    return (nexrad_tabular_block *)_block_pointer(message, description->tabular_offset, NEXRAD_BLOCK_TABULAR);
 }
 
 /*
