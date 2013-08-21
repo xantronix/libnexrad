@@ -18,7 +18,7 @@ static inline off_t _halfword_offset(uint32_t value) {
     return sizeof(nexrad_file_header) + (be32toh(value) * 2);
 }
 
-static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset, uint16_t type) {
+static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset, enum nexrad_block_id type) {
     uint32_t offset = _halfword_offset(raw_offset);
     nexrad_block_header *header;
 
