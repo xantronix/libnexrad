@@ -206,45 +206,20 @@ void nexrad_message_close(nexrad_message *message) {
     return;
 }
 
-static nexrad_chunk *block_read_layer(nexrad_chunk *block, enum nexrad_chunk_type_id type) {
-    void *layer;
-
-    if ((layer = nexrad_chunk_read(block, NULL, NULL, NULL)) == NULL) {
-        goto error_chunk_read;
-    }
-
-    return nexrad_chunk_open(layer, type);
-
-error_chunk_read:
-    return NULL;
+nexrad_chunk *nexrad_message_open_symbology_block(nexrad_message *message) {
+    return nexrad_symbology_block_open(message->symbology);
 }
 
-nexrad_chunk *nexrad_symbology_block_open(nexrad_message *message) {
-    return nexrad_chunk_open(message->symbology, NEXRAD_CHUNK_SYMBOLOGY_BLOCK);
+nexrad_chunk *nexrad_graphic_block_open(nexrad_graphic_block *block) {
+    return nexrad_chunk_open(block, NEXRAD_CHUNK_GRAPHIC_BLOCK);
 }
 
-nexrad_chunk *nexrad_symbology_block_read_layer(nexrad_chunk *block) {
-    return block_read_layer(block, NEXRAD_CHUNK_SYMBOLOGY_LAYER);
-}
-
-nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *size) {
-    return nexrad_chunk_read(layer, size, NULL, NULL);
-}
-
-void nexrad_symbology_layer_close(nexrad_chunk *layer) {
-    nexrad_chunk_close(layer);
-}
-
-void nexrad_symbology_block_close(nexrad_chunk *block) {
-    nexrad_chunk_close(block);
-}
-
-nexrad_chunk *nexrad_graphic_block_open(nexrad_message *message) {
-    return nexrad_chunk_open(message->graphic, NEXRAD_CHUNK_GRAPHIC_BLOCK);
+nexrad_chunk *nexrad_message_open_graphic_block(nexrad_message *message) {
+    return nexrad_graphic_block_open(message->graphic);
 }
 
 nexrad_chunk *nexrad_graphic_block_read_page(nexrad_chunk *block) {
-    return block_read_layer(block, NEXRAD_CHUNK_GRAPHIC_PAGE);
+    return nexrad_chunk_read_block_layer(block, NEXRAD_CHUNK_GRAPHIC_PAGE);
 }
 
 nexrad_packet *nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *size) {
@@ -259,25 +234,29 @@ void nexrad_graphic_block_close(nexrad_chunk *block) {
     nexrad_chunk_close(block);
 }
 
-nexrad_tabular_text *nexrad_tabular_block_open(nexrad_message *message) {
-    nexrad_tabular_text *block;
+nexrad_tabular_text *nexrad_tabular_block_open(nexrad_tabular_block *block) {
+    nexrad_tabular_text *text;
 
-    if (message == NULL) return NULL;
+    if (block == NULL) return NULL;
 
-    if ((block = malloc(sizeof(*block))) == NULL) {
+    if ((text = malloc(sizeof(*text))) == NULL) {
         goto error_malloc;
     }
 
-    block->current    = (char *)message->tabular + sizeof(nexrad_tabular_block);
-    block->page       = 1;
-    block->line       = 1;
-    block->pages_left = be16toh(message->tabular->pages);
-    block->bytes_left = be32toh(message->tabular->header.size);
+    text->current    = (char *)block + sizeof(nexrad_tabular_block);
+    text->page       = 1;
+    text->line       = 1;
+    text->pages_left = be16toh(block->pages);
+    text->bytes_left = be32toh(block->header.size);
 
-    return block;
+    return text;
 
 error_malloc:
     return NULL;
+}
+
+nexrad_tabular_text *nexrad_message_open_tabular_block(nexrad_message *message) {
+    return nexrad_tabular_block_open(message->tabular);
 }
 
 ssize_t nexrad_tabular_block_read_line(nexrad_tabular_text *block, char **data, int *page, int *line) {

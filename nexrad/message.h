@@ -32,24 +32,27 @@ typedef struct _nexrad_message {
  */
 nexrad_message * nexrad_message_open(const char *path);
 void             nexrad_message_close(nexrad_message *message);
+nexrad_chunk *   nexrad_message_open_symbology_block(nexrad_message *message);
+nexrad_chunk *   nexrad_message_open_graphic_block(nexrad_message *message);
+nexrad_tabular_text *
+                 nexrad_message_open_tabular_block(nexrad_message *message);
 
 /*
  * Specialized interface for reading product symbology data
  */
-nexrad_chunk *  nexrad_symbology_block_open(nexrad_message *message);
 nexrad_chunk *  nexrad_symbology_block_read_layer(nexrad_chunk *block);
 nexrad_packet * nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *size);
 void            nexrad_symbology_layer_close(nexrad_chunk *layer);
 void            nexrad_symbology_block_close(nexrad_chunk *block);
 
-nexrad_chunk *  nexrad_graphic_block_open(nexrad_message *message);
+nexrad_chunk *  nexrad_graphic_block_open(nexrad_graphic_block *block);
 nexrad_chunk *  nexrad_graphic_block_read_page(nexrad_chunk *block);
 nexrad_packet * nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *size);
 void            nexrad_graphic_page_close(nexrad_chunk *page);
 void            nexrad_graphic_block_close(nexrad_chunk *block);
 
 nexrad_tabular_text *
-                nexrad_tabular_block_open(nexrad_message *message);
+                nexrad_tabular_block_open(nexrad_tabular_block *block);
 ssize_t         nexrad_tabular_block_read_line(nexrad_tabular_text *text, char **data, int *page, int *line);
 void            nexrad_tabular_block_close(nexrad_tabular_text *block);
 

@@ -159,6 +159,19 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data
     return ret;
 }
 
+nexrad_chunk *nexrad_chunk_read_block_layer(nexrad_chunk *block, enum nexrad_chunk_type_id type) {
+    void *layer;
+
+    if ((layer = nexrad_chunk_read(block, NULL, NULL, NULL)) == NULL) {
+        goto error_chunk_read;
+    }
+
+    return nexrad_chunk_open(layer, type);
+
+error_chunk_read:
+    return NULL;
+}
+
 void nexrad_chunk_close(nexrad_chunk *iterator) {
     if (iterator == NULL) return;
 

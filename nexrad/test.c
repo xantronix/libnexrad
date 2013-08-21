@@ -17,7 +17,7 @@ static void show_symbology_block(nexrad_message *message) {
     nexrad_chunk *block;
     nexrad_chunk *layer;
 
-    if ((block = nexrad_symbology_block_open(message)) == NULL) {
+    if ((block = nexrad_message_open_symbology_block(message)) == NULL) {
         perror("nexrad_symbology_block_open()");
         exit(1);
     }
@@ -69,7 +69,7 @@ static void show_graphic_block(nexrad_message *message) {
     nexrad_chunk *block;
     nexrad_chunk *page;
 
-    if ((block = nexrad_graphic_block_open(message)) == NULL) {
+    if ((block = nexrad_message_open_graphic_block(message)) == NULL) {
         perror("nexrad_graphic_block_open()");
         exit(1);
     }
@@ -127,7 +127,7 @@ static void show_graphic_block(nexrad_message *message) {
 static void show_tabular_block(nexrad_message *message) {
     nexrad_tabular_text *block;
 
-    if ((block = nexrad_tabular_block_open(message)) == NULL) {
+    if ((block = nexrad_message_open_tabular_block(message)) == NULL) {
         perror("nexrad_tabular_block_open()");
         exit(1);
     }

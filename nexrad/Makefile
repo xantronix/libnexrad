@@ -1,8 +1,8 @@
 CC	= cc
 CFLAGS	= -g -fno-inline -Wall -O2 -I..
 LDFLAGS	=
-HEADERS	= $(ls *.h message/*.h)
-OBJS	= message.o chunk.o packet.o test.o
+HEADERS	= $(ls *.h)
+OBJS	= message.o chunk.o symbology.o packet.o test.o
 NAME	= test
 
 RM	= /bin/rm
