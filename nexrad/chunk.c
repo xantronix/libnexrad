@@ -123,9 +123,22 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data
         return NULL;
     }
 
-    chunk_size = find_chunk_size(iterator->current, iterator->type);
-    ret        = iterator->current;
+    /*
+     * Mark the current pointer to be returned.
+     */
+    ret = iterator->current;
 
+    /*
+     * Determine the size of the current chunk based on the child type currently
+     * being iterated over.
+     */
+    chunk_size = find_chunk_size(iterator->current, iterator->type);
+
+    /*
+     * Advance the current pointer beyond the current chunk size, plus the size
+     * of the chunk header (0 when chunk-declared sizes are inclusive of their
+     * respective header sizes).
+     */
     iterator->current = (char *)iterator->current + chunk_size + header_size;
 
     /*
