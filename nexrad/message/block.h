@@ -10,7 +10,7 @@
 
 #define NEXRAD_BLOCK_DIVIDER -1
 
-#define nexrad_block_after(data, prev) ((void *)(data) + sizeof(prev))
+#define nexrad_block_after(data, prev) (void *)((char *)data + sizeof(prev))
 
 enum nexrad_block_id {
     NEXRAD_BLOCK_SYMBOLOGY           = 1,
