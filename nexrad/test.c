@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    fprintf(stderr, "Message size: %lu\n",
+    fprintf(stderr, "Message size: %u\n",
         be32toh(message->message_header->size)
     );
 
