@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/message/block.h>
+#include <nexrad/block.h>
 
 #pragma pack(push)
 #pragma pack(1)

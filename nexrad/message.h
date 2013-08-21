@@ -4,13 +4,13 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/message/header.h>
-#include <nexrad/message/chunk.h>
-#include <nexrad/message/product.h>
-#include <nexrad/message/symbology.h>
-#include <nexrad/message/graphic.h>
-#include <nexrad/message/tabular.h>
-#include <nexrad/message/packet.h>
+#include <nexrad/header.h>
+#include <nexrad/chunk.h>
+#include <nexrad/product.h>
+#include <nexrad/symbology.h>
+#include <nexrad/graphic.h>
+#include <nexrad/tabular.h>
+#include <nexrad/packet.h>
 
 typedef struct _nexrad_message {
     size_t size;

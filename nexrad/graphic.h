@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include <nexrad/message/block.h>
-#include <nexrad/message/chunk.h>
+#include <nexrad/block.h>
+#include <nexrad/chunk.h>
 
 #pragma pack(push)
 #pragma pack(1)
