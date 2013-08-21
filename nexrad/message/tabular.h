@@ -30,6 +30,8 @@ typedef struct _nexrad_tabular_block {
 
 #pragma pack(pop)
 
+#define NEXRAD_TABULAR_BLOCK_MAX_LINE_SIZE 80
+
 typedef struct _nexrad_tabular_text {
     char * current;    /* Current pointer */
     int    page;       /* Current page number */
