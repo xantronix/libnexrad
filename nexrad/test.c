@@ -125,7 +125,7 @@ static void show_graphic_block(nexrad_message *message) {
 }
 
 static void show_tabular_block(nexrad_message *message) {
-    nexrad_text *block;
+    nexrad_tabular_text *block;
 
     if ((block = nexrad_tabular_block_open(message)) == NULL) {
         perror("nexrad_tabular_block_open()");

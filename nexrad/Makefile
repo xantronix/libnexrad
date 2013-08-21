@@ -1,7 +1,7 @@
 CC	= cc
 CFLAGS	= -g -fno-inline -Wall -O2 -I..
 LDFLAGS	=
-HEADERS	= message.h message/format.h types.h
+HEADERS	= $(ls *.h message/*.h)
 OBJS	= message.o test.o
 NAME	= test
 

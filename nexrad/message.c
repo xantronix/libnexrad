@@ -420,8 +420,8 @@ void nexrad_graphic_block_close(nexrad_chunk *block) {
     nexrad_chunk_close(block);
 }
 
-nexrad_text *nexrad_tabular_block_open(nexrad_message *message) {
-    nexrad_text *block;
+nexrad_tabular_text *nexrad_tabular_block_open(nexrad_message *message) {
+    nexrad_tabular_text *block;
 
     if (message == NULL) return NULL;
 
@@ -443,7 +443,7 @@ error_malloc:
 
 #define NEXRAD_TABULAR_BLOCK_MAX_LINE_SIZE 80
 
-ssize_t nexrad_tabular_block_read_line(nexrad_text *block, char **data, int *page, int *line) {
+ssize_t nexrad_tabular_block_read_line(nexrad_tabular_text *block, char **data, int *page, int *line) {
     size_t chars;
 
     if (block == NULL) return -1;
@@ -522,7 +522,7 @@ ssize_t nexrad_tabular_block_read_line(nexrad_text *block, char **data, int *pag
     return chars;
 }
 
-void nexrad_tabular_block_close(nexrad_text *block) {
+void nexrad_tabular_block_close(nexrad_tabular_text *block) {
     if (block == NULL) return;
 
     block->current    = NULL;

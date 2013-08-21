@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_TYPES_H
-#define _NEXRAD_TYPES_H
+#ifndef _NEXRAD_MESSAGE_TYPES_H
+#define _NEXRAD_MESSAGE_TYPES_H
 
 #pragma pack(push)
 #pragma pack(1)
@@ -11,4 +11,4 @@ typedef struct _nexrad_date {
 
 #pragma pack(pop)
 
-#endif /* _NEXRAD_TYPES_H */
+#endif /* _NEXRAD_MESSAGE_TYPES_H */
