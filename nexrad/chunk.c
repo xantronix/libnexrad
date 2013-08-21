@@ -105,6 +105,10 @@ error_bad_chunk:
     return NULL;
 }
 
+void *nexrad_chunk_peek(nexrad_chunk *iterator) {
+    return iterator->current;
+}
+
 void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data) {
     size_t chunk_size;
     size_t header_size = nexrad_chunk_header_sizes[iterator->type];

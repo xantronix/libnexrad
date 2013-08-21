@@ -34,6 +34,7 @@ typedef struct _nexrad_text {
  * Generic interface for reading radar product data chunks
  */
 nexrad_chunk * nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type);
+void *         nexrad_chunk_peek(nexrad_chunk *iterator);
 void *         nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data);
 nexrad_chunk * nexrad_chunk_read_block_layer(nexrad_chunk *block, enum nexrad_chunk_type_id type);
 void           nexrad_chunk_close(nexrad_chunk *iterator);
