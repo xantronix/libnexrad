@@ -9,6 +9,19 @@
 #pragma pack(push)
 #pragma pack(1)
 
+typedef struct _nexrad_file_header {
+    char region[6];
+    char _whitespace1;
+    char office[4];
+    char _whitespace2;
+    char timestamp[6];
+    char _whitespace3[3];
+    char product[3];
+    char station[3];
+    char _whitespace4[2];
+    char nul;
+} nexrad_file_header;
+
 typedef struct _nexrad_message_header {
      int16_t    type;    /* Product type */
     nexrad_date date;    /* Date of message transmission */

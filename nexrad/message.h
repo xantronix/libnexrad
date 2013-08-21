@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/message/file.h>
 #include <nexrad/message/header.h>
 #include <nexrad/message/chunk.h>
 #include <nexrad/message/product.h>
