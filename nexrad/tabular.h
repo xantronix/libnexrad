@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <nexrad/header.h>
 #include <nexrad/block.h>
+#include <nexrad/product.h>
 
 #pragma pack(push)
 #pragma pack(1)
@@ -39,5 +41,10 @@ typedef struct _nexrad_tabular_text {
     int    pages_left; /* Number of pages left in text */
     size_t bytes_left; /* Number of bytes left in text */
 } nexrad_tabular_text;
+
+nexrad_tabular_text *
+                nexrad_tabular_block_open(nexrad_tabular_block *block);
+ssize_t         nexrad_tabular_block_read_line(nexrad_tabular_text *text, char **data, int *page, int *line);
+void            nexrad_tabular_block_close(nexrad_tabular_text *block);
 
 #endif /* _NEXRAD_MESSAGE_TABULAR_H */

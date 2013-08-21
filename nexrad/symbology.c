@@ -1,7 +1,6 @@
 #include <stdlib.h>
 
 #include <nexrad/symbology.h>
-#include <nexrad/packet.h>
 
 nexrad_chunk *nexrad_symbology_block_open(nexrad_symbology_block *block) {
     return nexrad_chunk_open(block, NEXRAD_CHUNK_SYMBOLOGY_BLOCK);

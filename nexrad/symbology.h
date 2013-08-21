@@ -5,6 +5,7 @@
 
 #include <nexrad/block.h>
 #include <nexrad/chunk.h>
+#include <nexrad/packet.h>
 
 #pragma pack(push)
 #pragma pack(1)
@@ -22,6 +23,11 @@ typedef struct _nexrad_symbology_layer {
 
 #pragma pack(pop)
 
-nexrad_chunk * nexrad_symbology_block_open(nexrad_symbology_block *block);
+nexrad_chunk *  nexrad_symbology_block_open(nexrad_symbology_block *block);
+nexrad_chunk *  nexrad_symbology_block_read_layer(nexrad_chunk *block);
+nexrad_packet * nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *size);
+void            nexrad_symbology_layer_close(nexrad_chunk *layer);
+void            nexrad_symbology_block_close(nexrad_chunk *block);
+
 
 #endif /* _NEXRAD_MESSAGE_SYMBOLOGY_H */
