@@ -106,14 +106,6 @@ error_bad_chunk:
 }
 
 void *nexrad_chunk_peek(nexrad_chunk *iterator) {
-    return iterator->current;
-}
-
-void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data) {
-    size_t chunk_size;
-    size_t header_size = nexrad_chunk_header_sizes[iterator->type];
-    void *ret;
-
     if (iterator == NULL) return NULL;
 
     /*
@@ -123,10 +115,12 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data
         return NULL;
     }
 
-    /*
-     * Mark the current pointer to be returned.
-     */
-    ret = iterator->current;
+    return iterator->current;
+}
+
+void nexrad_chunk_next(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data) {
+    size_t chunk_size;
+    size_t header_size = nexrad_chunk_header_sizes[iterator->type];
 
     /*
      * Determine the size of the current chunk based on the child type currently
@@ -169,10 +163,23 @@ void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data
     if (data != NULL) {
         *data = (char *)iterator->current + nexrad_chunk_header_sizes[iterator->type];
     }
+}
+
+void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data) {
+    void *ret;
 
     /*
-     * Return the requested chunk.
+     * Mark the current data child for return, if any data is still available.
      */
+    if ((ret = nexrad_chunk_peek(iterator)) == NULL) {
+        return NULL;
+    }
+
+    /*
+     * Move to the next chunk.
+     */
+    nexrad_chunk_next(iterator, total_size, data_size, data);
+
     return ret;
 }
 
