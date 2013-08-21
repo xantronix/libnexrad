@@ -280,8 +280,6 @@ error_malloc:
     return NULL;
 }
 
-#define NEXRAD_TABULAR_BLOCK_MAX_LINE_SIZE 80
-
 ssize_t nexrad_tabular_block_read_line(nexrad_tabular_text *block, char **data, int *page, int *line) {
     size_t chars;
 
