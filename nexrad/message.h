@@ -49,8 +49,9 @@ nexrad_packet * nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *size
 void            nexrad_graphic_page_close(nexrad_chunk *page);
 void            nexrad_graphic_block_close(nexrad_chunk *block);
 
-nexrad_tabular_text * nexrad_tabular_block_open(nexrad_message *message);
-ssize_t               nexrad_tabular_block_read_line(nexrad_tabular_text *text, char **data, int *page, int *line);
-void                  nexrad_tabular_block_close(nexrad_tabular_text *block);
+nexrad_tabular_text *
+                nexrad_tabular_block_open(nexrad_message *message);
+ssize_t         nexrad_tabular_block_read_line(nexrad_tabular_text *text, char **data, int *page, int *line);
+void            nexrad_tabular_block_close(nexrad_tabular_text *block);
 
 #endif /* _NEXRAD_MESSAGE_H */
