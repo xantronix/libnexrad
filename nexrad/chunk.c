@@ -105,22 +105,19 @@ error_bad_chunk:
     return NULL;
 }
 
-void *nexrad_chunk_peek(nexrad_chunk *iterator) {
-    if (iterator == NULL) return NULL;
+void *nexrad_chunk_peek(nexrad_chunk *iterator, size_t *size, size_t *payload, void **data) {
+    size_t chunk_size;
+    size_t header_size;
 
-    /*
-     * If there are no more bytes remaining, then return null.
-     */
+    if (iterator == NULL) {
+        return NULL;
+    }
+
     if (iterator->bytes_left == 0) {
         return NULL;
     }
 
-    return iterator->current;
-}
-
-void nexrad_chunk_next(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data) {
-    size_t chunk_size;
-    size_t header_size = nexrad_chunk_header_sizes[iterator->type];
+    header_size = nexrad_chunk_header_sizes[iterator->type];
 
     /*
      * Determine the size of the current chunk based on the child type currently
@@ -129,31 +126,19 @@ void nexrad_chunk_next(nexrad_chunk *iterator, size_t *total_size, size_t *data_
     chunk_size = find_chunk_size(iterator->current, iterator->type);
 
     /*
-     * Advance the current pointer beyond the current chunk size, plus the size
-     * of the chunk header (0 when chunk-declared sizes are inclusive of their
-     * respective header sizes).
-     */
-    iterator->current = (char *)iterator->current + chunk_size + header_size;
-
-    /*
-     * Decrement the number of bytes remaining appropriately.
-     */
-    iterator->bytes_left -= chunk_size + header_size;
-
-    /*
      * If a pointer was provided to store the resultant total chunk size in,
      * then provide that value.
      */
-    if (total_size != NULL) {
-        *total_size = chunk_size + header_size;
+    if (size != NULL) {
+        *size = chunk_size + header_size;
     }
 
     /*
      * If a pointer was provided to store the resultant chunk size in, then
      * provide that value.
      */
-    if (data_size != NULL) {
-        *data_size = chunk_size;
+    if (payload != NULL) {
+        *payload = chunk_size;
     }
 
     /*
@@ -163,22 +148,55 @@ void nexrad_chunk_next(nexrad_chunk *iterator, size_t *total_size, size_t *data_
     if (data != NULL) {
         *data = (char *)iterator->current + nexrad_chunk_header_sizes[iterator->type];
     }
+
+    return iterator->current;
 }
 
-void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *total_size, size_t *data_size, void **data) {
+void nexrad_chunk_next(nexrad_chunk *iterator, size_t size) {
+    if (iterator == NULL) {
+        return;
+    }
+
+    if (iterator->bytes_left == 0) {
+        return NULL;
+    }
+
+    /*
+     * Advance the current pointer beyond the current chunk size, plus the size
+     * of the chunk header (0 when chunk-declared sizes are inclusive of their
+     * respective header sizes).
+     */
+    iterator->current = (char *)iterator->current + size;
+
+    /*
+     * Decrement the number of bytes remaining appropriately.
+     */
+    iterator->bytes_left -= size;
+}
+
+void *nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, size_t *payload, void **data) {
     void *ret;
+    size_t total;
 
     /*
      * Mark the current data child for return, if any data is still available.
      */
-    if ((ret = nexrad_chunk_peek(iterator)) == NULL) {
+    if ((ret = nexrad_chunk_peek(iterator, &total, payload, data)) == NULL) {
         return NULL;
+    }
+
+    /*
+     * If the total size pointer is not null, then populate the location
+     * referenced by it with the size found by nexrad_chunk_peek().
+     */
+    if (size != NULL) {
+        *size = total;
     }
 
     /*
      * Move to the next chunk.
      */
-    nexrad_chunk_next(iterator, total_size, data_size, data);
+    nexrad_chunk_next(iterator, total);
 
     return ret;
 }
