@@ -25,6 +25,8 @@ typedef struct _nexrad_graphic_page {
 
 nexrad_chunk *  nexrad_graphic_block_open(nexrad_graphic_block *block);
 nexrad_chunk *  nexrad_graphic_block_read_page(nexrad_chunk *block);
+void            nexrad_graphic_page_next_packet(nexrad_chunk *page, size_t size);
+nexrad_packet * nexrad_graphic_page_peek_packet(nexrad_chunk *page, size_t *size);
 nexrad_packet * nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *size);
 void            nexrad_graphic_page_close(nexrad_chunk *page);
 void            nexrad_graphic_block_close(nexrad_chunk *block);
