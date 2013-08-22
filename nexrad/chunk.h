@@ -22,14 +22,6 @@ typedef struct _nexrad_chunk {
     size_t bytes_left; /* Number of bytes left in parent chunk */
 } nexrad_chunk;
 
-typedef struct _nexrad_text {
-    char * current;    /* Current pointer */
-    int    page;       /* Current page number */
-    int    line;       /* Line number in current page */
-    int    pages_left; /* Number of pages left in text */
-    size_t bytes_left; /* Number of bytes left in text */
-} nexrad_text;
-
 /*
  * Generic interface for reading radar product data chunks
  */
