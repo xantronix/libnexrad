@@ -1,7 +1,7 @@
 CC	= cc
 CFLAGS	= -g -fno-inline -Wall -O2 -I..
 LDFLAGS	=
-HEADERS	= $(echo *.h)
+HEADERS	= $(shell ls *.h)
 OBJS	= message.o chunk.o symbology.o graphic.o tabular.o packet.o test.o
 NAME	= test
 
