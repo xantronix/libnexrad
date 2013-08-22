@@ -158,7 +158,7 @@ void nexrad_chunk_next(nexrad_chunk *iterator, size_t size) {
     }
 
     if (iterator->bytes_left == 0) {
-        return NULL;
+        return;
     }
 
     /*
