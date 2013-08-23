@@ -86,6 +86,10 @@ nexrad_chunk *nexrad_chunk_open(void *chunk, enum nexrad_chunk_type_id type) {
     nexrad_chunk *iterator;
     size_t size;
 
+    if (chunk == NULL) {
+        return NULL;
+    }
+
     if ((size = find_chunk_size(chunk, type)) < 0) {
         goto error_bad_chunk;
     }
