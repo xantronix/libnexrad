@@ -29,9 +29,10 @@ nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
         goto error_malloc;
     }
 
-    radial->packet    = packet;
-    radial->rays_left = be16toh(packet->rays);
-    radial->current   = (nexrad_radial_ray *)((char *)packet + sizeof(nexrad_radial_packet));
+    radial->packet     = packet;
+    radial->bytes_read = sizeof(nexrad_radial_packet);
+    radial->rays_left  = be16toh(packet->rays);
+    radial->current    = (nexrad_radial_ray *)((char *)packet + sizeof(nexrad_radial_packet));
 
     return radial;
 
@@ -39,11 +40,15 @@ error_malloc:
     return NULL;
 }
 
-size_t _ray_size(nexrad_radial_ray *ray) {
-    return sizeof(nexrad_radial_ray) + be16toh(ray->runs);
+size_t nexrad_radial_ray_size(nexrad_radial_ray *ray) {
+    if (ray == NULL) {
+        return 0;
+    }
+
+    return sizeof(nexrad_radial_ray) + (be16toh(ray->runs) * 2);
 }
 
-nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, nexrad_radial_run **runs) {
+nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, nexrad_radial_run **runs) {
     nexrad_radial_ray *ray;
     size_t size;
 
@@ -56,7 +61,7 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, nexrad_radial_r
     }
 
     ray  = radial->current;
-    size = _ray_size(ray);
+    size = nexrad_radial_ray_size(ray);
 
     /*
      * Advance the current ray pointer beyond the ray to follow.
@@ -64,9 +69,22 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, nexrad_radial_r
     radial->current = (nexrad_radial_ray *)((char *)ray + size);
 
     /*
+     * Increase the number of bytes read in the current radial packet.
+     */
+    radial->bytes_read += size;
+
+    /*
      * Decrement the number of rays left to read.
      */
      radial->rays_left--;
+
+    /*
+     * If the caller provided a pointer to an address in which to store the size
+     * of the current ray, then populate that value.
+     */
+    if (sizep != NULL) {
+        *sizep = size;
+    }
 
     /*
      * If the caller provided a pointer to an address to populate with a pointer
@@ -79,12 +97,21 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, nexrad_radial_r
     return ray;
 }
 
+size_t nexrad_radial_bytes_read(nexrad_radial *radial) {
+    if (radial == NULL) {
+        return 0;
+    }
+
+    return radial->bytes_read;
+}
+
 void nexrad_radial_close(nexrad_radial *radial) {
     if (radial == NULL) return;
 
-    radial->packet    = NULL;
-    radial->rays_left = 0;
-    radial->current   = NULL;
+    radial->packet     = NULL;
+    radial->bytes_read = 0;
+    radial->rays_left  = 0;
+    radial->current    = NULL;
 
     free(radial);
 }

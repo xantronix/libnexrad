@@ -11,7 +11,8 @@ enum nexrad_packet_type_id {
     NEXRAD_PACKET_TYPE_TEXT    =  8,
     NEXRAD_PACKET_TYPE_VECTOR  = 10,
     NEXRAD_PACKET_TYPE_CELL    = 15,
-    NEXRAD_PACKET_TYPE_HAIL    = 19
+    NEXRAD_PACKET_TYPE_HAIL    = 19,
+    NEXRAD_PACKET_TYPE_RADIAL  = 0xaf1f
 };
 
 typedef struct _nexrad_packet_header {

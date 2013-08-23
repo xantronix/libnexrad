@@ -6,6 +6,7 @@
 #include <endian.h>
 
 #include <nexrad/message.h>
+#include <nexrad/radial.h>
 
 static void usage(int argc, char **argv) {
     fprintf(stderr, "usage: %s sn.nnnn.ssss\n", argv[0]);
@@ -26,10 +27,37 @@ static void show_symbology_block(nexrad_message *message) {
         nexrad_packet *packet;
         size_t size;
 
-        while ((packet = nexrad_symbology_layer_read_packet(layer, &size)) != NULL) {
+        while ((packet = nexrad_symbology_layer_peek_packet(layer, &size)) != NULL) {
             enum nexrad_packet_type_id type = nexrad_packet_type(packet);
 
             switch (type) {
+                case NEXRAD_PACKET_TYPE_RADIAL: {
+                    nexrad_radial *radial;
+                    nexrad_radial_ray *ray;
+                    size_t ray_size;
+
+                    fprintf(stderr, "Initial poopy radial size is %lu\n", size);
+
+                    if ((radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet)) == NULL) {
+                        perror("nexrad_radial_packet_open()");
+                        exit(1);
+                    }
+
+                    fprintf(stderr, "Huzzah, got a radial!\n");
+
+                    while ((ray = nexrad_radial_read_ray(radial, &ray_size, NULL)) != NULL) {
+                        fprintf(stderr, "Wee, got a ray sized %lu bytes!\n", ray_size);
+                    }
+
+                    size = nexrad_radial_bytes_read(radial);
+
+                    fprintf(stderr, "Done reading radial of %lu bytes\n", size);
+
+                    nexrad_radial_close(radial);
+
+                    break;
+                }
+
                 case NEXRAD_PACKET_TYPE_HAIL: {
                     nexrad_hail_packet *hail = (nexrad_hail_packet *)packet;
 
@@ -57,6 +85,8 @@ static void show_symbology_block(nexrad_message *message) {
                     break;
                 }
             }
+
+            nexrad_symbology_layer_next_packet(layer, size);
         }
 
         nexrad_symbology_layer_close(layer);
@@ -184,7 +214,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Spot blanking: %d\n", message->description->blanking);
 
     show_symbology_block(message);
-    show_graphic_block(message);
+    //show_graphic_block(message);
     show_tabular_block(message);
 
     nexrad_message_close(message);

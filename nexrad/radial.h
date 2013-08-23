@@ -4,15 +4,13 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#define NEXRAD_RADIAL_PACKET 0xaf1f
-
 #pragma pack(1)
 #pragma pack(push)
 
 typedef struct _nexrad_radial_packet {
     uint16_t type;           /* Always 0xaf1f */
-    uint16_t rangebin_first; /* Index to first range bin */
-    uint16_t rangebin_count; /* Number of range bins */
+    uint16_t rangebin_first; /* Index to first range bin (whatever the hell that means) */
+    uint16_t rangebin_count; /* Number of range bins per radial (resolution) */
      int16_t i;              /* I coordinate of center of sweep */
      int16_t j;              /* J coordinate of center of sweep */
     uint16_t scale;          /* Scale factor in units of 0.001 */
@@ -34,12 +32,15 @@ typedef struct _nexrad_radial_run {
 
 typedef struct _nexrad_radial {
     nexrad_radial_packet * packet;
+    size_t                 bytes_read;
     size_t                 rays_left;
     nexrad_radial_ray *    current;
 } nexrad_radial;
 
 nexrad_radial *     nexrad_radial_packet_open(nexrad_radial_packet *packet);
-nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial, nexrad_radial_run **runs);
+nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, nexrad_radial_run **runs);
+size_t              nexrad_radial_ray_size(nexrad_radial_ray *ray);
+size_t              nexrad_radial_bytes_read(nexrad_radial *radial);
 void                nexrad_radial_close(nexrad_radial *radial);
 
 #endif /* _NEXRAD_RADIAL_H */
