@@ -33,13 +33,4 @@ typedef struct _nexrad_message {
 nexrad_message * nexrad_message_open(const char *path);
 void             nexrad_message_close(nexrad_message *message);
 
-/*
- * Convenience methods for accessing the three major data blocks within a
- * product message file
- */
-nexrad_chunk *   nexrad_message_open_symbology_block(nexrad_message *message);
-nexrad_chunk *   nexrad_message_open_graphic_block(nexrad_message *message);
-nexrad_tabular_text *
-                 nexrad_message_open_tabular_block(nexrad_message *message);
-
 #endif /* _NEXRAD_MESSAGE_H */

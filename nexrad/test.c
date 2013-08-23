@@ -18,7 +18,11 @@ static void show_symbology_block(nexrad_message *message) {
     nexrad_chunk *block;
     nexrad_chunk *layer;
 
-    if ((block = nexrad_message_open_symbology_block(message)) == NULL) {
+    if (message->symbology == NULL) {
+        return;
+    }
+
+    if ((block = nexrad_symbology_block_open(message->symbology)) == NULL) {
         perror("nexrad_symbology_block_open()");
         exit(1);
     }
@@ -99,7 +103,11 @@ static void show_graphic_block(nexrad_message *message) {
     nexrad_chunk *block;
     nexrad_chunk *page;
 
-    if ((block = nexrad_message_open_graphic_block(message)) == NULL) {
+    if (message->graphic == NULL) {
+        return;
+    }
+
+    if ((block = nexrad_graphic_block_open(message->graphic)) == NULL) {
         perror("nexrad_graphic_block_open()");
         exit(1);
     }
@@ -157,7 +165,11 @@ static void show_graphic_block(nexrad_message *message) {
 static void show_tabular_block(nexrad_message *message) {
     nexrad_tabular_text *block;
 
-    if ((block = nexrad_message_open_tabular_block(message)) == NULL) {
+    if (message->tabular == NULL) {
+        return;
+    }
+
+    if ((block = nexrad_tabular_block_open(message->tabular)) == NULL) {
         perror("nexrad_tabular_block_open()");
         exit(1);
     }
@@ -214,7 +226,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Spot blanking: %d\n", message->description->blanking);
 
     show_symbology_block(message);
-    //show_graphic_block(message);
+    show_graphic_block(message);
     show_tabular_block(message);
 
     nexrad_message_close(message);
