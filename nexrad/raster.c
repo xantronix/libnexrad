@@ -42,7 +42,7 @@ static int _valid_packet(nexrad_raster_packet *packet) {
 nexrad_raster *nexrad_raster_packet_open(nexrad_raster_packet *packet) {
     nexrad_raster *raster;
 
-    if (packet == NULL) {
+    if (!_valid_packet(packet)) {
         return NULL;
     }
 
