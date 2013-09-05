@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#include <nexrad/types.h>
-
 #pragma pack(push)
 #pragma pack(1)
 
