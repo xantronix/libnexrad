@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/types.h>
+#include <nexrad/date.h>
 
 #pragma pack(push)
 #pragma pack(1)
