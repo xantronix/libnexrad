@@ -230,28 +230,6 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    fprintf(stderr, "Message size: %u\n",
-        be32toh(message->message_header->size)
-    );
-
-    fprintf(stderr, "Offset to symbology block: %lu\n",
-        (size_t)be32toh(message->description->symbology_offset) * 2
-    );
-
-    fprintf(stderr, "Offset to graphic block: %lu\n",
-        (size_t)be32toh(message->description->graphic_offset) * 2
-    );
-
-    fprintf(stderr, "Offset to tabular block: %lu\n",
-        (size_t)be32toh(message->description->tabular_offset) * 2
-    );
-
-    fprintf(stderr, "VCP %d, scan %d\n",
-        be16toh(message->description->vcp), (int16_t)be16toh(message->description->scan)
-    );
-
-    fprintf(stderr, "Spot blanking: %d\n", message->description->blanking);
-
     show_symbology_block(message);
     show_graphic_block(message);
     show_tabular_block(message);
