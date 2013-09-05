@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_HEADER_H
-#define _NEXRAD_MESSAGE_HEADER_H
+#ifndef _NEXRAD_HEADER_H
+#define _NEXRAD_HEADER_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -33,4 +33,4 @@ typedef struct _nexrad_message_header {
 
 #pragma pack(pop)
 
-#endif /* _NEXRAD_MESSAGE_HEADER_H */
+#endif /* _NEXRAD_HEADER_H */
