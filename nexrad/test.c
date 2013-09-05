@@ -219,6 +219,7 @@ static void show_tabular_block(nexrad_message *message) {
 }
 
 int main(int argc, char **argv) {
+    int ret = 0;
     nexrad_message *message;
 
     if (argc != 2) {
@@ -234,7 +235,11 @@ int main(int argc, char **argv) {
     show_graphic_block(message);
     show_tabular_block(message);
 
+    if (message->symbology == NULL || message->graphic == NULL) {
+        ret = 1;
+    }
+
     nexrad_message_close(message);
 
-    return 0;
+    return ret;
 }
