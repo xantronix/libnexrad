@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_SYMBOLOGY_H
-#define _NEXRAD_MESSAGE_SYMBOLOGY_H
+#ifndef _NEXRAD_SYMBOLOGY_H
+#define _NEXRAD_SYMBOLOGY_H
 
 #include <stdint.h>
 
@@ -31,4 +31,4 @@ nexrad_packet * nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *
 void            nexrad_symbology_layer_close(nexrad_chunk *layer);
 void            nexrad_symbology_block_close(nexrad_chunk *block);
 
-#endif /* _NEXRAD_MESSAGE_SYMBOLOGY_H */
+#endif /* _NEXRAD_SYMBOLOGY_H */

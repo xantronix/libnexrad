@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_GRAPHIC_H
-#define _NEXRAD_MESSAGE_GRAPHIC_H
+#ifndef _NEXRAD_GRAPHIC_H
+#define _NEXRAD_GRAPHIC_H
 
 #include <stdint.h>
 
@@ -31,4 +31,4 @@ nexrad_packet * nexrad_graphic_page_read_packet(nexrad_chunk *page, size_t *size
 void            nexrad_graphic_page_close(nexrad_chunk *page);
 void            nexrad_graphic_block_close(nexrad_chunk *block);
 
-#endif /* _NEXRAD_MESSAGE_GRAPHIC_H */
+#endif /* _NEXRAD_GRAPHIC_H */

@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_CHUNK_H
-#define _NEXRAD_MESSAGE_CHUNK_H
+#ifndef _NEXRAD_CHUNK_H
+#define _NEXRAD_CHUNK_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -32,4 +32,4 @@ void *         nexrad_chunk_read(nexrad_chunk *iterator, size_t *size, size_t *p
 nexrad_chunk * nexrad_chunk_read_block_layer(nexrad_chunk *block, enum nexrad_chunk_type_id type);
 void           nexrad_chunk_close(nexrad_chunk *iterator);
 
-#endif /* _NEXRAD_MESSAGE_CHUNK_H */
+#endif /* _NEXRAD_CHUNK_H */

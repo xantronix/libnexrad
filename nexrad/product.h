@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_PRODUCT_H
-#define _NEXRAD_MESSAGE_PRODUCT_H
+#ifndef _NEXRAD_PRODUCT_H
+#define _NEXRAD_PRODUCT_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -54,4 +54,4 @@ typedef struct _nexrad_product_description {
 
 #pragma pack(pop)
 
-#endif /* _NEXRAD_MESSAGE_PRODUCT_H */
+#endif /* _NEXRAD_PRODUCT_H */

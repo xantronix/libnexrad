@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_TYPES_H
-#define _NEXRAD_MESSAGE_TYPES_H
+#ifndef _NEXRAD_DATE_H
+#define _NEXRAD_DATE_H
 
 #include <stdint.h>
 #include <time.h>
@@ -16,4 +16,4 @@ typedef struct _nexrad_date {
 
 time_t nexrad_date_timestamp(nexrad_date *date);
 
-#endif /* _NEXRAD_MESSAGE_TYPES_H */
+#endif /* _NEXRAD_DATE_H */

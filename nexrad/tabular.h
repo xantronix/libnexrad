@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_TABULAR_H
-#define _NEXRAD_MESSAGE_TABULAR_H
+#ifndef _NEXRAD_TABULAR_H
+#define _NEXRAD_TABULAR_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -47,4 +47,4 @@ nexrad_tabular_text *
 ssize_t         nexrad_tabular_block_read_line(nexrad_tabular_text *text, char **data, int *page, int *line);
 void            nexrad_tabular_block_close(nexrad_tabular_text *block);
 
-#endif /* _NEXRAD_MESSAGE_TABULAR_H */
+#endif /* _NEXRAD_TABULAR_H */

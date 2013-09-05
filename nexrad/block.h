@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_BLOCK_H
-#define _NEXRAD_MESSAGE_BLOCK_H
+#ifndef _NEXRAD_BLOCK_H
+#define _NEXRAD_BLOCK_H
 
 #include <stdint.h>
 
@@ -28,4 +28,4 @@ typedef struct _nexrad_block_header {
 
 #pragma pack(pop)
 
-#endif /* _NEXRAD_MESSAGE_BLOCK_H */
+#endif /* _NEXRAD_BLOCK_H */

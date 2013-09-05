@@ -1,5 +1,5 @@
-#ifndef _NEXRAD_MESSAGE_PACKET_H
-#define _NEXRAD_MESSAGE_PACKET_H
+#ifndef _NEXRAD_PACKET_H
+#define _NEXRAD_PACKET_H
 
 #include <stdint.h>
 
@@ -68,4 +68,4 @@ typedef struct _nexrad_cell_packet {
 
 enum nexrad_packet_type_id nexrad_packet_type(nexrad_packet *packet);
 
-#endif /* _NEXRAD_MESSAGE_PACKET_H */
+#endif /* _NEXRAD_PACKET_H */
