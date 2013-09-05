@@ -37,8 +37,8 @@ typedef struct _nexrad_hail_packet {
 
      int16_t i;                  /* Cartesian offset from radar */
      int16_t j;                  /* Cartesian offset from radar */
-    uint16_t probability;        /* Probability of hail */
-    uint16_t probability_severe; /* Probability of severe hail */
+     int16_t probability;        /* Probability of hail */
+     int16_t probability_severe; /* Probability of severe hail */
     uint16_t max_size;           /* Maximum size of hail */
 } nexrad_hail_packet;
 
