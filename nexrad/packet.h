@@ -7,12 +7,14 @@
 #pragma pack(1)
 
 enum nexrad_packet_type_id {
-    NEXRAD_PACKET_TYPE_UNKNOWN =  0,
-    NEXRAD_PACKET_TYPE_TEXT    =  8,
-    NEXRAD_PACKET_TYPE_VECTOR  = 10,
-    NEXRAD_PACKET_TYPE_CELL    = 15,
-    NEXRAD_PACKET_TYPE_HAIL    = 19,
-    NEXRAD_PACKET_TYPE_RADIAL  = 0xaf1f
+    NEXRAD_PACKET_TYPE_UNKNOWN     =  0,
+    NEXRAD_PACKET_TYPE_TEXT        =  8,
+    NEXRAD_PACKET_TYPE_VECTOR      = 10,
+    NEXRAD_PACKET_TYPE_CELL        = 15,
+    NEXRAD_PACKET_TYPE_HAIL        = 19,
+    NEXRAD_PACKET_TYPE_RADIAL      = 0xaf1f,
+    NEXRAD_PACKET_TYPE_RASTER_BA0F = 0xba0f,
+    NEXRAD_PACKET_TYPE_RASTER_BA07 = 0xba07
 };
 
 typedef struct _nexrad_packet_header {
