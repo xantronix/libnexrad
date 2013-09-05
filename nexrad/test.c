@@ -7,6 +7,7 @@
 
 #include <nexrad/message.h>
 #include <nexrad/radial.h>
+#include <nexrad/raster.h>
 
 static void usage(int argc, char **argv) {
     fprintf(stderr, "usage: %s sn.nnnn.ssss\n", argv[0]);
@@ -58,6 +59,32 @@ static void show_symbology_block(nexrad_message *message) {
                     fprintf(stderr, "Done reading radial of %lu bytes\n", size);
 
                     nexrad_radial_close(radial);
+
+                    break;
+                }
+
+                case NEXRAD_PACKET_TYPE_RASTER_BA0F:
+                case NEXRAD_PACKET_TYPE_RASTER_BA07: {
+                    nexrad_raster *raster;
+                    nexrad_raster_line *line;
+                    size_t line_size;
+
+                    if ((raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet)) == NULL) {
+                        perror("nexrad_raster_packet_open()");
+                        exit(1);
+                    }
+
+                    fprintf(stderr, "Huzzah, got a raster!\n");
+
+                    while ((line = nexrad_raster_read_line(raster, &line_size, NULL)) != NULL) {
+                        fprintf(stderr, "Wee, got a line sized %lu bytes!\n", line_size);
+                    }
+
+                    size = nexrad_raster_bytes_read(raster);
+
+                    fprintf(stderr, "Done reading raster of %lu bytes\n", size);
+
+                    nexrad_raster_close(raster);
 
                     break;
                 }
