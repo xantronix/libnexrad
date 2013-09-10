@@ -15,6 +15,98 @@ static void usage(int argc, char **argv) {
     exit(1);
 }
 
+static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
+    nexrad_radial *radial;
+    nexrad_radial_ray *ray;
+    size_t ray_size;
+
+    if ((radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet)) == NULL) {
+        perror("nexrad_radial_packet_open()");
+        exit(1);
+    }
+
+    fprintf(stderr, "Huzzah, got a radial!\n");
+
+    while ((ray = nexrad_radial_read_ray(radial, &ray_size, NULL)) != NULL) {
+        fprintf(stderr, "Wee, got a ray sized %lu bytes!\n", ray_size);
+    }
+
+    *size = nexrad_radial_bytes_read(radial);
+
+    fprintf(stderr, "Done reading radial of %lu bytes\n", *size);
+
+    nexrad_radial_close(radial);
+}
+
+static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
+    nexrad_raster *raster;
+    nexrad_raster_line *line;
+    size_t line_size;
+
+    if ((raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet)) == NULL) {
+        perror("nexrad_raster_packet_open()");
+        exit(1);
+    }
+
+    fprintf(stderr, "Huzzah, got a raster!\n");
+
+    while ((line = nexrad_raster_read_line(raster, &line_size, NULL)) != NULL) {
+        fprintf(stderr, "Wee, got a line sized %lu bytes!\n", line_size);
+    }
+
+    *size = nexrad_raster_bytes_read(raster);
+
+    fprintf(stderr, "Done reading raster of %lu bytes\n", *size);
+
+    nexrad_raster_close(raster);
+}
+
+static void show_packet(nexrad_packet *packet, size_t *size) {
+    enum nexrad_packet_type_id type = nexrad_packet_type(packet);
+
+    switch (type) {
+        case NEXRAD_PACKET_TYPE_RADIAL: {
+            show_radial_packet((nexrad_radial_packet *)packet, size);
+
+            break;
+        }
+
+        case NEXRAD_PACKET_TYPE_RASTER_BA0F:
+        case NEXRAD_PACKET_TYPE_RASTER_BA07: {
+            show_raster_packet((nexrad_raster_packet *)packet, size);
+
+            break;
+        }
+
+        case NEXRAD_PACKET_TYPE_HAIL: {
+            nexrad_hail_packet *hail = (nexrad_hail_packet *)packet;
+
+            fprintf(stderr, "Hail %4d,%4d offset from radar, %d/%d probability/severe, %d max hail size\n",
+                (int16_t)be16toh(hail->i),                  (int16_t)be16toh(hail->j),       (int16_t)be16toh(hail->probability),
+                (int16_t)be16toh(hail->probability_severe), (int16_t)be16toh(hail->max_size)
+            );
+
+            break;
+        }
+
+        case NEXRAD_PACKET_TYPE_CELL: {
+            nexrad_cell_packet *cell = (nexrad_cell_packet *)packet;
+
+            fprintf(stderr, "Storm cell %2s %4d,%4d offset from radar\n",
+                cell->id, (int16_t)be16toh(cell->i), (int16_t)be16toh(cell->j)
+            );
+
+            break;
+        }
+
+        default: {
+            fprintf(stderr, "Read symbology packet type %d\n", type);
+
+            break;
+        }
+    }
+}
+
 static void show_symbology_block(nexrad_message *message) {
     nexrad_chunk *block;
     nexrad_chunk *layer;
@@ -33,89 +125,7 @@ static void show_symbology_block(nexrad_message *message) {
         size_t size;
 
         while ((packet = nexrad_symbology_layer_peek_packet(layer, &size)) != NULL) {
-            enum nexrad_packet_type_id type = nexrad_packet_type(packet);
-
-            switch (type) {
-                case NEXRAD_PACKET_TYPE_RADIAL: {
-                    nexrad_radial *radial;
-                    nexrad_radial_ray *ray;
-                    size_t ray_size;
-
-                    fprintf(stderr, "Initial poopy radial size is %lu\n", size);
-
-                    if ((radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet)) == NULL) {
-                        perror("nexrad_radial_packet_open()");
-                        exit(1);
-                    }
-
-                    fprintf(stderr, "Huzzah, got a radial!\n");
-
-                    while ((ray = nexrad_radial_read_ray(radial, &ray_size, NULL)) != NULL) {
-                        fprintf(stderr, "Wee, got a ray sized %lu bytes!\n", ray_size);
-                    }
-
-                    size = nexrad_radial_bytes_read(radial);
-
-                    fprintf(stderr, "Done reading radial of %lu bytes\n", size);
-
-                    nexrad_radial_close(radial);
-
-                    break;
-                }
-
-                case NEXRAD_PACKET_TYPE_RASTER_BA0F:
-                case NEXRAD_PACKET_TYPE_RASTER_BA07: {
-                    nexrad_raster *raster;
-                    nexrad_raster_line *line;
-                    size_t line_size;
-
-                    if ((raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet)) == NULL) {
-                        perror("nexrad_raster_packet_open()");
-                        exit(1);
-                    }
-
-                    fprintf(stderr, "Huzzah, got a raster!\n");
-
-                    while ((line = nexrad_raster_read_line(raster, &line_size, NULL)) != NULL) {
-                        fprintf(stderr, "Wee, got a line sized %lu bytes!\n", line_size);
-                    }
-
-                    size = nexrad_raster_bytes_read(raster);
-
-                    fprintf(stderr, "Done reading raster of %lu bytes\n", size);
-
-                    nexrad_raster_close(raster);
-
-                    break;
-                }
-
-                case NEXRAD_PACKET_TYPE_HAIL: {
-                    nexrad_hail_packet *hail = (nexrad_hail_packet *)packet;
-
-                    fprintf(stderr, "Hail %4d,%4d offset from radar, %d/%d probability/severe, %d max hail size\n",
-                        (int16_t)be16toh(hail->i),                  (int16_t)be16toh(hail->j),       (int16_t)be16toh(hail->probability),
-                        (int16_t)be16toh(hail->probability_severe), (int16_t)be16toh(hail->max_size)
-                    );
-
-                    break;
-                }
-
-                case NEXRAD_PACKET_TYPE_CELL: {
-                    nexrad_cell_packet *cell = (nexrad_cell_packet *)packet;
-
-                    fprintf(stderr, "Storm cell %2s %4d,%4d offset from radar\n",
-                        cell->id, (int16_t)be16toh(cell->i), (int16_t)be16toh(cell->j)
-                    );
-
-                    break;
-                }
-
-                default: {
-                    fprintf(stderr, "Read symbology packet type %d\n", type);
-
-                    break;
-                }
-            }
+            show_packet(packet, &size);
 
             nexrad_symbology_layer_next_packet(layer, size);
         }
@@ -230,6 +240,11 @@ int main(int argc, char **argv) {
         perror("nexrad_message_open()");
         exit(1);
     }
+
+    printf("Radar lat/lon: %d, %d\n",
+        (int32_t)be32toh(message->description->site_lat),
+        (int32_t)be32toh(message->description->site_lon)
+    );
 
     show_symbology_block(message);
     show_graphic_block(message);
