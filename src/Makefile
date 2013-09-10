@@ -5,7 +5,7 @@ CFLAGS	= -g -Wno-unused-result -fno-inline -Wall -O2 -I$(INCLUDE)
 LDFLAGS	=
 HEADERS	= $(shell ls $(INCLUDE)/nexrad/*.h)
 OBJS	= message.o chunk.o symbology.o graphic.o tabular.o packet.o radial.o \
-	  raster.o date.o test.o
+	  raster.o date.o error.o test.o
 NAME	= test
 
 RM	= /bin/rm
