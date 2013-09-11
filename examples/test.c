@@ -25,15 +25,15 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
         exit(1);
     }
 
-    fprintf(stderr, "Huzzah, got a radial!\n");
+    printf("Huzzah, got a radial!\n");
 
     while ((ray = nexrad_radial_read_ray(radial, &ray_size, NULL)) != NULL) {
-        fprintf(stderr, "Wee, got a ray sized %lu bytes!\n", ray_size);
+        printf("Wee, got a ray sized %lu bytes!\n", ray_size);
     }
 
     *size = nexrad_radial_bytes_read(radial);
 
-    fprintf(stderr, "Done reading radial of %lu bytes\n", *size);
+    printf("Done reading radial of %lu bytes\n", *size);
 
     nexrad_radial_close(radial);
 }
@@ -48,15 +48,15 @@ static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
         exit(1);
     }
 
-    fprintf(stderr, "Huzzah, got a raster!\n");
+    printf("Huzzah, got a raster!\n");
 
     while ((line = nexrad_raster_read_line(raster, &line_size, NULL)) != NULL) {
-        fprintf(stderr, "Wee, got a line sized %lu bytes!\n", line_size);
+        printf("Wee, got a line sized %lu bytes!\n", line_size);
     }
 
     *size = nexrad_raster_bytes_read(raster);
 
-    fprintf(stderr, "Done reading raster of %lu bytes\n", *size);
+    printf("Done reading raster of %lu bytes\n", *size);
 
     nexrad_raster_close(raster);
 }
@@ -81,7 +81,7 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
         case NEXRAD_PACKET_TYPE_HAIL: {
             nexrad_hail_packet *hail = (nexrad_hail_packet *)packet;
 
-            fprintf(stderr, "Hail %4d,%4d offset from radar, %d/%d probability/severe, %d max hail size\n",
+            printf("Hail %4d,%4d offset from radar, %d/%d probability/severe, %d max hail size\n",
                 (int16_t)be16toh(hail->i),                  (int16_t)be16toh(hail->j),       (int16_t)be16toh(hail->probability),
                 (int16_t)be16toh(hail->probability_severe), (int16_t)be16toh(hail->max_size)
             );
@@ -92,7 +92,7 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
         case NEXRAD_PACKET_TYPE_CELL: {
             nexrad_cell_packet *cell = (nexrad_cell_packet *)packet;
 
-            fprintf(stderr, "Storm cell %2s %4d,%4d offset from radar\n",
+            printf("Storm cell %2s %4d,%4d offset from radar\n",
                 cell->id, (int16_t)be16toh(cell->i), (int16_t)be16toh(cell->j)
             );
 
@@ -100,7 +100,7 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
         }
 
         default: {
-            fprintf(stderr, "Read symbology packet type %d\n", type);
+            printf("Read symbology packet type %d\n", type);
 
             break;
         }
@@ -162,12 +162,12 @@ static void show_graphic_block(nexrad_message *message) {
 
                     size_t len = size - sizeof(nexrad_text_packet);
 
-                    fprintf(stderr, "Read text packet with color %02x, position %d,%d\n",
+                    printf("Read text packet with color %02x, position %d,%d\n",
                         be16toh(text->color), (int16_t)be16toh(text->i), (int16_t)be16toh(text->j)
                     );
 
-                    write(1, (char *)packet + sizeof(nexrad_text_packet), len);
-                    write(1, "\n", 1);
+                    fwrite((char *)packet + sizeof(nexrad_text_packet), len, 1, stdout);
+                    printf("\n");
 
                     break;
                 }
@@ -175,7 +175,7 @@ static void show_graphic_block(nexrad_message *message) {
                 case NEXRAD_PACKET_TYPE_VECTOR: {
                     nexrad_vector_packet *vector = (nexrad_vector_packet *)packet;
 
-                    fprintf(stderr, "Read vector packet with magnitude %u, starting %d,%d, ending %d,%d -> starting %d,%d ending %d,%d\n",
+                    printf("Read vector packet with magnitude %u, starting %d,%d, ending %d,%d -> starting %d,%d ending %d,%d\n",
                         be16toh(vector->magnitude),
                         (int16_t)be16toh(vector->i1_start), (int16_t)be16toh(vector->j1_start),
                         (int16_t)be16toh(vector->i1_end),   (int16_t)be16toh(vector->i1_end),
@@ -186,7 +186,7 @@ static void show_graphic_block(nexrad_message *message) {
                     break;
                 } 
                 default: {
-                    fprintf(stderr, "Read graphic packet type %d\n", type);
+                    printf("Read graphic packet type %d\n", type);
 
                     break;
                 }
@@ -220,9 +220,10 @@ static void show_tabular_block(nexrad_message *message) {
         char buf[8];
 
         snprintf(buf, 8, "%2d/%2d: ", page, line);
-        write(1, buf, strlen(buf));
-        write(1, tmp, len);
-        write(1, "\n", 1);
+        printf("%s", buf);
+
+        fwrite(tmp, len, 1, stdout);
+        printf("\n");
     }
 
     nexrad_tabular_block_close(block);
