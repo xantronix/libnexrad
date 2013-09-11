@@ -10,6 +10,8 @@ LDFLAGS		=
 HEADERS		= message.h chunk.h symbology.h graphic.h tabular.h packet.h radial.h \
 		  raster.h date.h error.h
 
+HEADERS_PRIVATE	=
+
 OBJS		= message.o chunk.o symbology.o graphic.o tabular.o packet.o radial.o \
 		  raster.o date.o error.o
 
@@ -47,7 +49,7 @@ $(STATIC): $(OBJS)
 $(SONAME_FULL): $(OBJS)
 	$(CC) $(LLFLAGS) $(OBJS) $(LDFLAGS) -o $(SONAME_FULL)
 
-$(OBJS): %.o: %.c $(HEADERS_BUILD)
+$(OBJS): %.o: %.c $(HEADERS_BUILD) $(HEADERS_PRIVATE)
 	$(CC) $(CFLAGS) -c $<
 
 install-libdir:
