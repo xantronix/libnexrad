@@ -1,7 +1,7 @@
 INCLUDE_PATH	= ../include
 HEADER_SUBDIR	= nexrad
 
-CC		= cc
+CC		= $(CROSS)cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 \
 		  -I$(INCLUDE_PATH)
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
@@ -17,6 +17,8 @@ VERSION_MAJOR	= 0
 VERSION_MINOR	= 0.0
 VERSION		= $(VERSION_MAJOR).$(VERSION_MINOR)
 
+STATIC		= libnexrad.a
+
 SONAME_SHORT	= libnexrad.so
 SONAME		= $(SONAME_SHORT).$(VERSION_MAJOR)
 SONAME_FULL	= $(SONAME_SHORT).$(VERSION)
@@ -28,12 +30,19 @@ INSTALL_INCLUDE	= $(PREFIX)/include
 HEADERS_BUILD	= $(addprefix $(INCLUDE_PATH)/$(HEADER_SUBDIR)/, $(HEADERS))
 HEADERS_SYSTEM	= $(addprefix $(INSTALL_INCLUDE)/$(HEADER_SUBDIR)/, $(HEADERS))
 
+AR		= $(CROSS)ar
+RANLIB		= $(CROSS)ranlib
+
 RM		= /bin/rm
 LN		= /bin/ln
 RMDIR		= /bin/rmdir
 INSTALL		= /usr/bin/install
 
-all: $(SONAME_FULL)
+all: $(STATIC) $(SONAME_FULL)
+
+$(STATIC): $(OBJS)
+	$(AR) rc $(STATIC) $(OBJS)
+	$(RANLIB) $(STATIC)
 
 $(SONAME_FULL): $(OBJS)
 	$(CC) $(LLFLAGS) $(OBJS) $(LDFLAGS) -o $(SONAME_FULL)
@@ -41,28 +50,40 @@ $(SONAME_FULL): $(OBJS)
 $(OBJS): %.o: %.c $(HEADERS_BUILD)
 	$(CC) $(CFLAGS) -c $<
 
-install-lib: $(SONAME_FULL)
+install-libdir:
 	$(INSTALL) -d -m 0755 $(INSTALL_LIB)
+
+install-static: $(STATIC)
+	$(INSTALL) -c -m 0644 $(STATIC) $(INSTALL_LIB)
+
+install-shared: $(SONAME_FULL)
 	$(INSTALL) -c -m 0755 $(SONAME_FULL) $(INSTALL_LIB)
 	$(LN) -f -s $(SONAME_FULL) $(INSTALL_LIB)/$(SONAME)
 	$(LN) -f -s $(SONAME_FULL) $(INSTALL_LIB)/$(SONAME_SHORT)
+
+install-libs: install-static install-shared
 
 install-headers: $(HEADERS_BUILD)
 	$(INSTALL) -d -m 0755 $(INSTALL_INCLUDE)/$(HEADER_SUBDIR)
 	$(INSTALL) -c -m 0644 $(HEADERS_BUILD) $(INSTALL_INCLUDE)/$(HEADER_SUBDIR)
 
-install: install-lib install-headers
+install: install-libdir install-libs install-headers
 
 uninstall-headers:
 	$(RM) -f $(HEADERS_SYSTEM)
 	$(RMDIR) $(INSTALL_INCLUDE)/$(HEADER_SUBDIR)
 
-uninstall-lib:
+uninstall-shared:
 	$(RM) -f $(INSTALL_LIB)/$(SONAME_SHORT)
 	$(RM) -f $(INSTALL_LIB)/$(SONAME)
 	$(RM) -f $(INSTALL_LIB)/$(SONAME_FULL)
 
-uninstall: uninstall-headers uninstall-lib
+uninstall-static:
+	$(RM) -f $(INSTALL_LIB)/$(STATIC)
+
+uninstall-libs: uninstall-shared uninstall-static
+
+uninstall: uninstall-headers uninstall-libs
 
 clean:
 	$(RM) -f $(SONAME_FULL) $(OBJS)
