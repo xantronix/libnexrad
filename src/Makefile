@@ -3,8 +3,8 @@ HEADER_SUBDIR	= nexrad
 
 CC		= cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 -I$(INCLUDE_PATH)
-LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 LDFLAGS		=
+LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 
 HEADERS		= message.h chunk.h symbology.h graphic.h tabular.h packet.h radial.h \
 		  raster.h date.h error.h
