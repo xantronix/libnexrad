@@ -2,9 +2,10 @@ INCLUDE_PATH	= ../include
 HEADER_SUBDIR	= nexrad
 
 CC		= cc
-CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 -I$(INCLUDE_PATH)
-LDFLAGS		=
+CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 \
+		  -I$(INCLUDE_PATH)
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
+LDFLAGS		=
 
 HEADERS		= message.h chunk.h symbology.h graphic.h tabular.h packet.h radial.h \
 		  raster.h date.h error.h
@@ -29,12 +30,13 @@ HEADERS_SYSTEM	= $(addprefix $(INSTALL_INCLUDE)/$(HEADER_SUBDIR)/, $(HEADERS))
 
 RM		= /bin/rm
 LN		= /bin/ln
+RMDIR		= /bin/rmdir
 INSTALL		= /usr/bin/install
 
 all: $(SONAME_FULL)
 
 $(SONAME_FULL): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) $(LLFLAGS) -o $(SONAME_FULL)
+	$(CC) $(LLFLAGS) $(OBJS) $(LDFLAGS) -o $(SONAME_FULL)
 
 $(OBJS): %.o: %.c $(HEADERS_BUILD)
 	$(CC) $(CFLAGS) -c $<
@@ -51,13 +53,14 @@ install-headers: $(HEADERS_BUILD)
 
 install: install-lib install-headers
 
-uninstall-lib:
-	$(RM) -f $(INSTALL_LIB)/$(SONAME_FULL)
-	$(RM) -f $(INSTALL_LIB)/$(SONAME)
-	$(RM) -f $(INSTALL_LIB)/$(SONAME_SHORT)
-
 uninstall-headers:
 	$(RM) -f $(HEADERS_SYSTEM)
+	$(RMDIR) $(INSTALL_INCLUDE)/$(HEADER_SUBDIR)
+
+uninstall-lib:
+	$(RM) -f $(INSTALL_LIB)/$(SONAME_SHORT)
+	$(RM) -f $(INSTALL_LIB)/$(SONAME)
+	$(RM) -f $(INSTALL_LIB)/$(SONAME_FULL)
 
 uninstall: uninstall-headers uninstall-lib
 
