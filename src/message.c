@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -218,3 +218,83 @@ nexrad_tabular_text *nexrad_message_open_tabular_block(nexrad_message *message) 
     return nexrad_tabular_block_open(message->tabular);
 }
 
+time_t nexrad_message_scan_timestamp(nexrad_message *message) {
+    if (message == NULL) {
+        return -1;
+    }
+
+    return nexrad_date_timestamp(&message->description->scan_date);
+}
+
+time_t nexrad_message_gen_timestamp(nexrad_message *message) {
+    if (message == NULL) {
+        return -1;
+    }
+
+    return nexrad_date_timestamp(&message->description->gen_date);
+}
+
+static int safecpy(nexrad_message *message, char *dest, char *src, size_t destlen, size_t srclen) {
+    size_t copylen = 0;
+
+    if (message == NULL || dest == NULL || src == NULL) {
+        return -1;
+    }
+
+    if (destlen > srclen) {
+        copylen = srclen;
+    } else if (destlen <= srclen) {
+        copylen = destlen - 1;
+    }
+
+    memset(dest, '\0', destlen);
+    memcpy(dest, src,  copylen);
+
+    return 0;
+}
+
+int nexrad_message_get_region(nexrad_message *message, char *dest, size_t destlen) {
+    return safecpy(message,
+        dest,    message->file_header->region,
+        destlen, sizeof(message->file_header->region)
+    );
+}
+
+int nexrad_message_get_office(nexrad_message *message, char *dest, size_t destlen) {
+    return safecpy(message,
+        dest,    message->file_header->office,
+        destlen, sizeof(message->file_header->office)
+    );
+}
+
+int nexrad_message_get_station(nexrad_message *message, char *dest, size_t destlen) {
+    char station[5];
+
+    if (message == NULL) {
+        return -1;
+    }
+
+    station[0] = message->file_header->office[0];
+    memcpy(station + 1, message->file_header->station, 3);
+    station[4] = '\0';
+
+    return safecpy(message,
+        dest,    station,
+        destlen, sizeof(station) - 1
+    );
+}
+
+int nexrad_message_get_product_code(nexrad_message *message, char *dest, size_t destlen) {
+    return safecpy(message,
+        dest, message->file_header->product_code,
+        destlen, sizeof(message->file_header->product_code)
+    );
+}
+
+int nexrad_message_get_product_id(nexrad_message *message) {
+    if (message == NULL) {
+        return -1;
+    }
+
+    return be16toh(message->description->product_id);
+}

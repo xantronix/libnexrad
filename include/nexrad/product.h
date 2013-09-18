@@ -29,7 +29,7 @@ typedef struct _nexrad_product_description {
      int32_t    site_lat;      /* Radar site latitude */
      int32_t    site_lon;      /* Radar site longitude */
     uint16_t    site_altitude; /* Radar site altitude */
-    uint16_t    product;       /* NOAA product code */
+    uint16_t    product_id;    /* NOAA product ID */
     uint16_t    mode;          /* Radar operational mode */
     uint16_t    vcp;           /* Radar volume coverage pattern */
      int16_t    seq;           /* Request sequence number */
