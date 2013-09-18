@@ -218,7 +218,7 @@ nexrad_tabular_text *nexrad_message_open_tabular_block(nexrad_message *message) 
     return nexrad_tabular_block_open(message->tabular);
 }
 
-time_t nexrad_message_scan_timestamp(nexrad_message *message) {
+time_t nexrad_message_get_scan_timestamp(nexrad_message *message) {
     if (message == NULL) {
         return -1;
     }
@@ -226,7 +226,7 @@ time_t nexrad_message_scan_timestamp(nexrad_message *message) {
     return nexrad_date_timestamp(&message->description->scan_date);
 }
 
-time_t nexrad_message_gen_timestamp(nexrad_message *message) {
+time_t nexrad_message_get_gen_timestamp(nexrad_message *message) {
     if (message == NULL) {
         return -1;
     }

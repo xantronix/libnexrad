@@ -33,8 +33,8 @@ typedef struct _nexrad_message {
 nexrad_message * nexrad_message_open(const char *path);
 void             nexrad_message_close(nexrad_message *message);
 
-time_t nexrad_message_scan_timestamp(nexrad_message *message);
-time_t nexrad_message_gen_timestamp(nexrad_message *message);
+time_t nexrad_message_get_scan_timestamp(nexrad_message *message);
+time_t nexrad_message_get_gen_timestamp(nexrad_message *message);
 int    nexrad_message_get_region(nexrad_message *message, char *dest, size_t destlen);
 int    nexrad_message_get_office(nexrad_message *message, char *dest, size_t destlen);
 int    nexrad_message_get_station(nexrad_message *message, char *dest, size_t destlen);
