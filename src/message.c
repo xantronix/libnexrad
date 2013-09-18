@@ -299,7 +299,7 @@ int nexrad_message_get_product_id(nexrad_message *message) {
     return be16toh(message->description->product_id);
 }
 
-int nexrad_message_get_site_corods(nexrad_message *message, double *lat, double *lon) {
+int nexrad_message_get_site_coords(nexrad_message *message, double *lat, double *lon) {
     if (message == NULL || lat == NULL || lon == NULL) {
         return -1;
     }
