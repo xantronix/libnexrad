@@ -8,7 +8,7 @@ LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 LDFLAGS		=
 
 HEADERS		= message.h chunk.h symbology.h graphic.h tabular.h packet.h radial.h \
-		  raster.h date.h error.h
+		  raster.h date.h error.h block.h header.h product.h
 
 HEADERS_PRIVATE	=
 
