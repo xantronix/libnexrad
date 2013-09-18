@@ -11,6 +11,8 @@
 
 #define NEXRAD_VERSION 1
 
+#define NEXRAD_PRODUCT_COORD_MAGNITUDE 0.001
+
 enum nexrad_product_id {
     NEXRAD_PRODUCT_NHI = 59
 };

@@ -298,3 +298,14 @@ int nexrad_message_get_product_id(nexrad_message *message) {
 
     return be16toh(message->description->product_id);
 }
+
+int nexrad_message_get_site_corods(nexrad_message *message, double *lat, double *lon) {
+    if (message == NULL || lat == NULL || lon == NULL) {
+        return -1;
+    }
+
+    *lat = NEXRAD_PRODUCT_COORD_MAGNITUDE * (int32_t)be32toh(message->description->site_lat);
+    *lon = NEXRAD_PRODUCT_COORD_MAGNITUDE * (int32_t)be32toh(message->description->site_lon);
+
+    return 0;
+}

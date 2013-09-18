@@ -40,5 +40,6 @@ int    nexrad_message_get_office(nexrad_message *message, char *dest, size_t des
 int    nexrad_message_get_station(nexrad_message *message, char *dest, size_t destlen);
 int    nexrad_message_get_product_code(nexrad_message *message, char *dest, size_t destlen);
 int    nexrad_message_get_product_id(nexrad_message *message);
+int    nexrad_message_get_site_coords(nexrad_message *message, double *lat, double *lon);
 
 #endif /* _NEXRAD_MESSAGE_H */
