@@ -229,6 +229,13 @@ nexrad_message *nexrad_message_open(const char *path) {
     return message;
 
 error_index_message:
+    if (message->compressed) {
+        free(message->body);
+
+        message->compressed = 0;
+        message->body       = NULL;
+    }
+
     munmap(message->data, message->mapped_size);
 
 error_mmap:
