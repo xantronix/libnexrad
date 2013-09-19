@@ -79,11 +79,14 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
         }
 
         case NEXRAD_PACKET_TYPE_HAIL: {
-            nexrad_hail_packet *hail = (nexrad_hail_packet *)packet;
+            int i, j, probability, probability_severe, max_size;
+
+            nexrad_packet_read_hail_data(packet,
+                &i, &j, &probability, &probability_severe, &max_size
+            );
 
             printf("Hail %4d,%4d offset from radar, %d/%d probability/severe, %d max hail size\n",
-                (int16_t)be16toh(hail->i),                  (int16_t)be16toh(hail->j),       (int16_t)be16toh(hail->probability),
-                (int16_t)be16toh(hail->probability_severe), (int16_t)be16toh(hail->max_size)
+                i, j, probability, probability_severe, max_size
             );
 
             break;

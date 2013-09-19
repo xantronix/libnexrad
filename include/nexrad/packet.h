@@ -68,4 +68,8 @@ typedef struct _nexrad_cell_packet {
 
 enum nexrad_packet_type_id nexrad_packet_type(nexrad_packet *packet);
 
+int nexrad_packet_read_hail_data(nexrad_packet *packet,
+    int *i, int *j, int *probability, int *probability_severe, int *max_size
+);
+
 #endif /* _NEXRAD_PACKET_H */
