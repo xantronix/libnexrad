@@ -77,7 +77,11 @@ ssize_t nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type_i
         }
 
         case NEXRAD_RADIAL_DIGITAL: {
-            return sizeof(nexrad_radial_ray) + be16toh(ray->size);
+            size_t ret = sizeof(nexrad_radial_ray) + be16toh(ray->size);
+
+            if (ret % 2) ret++;
+
+            return ret;
         }
     }
 
