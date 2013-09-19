@@ -4,51 +4,6 @@
 
 #include <nexrad/packet.h>
 
-#pragma pack(push)
-#pragma pack(1)
-
-struct _nexrad_text_packet {
-    nexrad_packet_header header;
-
-    uint16_t color; /* 4-bit color value (0-15) */
-     int16_t i;     /* Cartesian offset from radar in 1/4km increments */
-     int16_t j;     /* Cartesian offset from radar in 1/4km increments */
-};
-
-struct _nexrad_cell_packet {
-    nexrad_packet_header header;
-
-     int16_t i;
-     int16_t j;
-    char     id[NEXRAD_PACKET_CELL_ID_LEN];
-};
-
-struct _nexrad_hail_packet {
-    nexrad_packet_header header;
-
-     int16_t i;                  /* Cartesian offset from radar */
-     int16_t j;                  /* Cartesian offset from radar */
-     int16_t probability;        /* Probability of any hail */
-     int16_t probability_severe; /* Probability of severe hail */
-    uint16_t max_size;           /* Maximum size of hail */
-};
-
-struct _nexrad_vector_packet {
-    nexrad_packet_header header;
-
-    uint16_t magnitude; /* Vector magnitude in 1/4km increments */
-     int16_t i1_start;  /* Cartesian origin vector */
-     int16_t j1_start;  /* Cartesian origin vector */
-     int16_t i1_end;    /* Cartesian origin vector */
-     int16_t j1_end;    /* Cartesian origin vector */
-     int16_t i2_start;  /* Cartesian destination vector */
-     int16_t j2_start;  /* Cartesian destination vector */
-     int16_t i2_end;    /* Cartesian destination vector */
-     int16_t j2_end;    /* Cartesian destination vector */
-};
-
-#pragma pack(pop)
-
 enum nexrad_packet_type_id nexrad_packet_type(nexrad_packet *packet) {
     if (packet == NULL) return 0;
 
