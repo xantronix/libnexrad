@@ -5,7 +5,7 @@ CC		= $(CROSS)cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 \
 		  -I$(INCLUDE_PATH)
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
-LDFLAGS		=
+LDFLAGS		= -lbz2
 
 HEADERS		= message.h chunk.h product.h symbology.h graphic.h tabular.h packet.h \
 		  radial.h raster.h date.h error.h block.h header.h vector.h

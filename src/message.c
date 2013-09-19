@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <endian.h>
+#include <bzlib.h>
 #include "util.h"
 
 #include <nexrad/message.h>
@@ -16,7 +17,9 @@ struct _nexrad_message {
     size_t page_size;
     size_t mapped_size;
     int    fd;
+    int    compressed;
     void * data;
+    void * body;
 
     nexrad_file_header *         file_header;
     nexrad_message_header *      message_header;
@@ -26,23 +29,27 @@ struct _nexrad_message {
     nexrad_tabular_block *       tabular;
 };
 
+static inline int _header_size() {
+    return sizeof(nexrad_message_header) + sizeof(nexrad_product_description);
+}
+
 static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }
 
-static inline off_t _halfword_offset(uint32_t value) {
-    return sizeof(nexrad_file_header) + (be32toh(value) * 2);
+static inline off_t _halfword_body_offset(uint32_t value) {
+    return (be32toh(value) * 2) - _header_size();
 }
 
 static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset, enum nexrad_block_id type) {
-    uint32_t offset = _halfword_offset(raw_offset);
+    uint32_t offset = _halfword_body_offset(raw_offset);
     nexrad_block_header *header;
 
     /*
      * Prevent an opportunity for segmentation fault by limiting the message
      * offset to exist within the physical size of the message.
      */
-    if (offset > message->size) {
+    if (offset + _header_size() > message->size) {
         return NULL;
     }
 
@@ -50,7 +57,7 @@ static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset,
      * If the block divider and ID found at the usual locations appear to be
      * invalid, then return null.
      */
-    header = (nexrad_block_header *)((char *)message->data + offset);
+    header = (nexrad_block_header *)((char *)message->body + offset);
 
     if ((int16_t)be16toh(header->divider) != -1 || be16toh(header->id) != type) {
         return NULL;
@@ -71,6 +78,16 @@ static inline nexrad_tabular_block *_tabular_block(nexrad_message *message, nexr
     return (nexrad_tabular_block *)_block_pointer(message, description->tabular_offset, NEXRAD_BLOCK_TABULAR);
 }
 
+static size_t _body_size(nexrad_message *message) {
+    size_t ret = message->size;
+
+    ret -= sizeof(nexrad_file_header);
+    ret -= sizeof(nexrad_message_header);
+    ret -= sizeof(nexrad_product_description);
+
+    return ret;
+}
+
 /*
  * Perform an initial parse of the NEXRAD Radar Product Generator Message and
  * produce a high-level table-of-contents indicating the locations of the five
@@ -81,6 +98,7 @@ static int _index_message(nexrad_message *message) {
 
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
+    void *                       body;
 
     nexrad_symbology_block * symbology = NULL;
     nexrad_graphic_block *   graphic   = NULL;
@@ -114,6 +132,38 @@ static int _index_message(nexrad_message *message) {
         goto error_invalid_product_description;
     }
 
+    /*
+     * Locate the body of the NEXRAD data after the message header and product
+     * description blocks.
+     */
+    body = nexrad_block_after(description, nexrad_product_description);
+
+    /*
+     * Determine if the NEXRAD message is compressed.  If it is, then decompress
+     * the body into a new chunk of memory and assign it to the message object.
+     */
+    if (be16toh(description->attributes.compression.method) == NEXRAD_PRODUCT_COMPRESSION_BZIP2) {
+        unsigned int destlen = be32toh(description->attributes.compression.size);
+        size_t bodylen = _body_size(message);
+        void *dest;
+
+        if ((dest = malloc(destlen)) == NULL) {
+            goto error_decompress_malloc;
+        }
+
+        if (BZ2_bzBuffToBuffDecompress(dest, &destlen, body, bodylen, 0, 0) < 0) {
+            free(dest);
+
+            goto error_decompress;
+        }
+
+        message->body       = dest;
+        message->compressed = 1;
+    } else {
+        message->body       = body;
+        message->compressed = 0;
+    }
+
     if (description->symbology_offset != 0 && (symbology = _symbology_block(message, description)) == NULL) {
         goto error_invalid_symbology_block_offset;
     }
@@ -138,6 +188,8 @@ static int _index_message(nexrad_message *message) {
 error_invalid_tabular_block_offset:
 error_invalid_graphic_block_offset:
 error_invalid_symbology_block_offset:
+error_decompress:
+error_decompress_malloc:
 error_invalid_product_description:
 error_invalid_message_header:
 error_invalid_file_header:
@@ -198,7 +250,7 @@ void nexrad_message_close(nexrad_message *message) {
     if (message->data && message->mapped_size > 0) {
         munmap(message->data, message->mapped_size);
 
-        message->data        = 0;
+        message->data        = NULL;
         message->mapped_size = 0;
     }
 
@@ -208,8 +260,15 @@ void nexrad_message_close(nexrad_message *message) {
         message->fd = 0;
     }
 
+    if (message->compressed) {
+        free(message->body);
+
+        message->compressed = 0;
+    }
+
     message->size           = 0;
     message->page_size      = 0;
+    message->body           = NULL;
     message->file_header    = NULL;
     message->message_header = NULL;
     message->description    = NULL;
