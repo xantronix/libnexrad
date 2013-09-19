@@ -3,6 +3,13 @@
 
 #include <nexrad/raster.h>
 
+struct _nexrad_raster {
+    nexrad_raster_packet * packet;
+    size_t                 bytes_read;
+    size_t                 lines_left;
+    nexrad_raster_line *   current;
+};
+
 static int _valid_packet(nexrad_raster_packet *packet) {
     if (packet == NULL) {
         return 0;

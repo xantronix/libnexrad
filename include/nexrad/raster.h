@@ -32,12 +32,7 @@ typedef struct _nexrad_raster_run {
 
 #pragma pack(pop)
 
-typedef struct _nexrad_raster {
-    nexrad_raster_packet * packet;
-    size_t                 bytes_read;
-    size_t                 lines_left;
-    nexrad_raster_line *   current;
-} nexrad_raster;
+typedef struct _nexrad_raster nexrad_raster;
 
 nexrad_raster *      nexrad_raster_packet_open(nexrad_raster_packet *packet);
 nexrad_raster_line * nexrad_raster_read_line(nexrad_raster *raster, size_t *sizep, nexrad_raster_run **runs);
