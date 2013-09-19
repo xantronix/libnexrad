@@ -30,7 +30,7 @@ int nexrad_packet_find_text_data(nexrad_packet *packet, int *i, int *j, int *col
 
     if (data && textlen) {
         *data    = (char *)text + sizeof(nexrad_text_packet);
-        *textlen = be16toh(text->header.size) - sizeof(nexrad_text_packet);
+        *textlen = be16toh(text->header.size) - sizeof(nexrad_text_packet) + sizeof(nexrad_packet_header);
     }
 
     return 0;
