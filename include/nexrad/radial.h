@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+enum nexrad_radial_type_id {
+    NEXRAD_RADIAL_RLE     = 0xaf1f,
+    NEXRAD_RADIAL_DIGITAL = 16
+};
+
 #pragma pack(1)
 #pragma pack(push)
 
@@ -34,7 +39,7 @@ typedef struct _nexrad_radial nexrad_radial;
 
 nexrad_radial *     nexrad_radial_packet_open(nexrad_radial_packet *packet);
 nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, void **runs);
-size_t              nexrad_radial_ray_size(nexrad_radial_ray *ray);
+ssize_t             nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type_id type);
 size_t              nexrad_radial_bytes_read(nexrad_radial *radial);
 void                nexrad_radial_close(nexrad_radial *radial);
 

@@ -4,15 +4,26 @@
 #include <nexrad/radial.h>
 
 struct _nexrad_radial {
-    nexrad_radial_packet * packet;
-    size_t                 bytes_read;
-    size_t                 rays_left;
-    nexrad_radial_ray *    current;
+    nexrad_radial_packet *     packet;
+    enum nexrad_radial_type_id type;
+    size_t                     bytes_read;
+    size_t                     rays_left;
+    nexrad_radial_ray *        current;
 };
 
-static int _valid_packet(nexrad_radial_packet *packet) {
+static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type_id type) {
+    switch (type) {
+        case NEXRAD_RADIAL_RLE:
+        case NEXRAD_RADIAL_DIGITAL: {
+            break;
+        }
+
+        default: {
+            return 0;
+        }
+    }
+
     if (
-      packet                          == NULL ||
       be16toh(packet->rangebin_first) >   460 ||
       be16toh(packet->rangebin_count) >   460 ||
       be16toh(packet->scale)          >  8000 ||
@@ -27,8 +38,15 @@ static int _valid_packet(nexrad_radial_packet *packet) {
 
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
     nexrad_radial *radial;
+    enum nexrad_radial_type_id type;
 
-    if (!_valid_packet(packet)) {
+    if (packet == NULL) {
+        return NULL;
+    }
+
+    type = be16toh(packet->type);
+
+    if (!_valid_packet(packet, type)) {
         return NULL;
     }
 
@@ -37,6 +55,7 @@ nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
     }
 
     radial->packet     = packet;
+    radial->type       = type;
     radial->bytes_read = sizeof(nexrad_radial_packet);
     radial->rays_left  = be16toh(packet->rays);
     radial->current    = (nexrad_radial_ray *)((char *)packet + sizeof(nexrad_radial_packet));
@@ -47,12 +66,22 @@ error_malloc:
     return NULL;
 }
 
-size_t nexrad_radial_ray_size(nexrad_radial_ray *ray) {
+ssize_t nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type_id type) {
     if (ray == NULL) {
-        return 0;
+        return -1;
     }
 
-    return sizeof(nexrad_radial_ray) + be16toh(ray->size) * 2;
+    switch (type) {
+        case NEXRAD_RADIAL_RLE: {
+            return sizeof(nexrad_radial_ray) + be16toh(ray->size) * 2;
+        }
+
+        case NEXRAD_RADIAL_DIGITAL: {
+            return sizeof(nexrad_radial_ray) + be16toh(ray->size);
+        }
+    }
+
+    return -1;
 }
 
 nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, void **runs) {
@@ -68,7 +97,7 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, 
     }
 
     ray  = radial->current;
-    size = nexrad_radial_ray_size(ray);
+    size = nexrad_radial_ray_size(ray, radial->type);
 
     /*
      * Advance the current ray pointer beyond the ray to follow.
