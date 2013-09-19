@@ -36,6 +36,12 @@ typedef struct _nexrad_product_attributes {
     uint16_t p9_10[2];
 } nexrad_product_attributes;
 
+typedef struct _nexrad_compression_attributes {
+    uint16_t p1_24[24];
+    uint16_t method;
+    uint32_t size;
+} nexrad_compression_attributes;
+
 typedef struct _nexrad_dvil_attributes {
     uint16_t p1;
     uint16_t p2;
@@ -67,8 +73,9 @@ typedef struct _nexrad_product_description {
      * Product-specific attributes
      */
     union {
-        nexrad_product_attributes generic;
-        nexrad_dvil_attributes    dvil;
+        nexrad_product_attributes     generic;
+        nexrad_compression_attributes compression;
+        nexrad_dvil_attributes        dvil;
     } attributes;
 
      uint8_t version;          /* Version */
