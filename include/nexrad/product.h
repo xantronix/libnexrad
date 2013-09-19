@@ -25,18 +25,11 @@ enum nexrad_radar_mode_id {
 };
 
 typedef struct _nexrad_product_attributes {
-    uint16_t p1;
-    uint16_t p2;
+    uint16_t p1_2[2];
      int16_t elevation;
     uint16_t p3;
     uint16_t thresholds[16];
-    uint16_t p4;
-    uint16_t p5;
-    uint16_t p6;
-    uint16_t p7;
-    uint16_t p8;
-    uint16_t p9;
-    uint16_t p10;
+    uint16_t p4_10[7];
 } nexrad_product_attributes;
 
 typedef struct _nexrad_dvil_attributes {
