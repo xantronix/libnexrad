@@ -17,7 +17,8 @@
 #define NEXRAD_PRODUCT_COMPRESSION_BZIP2 1
 
 enum nexrad_product_id {
-    NEXRAD_PRODUCT_NHI = 59
+    NEXRAD_PRODUCT_NHI =  59,
+    NEXRAD_PRODUCT_DVL = 134
 };
 
 enum nexrad_radar_mode_id {
