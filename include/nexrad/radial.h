@@ -24,8 +24,8 @@ typedef struct _nexrad_radial_ray {
 } nexrad_radial_ray;
 
 typedef struct _nexrad_radial_run {
-    unsigned int length :4; /* Length of run */
     unsigned int level  :4; /* Level (color code) of run */
+    unsigned int length :4; /* Length of run */
 } nexrad_radial_run;
 
 #pragma pack(pop)

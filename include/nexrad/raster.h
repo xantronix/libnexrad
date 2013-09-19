@@ -26,8 +26,8 @@ typedef struct _nexrad_raster_line {
 } nexrad_raster_line;
 
 typedef struct _nexrad_raster_run {
-    unsigned int length :4; /* Length of run */
     unsigned int level  :4; /* Level (color code) of run */
+    unsigned int length :4; /* Length of run */
 } nexrad_raster_run;
 
 #pragma pack(pop)
