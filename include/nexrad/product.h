@@ -13,14 +13,12 @@
 
 #define NEXRAD_PRODUCT_COORD_MAGNITUDE 0.001
 
+#define NEXRAD_PRODUCT_COMPRESSION_NONE  0
+#define NEXRAD_PRODUCT_COMPRESSION_BZIP2 1
+
 enum nexrad_product_id {
     NEXRAD_PRODUCT_NHI = 59
 };
-
-typedef struct _nexrad_product {
-    enum nexrad_product_id id;
-    char                   name[8];
-} nexrad_product;
 
 enum nexrad_radar_mode_id {
     NEXRAD_RADAR_MODE_PRECIP = 2
@@ -29,7 +27,7 @@ enum nexrad_radar_mode_id {
 typedef struct _nexrad_product_attributes {
     uint16_t p1;
     uint16_t p2;
-    uint16_t elevation;
+     int16_t elevation;
     uint16_t p3;
     uint16_t thresholds[16];
     uint16_t p4;
@@ -44,7 +42,7 @@ typedef struct _nexrad_product_attributes {
 typedef struct _nexrad_dvil_attributes {
     uint16_t p1;
     uint16_t p2;
-    uint16_t elevation;
+     int16_t elevation;
      int16_t avset_angle; /* Magnitude 0.1, -1.0 to +45.0 */
     uint16_t thresholds[16];
     uint16_t max_dvil;
