@@ -10,6 +10,13 @@
 #include <nexrad/packet.h>
 #include <nexrad/chunk.h>
 
+struct _nexrad_chunk {
+    enum nexrad_chunk_type_id type;
+
+    void * current;    /* The current chunk within the parent block */
+    size_t bytes_left; /* Number of bytes left in parent block */
+};
+
 static enum nexrad_chunk_type_id nexrad_chunk_child_types[] = {
     /* none                          => */ 0,
     /* NEXRAD_CHUNK_SYMBOLOGY_BLOCK  => */ NEXRAD_CHUNK_SYMBOLOGY_LAYER,

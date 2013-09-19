@@ -15,12 +15,7 @@ enum nexrad_chunk_type_id {
     NEXRAD_CHUNK_GRAPHIC_PACKET
 };
 
-typedef struct _nexrad_chunk {
-    enum nexrad_chunk_type_id type;
-
-    void * current;    /* The current chunk within the parent chunk */
-    size_t bytes_left; /* Number of bytes left in parent chunk */
-} nexrad_chunk;
+typedef struct _nexrad_chunk nexrad_chunk;
 
 /*
  * Generic interface for reading radar product data chunks
