@@ -7,13 +7,13 @@ CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 \
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 LDFLAGS		=
 
-HEADERS		= message.h chunk.h symbology.h graphic.h tabular.h packet.h radial.h \
-		  raster.h date.h error.h block.h header.h product.h vector.h
+HEADERS		= message.h chunk.h product.h symbology.h graphic.h tabular.h packet.h \
+		  radial.h raster.h date.h error.h block.h header.h vector.h
 
 HEADERS_PRIVATE	= util.h
 
-OBJS		= message.o chunk.o symbology.o graphic.o tabular.o packet.o radial.o \
-		  raster.o date.o error.o util.o
+OBJS		= message.o chunk.o product.o symbology.o graphic.o tabular.o packet.o \
+		  radial.o raster.o date.o error.o util.o
 
 VERSION_MAJOR	= 0
 VERSION_MINOR	= 0.0

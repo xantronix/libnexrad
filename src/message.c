@@ -234,6 +234,22 @@ nexrad_tabular_text *nexrad_message_open_tabular_block(nexrad_message *message) 
     return nexrad_tabular_block_open(message->tabular);
 }
 
+nexrad_message_header *nexrad_message_get_header(nexrad_message *message) {
+    if (message == NULL) {
+        return NULL;
+    }
+
+    return message->message_header;
+}
+
+nexrad_product_description *nexrad_message_get_product_description(nexrad_message *message) {
+    if (message == NULL) {
+        return NULL;
+    }
+
+    return message->description;
+}
+
 nexrad_symbology_block *nexrad_message_get_symbology_block(nexrad_message *message) {
     if (message == NULL) {
         return NULL;

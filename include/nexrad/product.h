@@ -12,6 +12,7 @@
 #define NEXRAD_VERSION 1
 
 #define NEXRAD_PRODUCT_COORD_MAGNITUDE 0.001
+#define NEXRAD_PRODUCT_AVSET_MAGNITUDE 0.1
 
 #define NEXRAD_PRODUCT_COMPRESSION_NONE  0
 #define NEXRAD_PRODUCT_COMPRESSION_BZIP2 1
@@ -84,5 +85,9 @@ typedef struct _nexrad_product_description {
 } nexrad_product_description;
 
 #pragma pack(pop)
+
+int nexrad_product_read_dvil_attributes(nexrad_product_description *product,
+    int *avset_angle, int *max_dvil, int *edited_radials, int *compression, size_t *size
+);
 
 #endif /* _NEXRAD_PRODUCT_H */
