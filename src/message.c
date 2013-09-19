@@ -274,25 +274,61 @@ time_t nexrad_message_get_gen_timestamp(nexrad_message *message) {
     return nexrad_date_timestamp(&message->description->gen_date);
 }
 
-int nexrad_message_get_region(nexrad_message *message, char *dest, size_t destlen) {
-    if (message == NULL) return -1;
+int nexrad_message_get_product_id(nexrad_message *message) {
+    if (message == NULL) {
+        return -1;
+    }
 
-    return safecpy(
-        dest,    message->file_header->region,
-        destlen, sizeof(message->file_header->region)
-    );
+    return be16toh(message->description->product_id);
 }
 
-int nexrad_message_get_office(nexrad_message *message, char *dest, size_t destlen) {
+int nexrad_message_find_product_code(nexrad_message *message, char **code, size_t *len) {
     if (message == NULL) return -1;
 
-    return safecpy(
-        dest,    message->file_header->office,
-        destlen, sizeof(message->file_header->office)
-    );
+    if (code && len) {
+        *code = message->file_header->product_code;
+        *len  = sizeof(message->file_header->product_code);
+    }
+
+    return 0;
 }
 
-int nexrad_message_get_station(nexrad_message *message, char *dest, size_t destlen) {
+int nexrad_message_find_region(nexrad_message *message, char **region, size_t *len) {
+    if (message == NULL) return -1;
+
+    if (region && len) {
+        *region = message->file_header->region;
+        *len    = sizeof(message->file_header->region);
+    }
+
+    return 0;
+}
+
+int nexrad_message_find_office(nexrad_message *message, char **office, size_t *len) {
+    if (message == NULL) return -1;
+
+    if (office && len) {
+        *office = message->file_header->office;
+        *len    = sizeof(message->file_header->office);
+    }
+
+    return 0;
+}
+
+int nexrad_message_find_station_suffix(nexrad_message *message, char **suffix, size_t *len) {
+    if (message == NULL) {
+        return -1;
+    }
+
+    if (suffix && len) {
+        *suffix = message->file_header->station;
+        *len    = sizeof(message->file_header->station);
+    }
+
+    return 0;
+}
+
+int nexrad_message_read_station(nexrad_message *message, char *dest, size_t destlen) {
     char station[5];
 
     if (message == NULL) {
@@ -309,24 +345,7 @@ int nexrad_message_get_station(nexrad_message *message, char *dest, size_t destl
     );
 }
 
-int nexrad_message_get_product_code(nexrad_message *message, char *dest, size_t destlen) {
-    if (message == NULL) return -1;
-
-    return safecpy(
-        dest, message->file_header->product_code,
-        destlen, sizeof(message->file_header->product_code)
-    );
-}
-
-int nexrad_message_get_product_id(nexrad_message *message) {
-    if (message == NULL) {
-        return -1;
-    }
-
-    return be16toh(message->description->product_id);
-}
-
-int nexrad_message_get_station_coords(nexrad_message *message, double *lat, double *lon) {
+int nexrad_message_read_station_coords(nexrad_message *message, double *lat, double *lon) {
     if (message == NULL || lat == NULL || lon == NULL) {
         return -1;
     }

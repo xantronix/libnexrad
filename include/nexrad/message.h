@@ -26,11 +26,12 @@ nexrad_tabular_block *   nexrad_message_get_tabular_block(nexrad_message *messag
 
 time_t nexrad_message_get_scan_timestamp(nexrad_message *message);
 time_t nexrad_message_get_gen_timestamp(nexrad_message *message);
-int    nexrad_message_get_region(nexrad_message *message, char *dest, size_t destlen);
-int    nexrad_message_get_office(nexrad_message *message, char *dest, size_t destlen);
-int    nexrad_message_get_station(nexrad_message *message, char *dest, size_t destlen);
-int    nexrad_message_get_product_code(nexrad_message *message, char *dest, size_t destlen);
 int    nexrad_message_get_product_id(nexrad_message *message);
-int    nexrad_message_get_station_coords(nexrad_message *message, double *lat, double *lon);
+int    nexrad_message_find_product_code(nexrad_message *message, char **code, size_t *len);
+int    nexrad_message_find_region(nexrad_message *message, char **region, size_t *len);
+int    nexrad_message_find_office(nexrad_message *message, char **office, size_t *len);
+int    nexrad_message_find_station_suffix(nexrad_message *message, char **suffix, size_t *len);
+int    nexrad_message_read_station(nexrad_message *message, char *station, size_t destlen);
+int    nexrad_message_read_station_coords(nexrad_message *message, double *lat, double *lon);
 
 #endif /* _NEXRAD_MESSAGE_H */
