@@ -111,14 +111,15 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
 }
 
 static void show_symbology_block(nexrad_message *message) {
+    nexrad_symbology_block *symbology;
     nexrad_chunk *block;
     nexrad_chunk *layer;
 
-    if (message->symbology == NULL) {
+    if ((symbology = nexrad_message_get_symbology_block(message)) == NULL) {
         return;
     }
 
-    if ((block = nexrad_symbology_block_open(message->symbology)) == NULL) {
+    if ((block = nexrad_symbology_block_open(symbology)) == NULL) {
         perror("nexrad_symbology_block_open()");
         exit(1);
     }
@@ -140,14 +141,15 @@ static void show_symbology_block(nexrad_message *message) {
 }
 
 static void show_graphic_block(nexrad_message *message) {
+    nexrad_graphic_block *graphic;
     nexrad_chunk *block;
     nexrad_chunk *page;
 
-    if (message->graphic == NULL) {
+    if ((graphic = nexrad_message_get_graphic_block(message)) == NULL) {
         return;
     }
 
-    if ((block = nexrad_graphic_block_open(message->graphic)) == NULL) {
+    if ((block = nexrad_graphic_block_open(graphic)) == NULL) {
         perror("nexrad_graphic_block_open()");
         exit(1);
     }
@@ -203,13 +205,14 @@ static void show_graphic_block(nexrad_message *message) {
 }
 
 static void show_tabular_block(nexrad_message *message) {
+    nexrad_tabular_block *tabular;
     nexrad_tabular_text *block;
 
-    if (message->tabular == NULL) {
+    if ((tabular = nexrad_message_get_tabular_block(message)) == NULL) {
         return;
     }
 
-    if ((block = nexrad_tabular_block_open(message->tabular)) == NULL) {
+    if ((block = nexrad_tabular_block_open(tabular)) == NULL) {
         perror("nexrad_tabular_block_open()");
         exit(1);
     }
@@ -235,6 +238,7 @@ static void show_tabular_block(nexrad_message *message) {
 int main(int argc, char **argv) {
     int ret = 0;
     nexrad_message *message;
+    double lat, lon;
 
     if (argc != 2) {
         usage(argc, argv);
@@ -245,18 +249,13 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    printf("Radar lat/lon: %d, %d\n",
-        (int32_t)be32toh(message->description->site_lat),
-        (int32_t)be32toh(message->description->site_lon)
-    );
+    nexrad_message_get_station_coords(message, &lat, &lon);
+
+    printf("Radar lat/lon: %f, %f\n", lat, lon);
 
     show_symbology_block(message);
     show_graphic_block(message);
     show_tabular_block(message);
-
-    if (message->symbology == NULL || message->graphic == NULL) {
-        ret = 1;
-    }
 
     nexrad_message_close(message);
 

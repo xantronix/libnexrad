@@ -27,20 +27,20 @@ enum nexrad_radar_mode_id {
 };
 
 typedef struct _nexrad_product_description {
-     int16_t    divider;       /* Start of block */
-     int32_t    site_lat;      /* Radar site latitude */
-     int32_t    site_lon;      /* Radar site longitude */
-    uint16_t    site_altitude; /* Radar site altitude */
-    uint16_t    product_id;    /* NOAA product ID */
-    uint16_t    mode;          /* Radar operational mode */
-    uint16_t    vcp;           /* Radar volume coverage pattern */
-     int16_t    seq;           /* Request sequence number */
-    uint16_t    scan;          /* Volume scan number */
-    nexrad_date scan_date;     /* Start of current scan */
-    nexrad_date gen_date;      /* Time of radar product generation */
-    char        _padding[54];  /* Product-specific data */
-     uint8_t    version;       /* Version */
-     uint8_t    blanking;      /* Spot blanking */
+     int16_t    divider;          /* Start of block */
+     int32_t    station_lat;      /* Radar site latitude */
+     int32_t    station_lon;      /* Radar site longitude */
+    uint16_t    station_altitude; /* Radar site altitude */
+    uint16_t    product_id;       /* NOAA product ID */
+    uint16_t    mode;             /* Radar operational mode */
+    uint16_t    vcp;              /* Radar volume coverage pattern */
+     int16_t    seq;              /* Request sequence number */
+    uint16_t    scan;             /* Volume scan number */
+    nexrad_date scan_date;        /* Start of current scan */
+    nexrad_date gen_date;         /* Time of radar product generation */
+    char        _padding[54];     /* Product-specific data */
+     uint8_t    version;          /* Version */
+     uint8_t    blanking;         /* Spot blanking */
 
     /*
      * An interesting and mildly annoying note regarding these offsets: NOAA
