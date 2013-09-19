@@ -8,7 +8,7 @@
 #pragma pack(push)
 
 typedef struct _nexrad_radial_packet {
-    uint16_t type;           /* Always 0xaf1f */
+    uint16_t type;           /* 16 or 0xaf1f */
     uint16_t rangebin_first; /* Index to first range bin (whatever the hell that means) */
     uint16_t rangebin_count; /* Number of range bins per radial (resolution) */
      int16_t i;              /* I coordinate of center of sweep */
@@ -18,27 +18,22 @@ typedef struct _nexrad_radial_packet {
 } nexrad_radial_packet;
 
 typedef struct _nexrad_radial_ray {
-    uint16_t runs;        /* Number of RLE-encoded runs in current ray */
+    uint16_t size;        /* Number of bytes or RLE-encoded runs in current ray */
     uint16_t angle_start; /* Scan angle of current ray */
     uint16_t angle_delta; /* Angle delta from previous ray */
 } nexrad_radial_ray;
 
-typedef struct _nexrad_radial_run {
+typedef struct _nexrad_radial_run { /* For 0xaf1f */
     unsigned int level  :4; /* Level (color code) of run */
     unsigned int length :4; /* Length of run */
 } nexrad_radial_run;
 
 #pragma pack(pop)
 
-typedef struct _nexrad_radial {
-    nexrad_radial_packet * packet;
-    size_t                 bytes_read;
-    size_t                 rays_left;
-    nexrad_radial_ray *    current;
-} nexrad_radial;
+typedef struct _nexrad_radial nexrad_radial;
 
 nexrad_radial *     nexrad_radial_packet_open(nexrad_radial_packet *packet);
-nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, nexrad_radial_run **runs);
+nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, void **runs);
 size_t              nexrad_radial_ray_size(nexrad_radial_ray *ray);
 size_t              nexrad_radial_bytes_read(nexrad_radial *radial);
 void                nexrad_radial_close(nexrad_radial *radial);

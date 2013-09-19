@@ -65,7 +65,8 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
     enum nexrad_packet_type_id type = nexrad_packet_type(packet);
 
     switch (type) {
-        case NEXRAD_PACKET_TYPE_RADIAL: {
+        case NEXRAD_PACKET_TYPE_RADIAL:
+        case NEXRAD_PACKET_TYPE_RADIAL_AF1F: {
             show_radial_packet((nexrad_radial_packet *)packet, size);
 
             break;

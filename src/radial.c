@@ -3,6 +3,13 @@
 
 #include <nexrad/radial.h>
 
+struct _nexrad_radial {
+    nexrad_radial_packet * packet;
+    size_t                 bytes_read;
+    size_t                 rays_left;
+    nexrad_radial_ray *    current;
+};
+
 static int _valid_packet(nexrad_radial_packet *packet) {
     if (
       packet                          == NULL ||
@@ -45,10 +52,10 @@ size_t nexrad_radial_ray_size(nexrad_radial_ray *ray) {
         return 0;
     }
 
-    return sizeof(nexrad_radial_ray) + (be16toh(ray->runs) * 2);
+    return sizeof(nexrad_radial_ray) + be16toh(ray->size) * 2;
 }
 
-nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, nexrad_radial_run **runs) {
+nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, void **runs) {
     nexrad_radial_ray *ray;
     size_t size;
 
@@ -82,17 +89,15 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, 
      * If the caller provided a pointer to an address in which to store the size
      * of the current ray, then populate that value.
      */
-    if (sizep != NULL) {
+    if (sizep)
         *sizep = size;
-    }
 
     /*
      * If the caller provided a pointer to an address to populate with a pointer
-     * to the RLE-encoded runs within the current ray, then provide that.
+     * to the runs within the current ray, then provide that.
      */
-    if (runs != NULL) {
+    if (runs != NULL)
         *runs = (nexrad_radial_run *)((char *)ray + sizeof(nexrad_radial_ray));
-    }
 
     return ray;
 }
