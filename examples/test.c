@@ -93,10 +93,13 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
         }
 
         case NEXRAD_PACKET_TYPE_CELL: {
-            nexrad_cell_packet *cell = (nexrad_cell_packet *)packet;
+            int i, j;
+            char id[3];
+
+            nexrad_packet_read_cell_data(packet, &i, &j, id, 3);
 
             printf("Storm cell %2s %4d,%4d offset from radar\n",
-                cell->id, (int16_t)be16toh(cell->i), (int16_t)be16toh(cell->j)
+                id, i, j
             );
 
             break;
@@ -163,29 +166,36 @@ static void show_graphic_block(nexrad_message *message) {
 
             switch (type) {
                 case NEXRAD_PACKET_TYPE_TEXT: {
-                    nexrad_text_packet *text = (nexrad_text_packet *)packet;
+                    int i, j, color;
+                    char text[81];
+                    size_t len;
 
-                    size_t len = size - sizeof(nexrad_text_packet);
-
-                    printf("Read text packet with color %02x, position %d,%d\n",
-                        be16toh(text->color), (int16_t)be16toh(text->i), (int16_t)be16toh(text->j)
+                    nexrad_packet_read_text_data(packet,
+                        &i, &j, &color, text, &len, 81
                     );
 
-                    fwrite((char *)packet + sizeof(nexrad_text_packet), len, 1, stdout);
+                    printf("Read text packet with color %02x, position %d,%d\n",
+                        color, i, j
+                    );
+
+                    fwrite(text, len, 1, stdout);
                     printf("\n");
 
                     break;
                 }
 
                 case NEXRAD_PACKET_TYPE_VECTOR: {
-                    nexrad_vector_packet *vector = (nexrad_vector_packet *)packet;
+                    nexrad_vector vector;
+                    int magnitude;
+
+                    nexrad_packet_read_vector_data(packet, &magnitude, &vector);
 
                     printf("Read vector packet with magnitude %u, starting %d,%d, ending %d,%d -> starting %d,%d ending %d,%d\n",
-                        be16toh(vector->magnitude),
-                        (int16_t)be16toh(vector->i1_start), (int16_t)be16toh(vector->j1_start),
-                        (int16_t)be16toh(vector->i1_end),   (int16_t)be16toh(vector->i1_end),
-                        (int16_t)be16toh(vector->i2_start), (int16_t)be16toh(vector->j2_start),
-                        (int16_t)be16toh(vector->i2_end),   (int16_t)be16toh(vector->j2_end)
+                        magnitude,
+                        vector.i1_start, vector.j1_start,
+                        vector.i1_end,   vector.i1_end,
+                        vector.i2_start, vector.j2_start,
+                        vector.i2_end,   vector.j2_end
                     );
 
                     break;

@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <endian.h>
+#include "util.h"
 
 #include <nexrad/message.h>
 
@@ -273,34 +274,19 @@ time_t nexrad_message_get_gen_timestamp(nexrad_message *message) {
     return nexrad_date_timestamp(&message->description->gen_date);
 }
 
-static int safecpy(nexrad_message *message, char *dest, char *src, size_t destlen, size_t srclen) {
-    size_t copylen = 0;
-
-    if (message == NULL || dest == NULL || src == NULL) {
-        return -1;
-    }
-
-    if (destlen > srclen) {
-        copylen = srclen;
-    } else if (destlen <= srclen) {
-        copylen = destlen - 1;
-    }
-
-    memset(dest, '\0', destlen);
-    memcpy(dest, src,  copylen);
-
-    return 0;
-}
-
 int nexrad_message_get_region(nexrad_message *message, char *dest, size_t destlen) {
-    return safecpy(message,
+    if (message == NULL) return -1;
+
+    return safecpy(
         dest,    message->file_header->region,
         destlen, sizeof(message->file_header->region)
     );
 }
 
 int nexrad_message_get_office(nexrad_message *message, char *dest, size_t destlen) {
-    return safecpy(message,
+    if (message == NULL) return -1;
+
+    return safecpy(
         dest,    message->file_header->office,
         destlen, sizeof(message->file_header->office)
     );
@@ -317,14 +303,16 @@ int nexrad_message_get_station(nexrad_message *message, char *dest, size_t destl
     memcpy(station + 1, message->file_header->station, 3);
     station[4] = '\0';
 
-    return safecpy(message,
+    return safecpy(
         dest,    station,
         destlen, sizeof(station) - 1
     );
 }
 
 int nexrad_message_get_product_code(nexrad_message *message, char *dest, size_t destlen) {
-    return safecpy(message,
+    if (message == NULL) return -1;
+
+    return safecpy(
         dest, message->file_header->product_code,
         destlen, sizeof(message->file_header->product_code)
     );
