@@ -279,7 +279,7 @@ int nexrad_message_get_product_id(nexrad_message *message) {
         return -1;
     }
 
-    return be16toh(message->description->product_id);
+    return be16toh(message->message_header->product_id);
 }
 
 int nexrad_message_find_product_code(nexrad_message *message, char **code, size_t *len) {
