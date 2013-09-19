@@ -315,6 +315,14 @@ int nexrad_message_find_office(nexrad_message *message, char **office, size_t *l
     return 0;
 }
 
+char nexrad_message_get_station_prefix(nexrad_message *message) {
+    if (message == NULL) {
+        return '\0';
+    }
+
+    return message->file_header->office[0];
+}
+
 int nexrad_message_find_station_suffix(nexrad_message *message, char **suffix, size_t *len) {
     if (message == NULL) {
         return -1;
