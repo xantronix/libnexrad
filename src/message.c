@@ -233,6 +233,30 @@ nexrad_tabular_text *nexrad_message_open_tabular_block(nexrad_message *message) 
     return nexrad_tabular_block_open(message->tabular);
 }
 
+nexrad_symbology_block *nexrad_message_get_symbology_block(nexrad_message *message) {
+    if (message == NULL) {
+        return NULL;
+    }
+
+    return message->symbology;
+}
+
+nexrad_graphic_block *nexrad_message_get_graphic_block(nexrad_message *message) {
+    if (message == NULL) {
+        return NULL;
+    }
+
+    return message->graphic;
+}
+
+nexrad_tabular_block *nexrad_message_get_tabular_block(nexrad_message *message) {
+    if (message == NULL) {
+        return NULL;
+    }
+
+    return message->tabular;
+}
+
 time_t nexrad_message_get_scan_timestamp(nexrad_message *message) {
     if (message == NULL) {
         return -1;
