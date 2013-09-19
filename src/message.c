@@ -10,6 +10,21 @@
 
 #include <nexrad/message.h>
 
+struct _nexrad_message {
+    size_t size;
+    size_t page_size;
+    size_t mapped_size;
+    int    fd;
+    void * data;
+
+    nexrad_file_header *         file_header;
+    nexrad_message_header *      message_header;
+    nexrad_product_description * description;
+    nexrad_symbology_block *     symbology;
+    nexrad_graphic_block *       graphic;
+    nexrad_tabular_block *       tabular;
+};
+
 static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }

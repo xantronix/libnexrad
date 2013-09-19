@@ -12,20 +12,7 @@
 #include <nexrad/tabular.h>
 #include <nexrad/packet.h>
 
-typedef struct _nexrad_message {
-    size_t size;
-    size_t page_size;
-    size_t mapped_size;
-    int    fd;
-    void * data;
-
-    nexrad_file_header *         file_header;
-    nexrad_message_header *      message_header;
-    nexrad_product_description * description;
-    nexrad_symbology_block *     symbology;
-    nexrad_graphic_block *       graphic;
-    nexrad_tabular_block *       tabular;
-} nexrad_message;
+typedef struct _nexrad_message nexrad_message;
 
 /*
  * Methods for facilitating file I/O
