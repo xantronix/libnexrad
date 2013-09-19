@@ -72,6 +72,10 @@ typedef struct _nexrad_vector_packet {
 
 enum nexrad_packet_type_id nexrad_packet_type(nexrad_packet *packet);
 
+int nexrad_packet_find_text_data(nexrad_packet *packet,
+    int *i, int *j, int *color, char **data, size_t *textlen
+);
+
 int nexrad_packet_read_text_data(nexrad_packet *packet,
     int *i, int *j, int *color, char *data, size_t *textlen, size_t destlen
 );

@@ -10,10 +10,10 @@ enum nexrad_packet_type_id nexrad_packet_type(nexrad_packet *packet) {
     return be16toh(packet->type);
 }
 
-int nexrad_packet_read_text_data(nexrad_packet *packet, int *i, int *j, int *color, char *data, size_t *textlen, size_t destlen) {
+int nexrad_packet_find_text_data(nexrad_packet *packet, int *i, int *j, int *color, char **data, size_t *textlen) {
     nexrad_text_packet *text;
 
-    if (packet == NULL || nexrad_packet_type(packet) != NEXRAD_PACKET_TYPE_TEXT) {
+    if (packet == NULL) {
         return -1;
     }
 
@@ -29,13 +29,22 @@ int nexrad_packet_read_text_data(nexrad_packet *packet, int *i, int *j, int *col
         *color = be16toh(text->color);
 
     if (data && textlen) {
-        size_t len = be16toh(text->header.size) - sizeof(nexrad_text_packet);
+        *data    = (char *)text + sizeof(nexrad_text_packet);
+        *textlen = be16toh(text->header.size) - sizeof(nexrad_text_packet);
+    }
 
-        if (safecpy(data, (char *)text + sizeof(nexrad_text_packet), destlen, len) < 0) {
-            goto error_safecpy;
-        }
+    return 0;
+}
 
-        *textlen = len;
+int nexrad_packet_read_text_data(nexrad_packet *packet, int *i, int *j, int *color, char *data, size_t *textlen, size_t destlen) {
+    char *text;
+
+    if (nexrad_packet_find_text_data(packet, i, j, color, &text, textlen) < 0) {
+        return -1;
+    }
+
+    if (safecpy(data, text, destlen, *textlen) < 0) {
+        goto error_safecpy;
     }
 
     return 0;
