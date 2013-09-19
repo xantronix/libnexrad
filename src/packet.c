@@ -112,7 +112,7 @@ int nexrad_packet_read_vector_data(nexrad_packet *packet, int *magnitude, nexrad
     data = (nexrad_vector_packet *)packet;
 
     if (magnitude)
-        *magnitude = be16toh(vector->magnitude);
+        *magnitude = be16toh(data->magnitude);
 
     if (vector) {
         vector->i1_start = (int16_t)be16toh(data->i1_start);
