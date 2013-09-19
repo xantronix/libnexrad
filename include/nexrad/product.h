@@ -26,6 +26,35 @@ enum nexrad_radar_mode_id {
     NEXRAD_RADAR_MODE_PRECIP = 2
 };
 
+typedef struct _nexrad_product_attributes {
+    uint16_t p1;
+    uint16_t p2;
+    uint16_t elevation;
+    uint16_t p3;
+    uint16_t thresholds[16];
+    uint16_t p4;
+    uint16_t p5;
+    uint16_t p6;
+    uint16_t p7;
+    uint16_t p8;
+    uint16_t p9;
+    uint16_t p10;
+} nexrad_product_attributes;
+
+typedef struct _nexrad_dvil_attributes {
+    uint16_t p1;
+    uint16_t p2;
+    uint16_t elevation;
+     int16_t avset_angle; /* Magnitude 0.1, -1.0 to +45.0 */
+    uint16_t thresholds[16];
+    uint16_t max_dvil;
+    uint16_t edited_radials;
+    uint16_t p6;
+    uint16_t p7;
+    uint16_t compression;
+    uint32_t size;
+} nexrad_dvil_attributes;
+
 typedef struct _nexrad_product_description {
      int16_t    divider;          /* Start of block */
      int32_t    station_lat;      /* Radar site latitude */
@@ -38,9 +67,17 @@ typedef struct _nexrad_product_description {
     uint16_t    scan;             /* Volume scan number */
     nexrad_date scan_date;        /* Start of current scan */
     nexrad_date gen_date;         /* Time of radar product generation */
-    char        _padding[54];     /* Product-specific data */
-     uint8_t    version;          /* Version */
-     uint8_t    blanking;         /* Spot blanking */
+
+    /*
+     * Product-specific attributes
+     */
+    union {
+        nexrad_product_attributes generic;
+        nexrad_dvil_attributes    dvil;
+    } attributes;
+
+     uint8_t version;          /* Version */
+     uint8_t blanking;         /* Spot blanking */
 
     /*
      * An interesting and mildly annoying note regarding these offsets: NOAA
