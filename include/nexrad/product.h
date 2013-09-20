@@ -21,7 +21,8 @@ enum nexrad_product_compression_type_id {
 
 enum nexrad_product_id {
     NEXRAD_PRODUCT_NHI =  59,
-    NEXRAD_PRODUCT_DVL = 134
+    NEXRAD_PRODUCT_DVL = 134,
+    NEXRAD_PRODUCT_EET = 135
 };
 
 enum nexrad_radar_mode_id {
@@ -96,6 +97,8 @@ typedef struct _nexrad_product_description {
 } nexrad_product_description;
 
 #pragma pack(pop)
+
+int nexrad_product_get_type_id(nexrad_product_description *product);
 
 int nexrad_product_read_dvil_attributes(nexrad_product_description *product,
     int *avset_angle, int *max_dvil, int *edited_radials, int *compression, size_t *size

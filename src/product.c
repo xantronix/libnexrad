@@ -1,9 +1,17 @@
 #include <nexrad/product.h>
 
+int nexrad_product_get_type_id(nexrad_product_description *product) {
+    if (product == NULL) {
+        return -1;
+    }
+
+    return be16toh(product->product_id);
+}
+
 int nexrad_product_read_dvil_attributes(nexrad_product_description *product, int *avset_angle, int *max_dvil, int *edited_radials, int *compression, size_t *size) {
     nexrad_dvil_attributes *dvil;
 
-    if (product == NULL || be16toh(product->product_id) != NEXRAD_PRODUCT_DVL) {
+    if (nexrad_product_get_type_id(product) != NEXRAD_PRODUCT_DVL) {
         return -1;
     }
 
