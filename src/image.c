@@ -15,11 +15,11 @@ struct _nexrad_image {
     enum nexrad_image_type  type;
 };
 
-static size_t _image_size(int width, int height, enum nexrad_image_depth depth) {
+static size_t _image_size(size_t width, size_t height, enum nexrad_image_depth depth) {
     return width * height * depth;
 }
 
-static int _valid_args(int width, int height, enum nexrad_image_depth depth, enum nexrad_image_color color) {
+static int _valid_args(size_t width, size_t height, enum nexrad_image_depth depth, enum nexrad_image_color color) {
     if (width == 0 || height == 0) {
         return 0;
     }
@@ -54,7 +54,7 @@ static int _valid_args(int width, int height, enum nexrad_image_depth depth, enu
     return 1;
 }
 
-nexrad_image *nexrad_image_create(int width, int height, enum nexrad_image_depth depth, enum nexrad_image_color color) {
+nexrad_image *nexrad_image_create(size_t width, size_t height, enum nexrad_image_depth depth, enum nexrad_image_color color) {
     nexrad_image *image;
     size_t size;
     unsigned char *buf;
@@ -87,6 +87,26 @@ error_malloc_buf:
 
 error_malloc_image:
     return NULL;
+}
+
+int nexrad_image_get_info(nexrad_image *image, size_t *width, size_t *height, enum nexrad_image_depth *depth, enum nexrad_image_color *color) {
+    if (image == NULL) {
+        return -1;
+    }
+
+    if (width)
+        *width = image->width;
+
+    if (height)
+        *height = image->height;
+
+    if (depth)
+        *depth = image->depth;
+
+    if (color)
+        *color = image->color;
+
+    return 0;
 }
 
 ssize_t nexrad_image_get_size(nexrad_image *image) {
