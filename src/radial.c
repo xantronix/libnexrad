@@ -4,14 +4,14 @@
 #include <nexrad/radial.h>
 
 struct _nexrad_radial {
-    nexrad_radial_packet *     packet;
-    enum nexrad_radial_type_id type;
-    size_t                     bytes_read;
-    size_t                     rays_left;
-    nexrad_radial_ray *        current;
+    nexrad_radial_packet *  packet;
+    enum nexrad_radial_type type;
+    size_t                  bytes_read;
+    size_t                  rays_left;
+    nexrad_radial_ray *     current;
 };
 
-static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type_id type) {
+static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type type) {
     switch (type) {
         case NEXRAD_RADIAL_RLE:
         case NEXRAD_RADIAL_DIGITAL: {
@@ -38,7 +38,7 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type_i
 
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
     nexrad_radial *radial;
-    enum nexrad_radial_type_id type;
+    enum nexrad_radial_type type;
 
     if (packet == NULL) {
         return NULL;
@@ -66,7 +66,7 @@ error_malloc:
     return NULL;
 }
 
-ssize_t nexrad_radial_ray_bins(nexrad_radial_ray *ray, enum nexrad_radial_type_id type) {
+ssize_t nexrad_radial_ray_bins(nexrad_radial_ray *ray, enum nexrad_radial_type type) {
     if (ray == NULL) {
         return -1;
     }
@@ -88,7 +88,7 @@ ssize_t nexrad_radial_ray_bins(nexrad_radial_ray *ray, enum nexrad_radial_type_i
     return -1;
 }
 
-ssize_t nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type_id type) {
+ssize_t nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type type) {
     if (ray == NULL) {
         return -1;
     }

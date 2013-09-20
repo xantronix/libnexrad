@@ -62,24 +62,24 @@ static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
 }
 
 static void show_packet(nexrad_packet *packet, size_t *size) {
-    enum nexrad_packet_type_id type = nexrad_packet_type(packet);
+    enum nexrad_packet_type type = nexrad_packet_get_type(packet);
 
     switch (type) {
-        case NEXRAD_PACKET_TYPE_RADIAL:
-        case NEXRAD_PACKET_TYPE_RADIAL_AF1F: {
+        case NEXRAD_PACKET_RADIAL:
+        case NEXRAD_PACKET_RADIAL_AF1F: {
             show_radial_packet((nexrad_radial_packet *)packet, size);
 
             break;
         }
 
-        case NEXRAD_PACKET_TYPE_RASTER_BA0F:
-        case NEXRAD_PACKET_TYPE_RASTER_BA07: {
+        case NEXRAD_PACKET_RASTER_BA0F:
+        case NEXRAD_PACKET_RASTER_BA07: {
             show_raster_packet((nexrad_raster_packet *)packet, size);
 
             break;
         }
 
-        case NEXRAD_PACKET_TYPE_HAIL: {
+        case NEXRAD_PACKET_HAIL: {
             int i, j, probability, probability_severe, max_size;
 
             nexrad_packet_read_hail_data(packet,
@@ -93,7 +93,7 @@ static void show_packet(nexrad_packet *packet, size_t *size) {
             break;
         }
 
-        case NEXRAD_PACKET_TYPE_CELL: {
+        case NEXRAD_PACKET_CELL: {
             int i, j;
             char id[3];
 
@@ -163,10 +163,10 @@ static void show_graphic_block(nexrad_message *message) {
         size_t size;
 
         while ((packet = nexrad_graphic_page_read_packet(page, &size)) != NULL) {
-            enum nexrad_packet_type_id type = nexrad_packet_type(packet);
+            enum nexrad_packet_type type = nexrad_packet_get_type(packet);
 
             switch (type) {
-                case NEXRAD_PACKET_TYPE_TEXT: {
+                case NEXRAD_PACKET_TEXT: {
                     int i, j, color;
                     char text[81];
                     size_t len;
@@ -185,7 +185,7 @@ static void show_graphic_block(nexrad_message *message) {
                     break;
                 }
 
-                case NEXRAD_PACKET_TYPE_VECTOR: {
+                case NEXRAD_PACKET_VECTOR: {
                     nexrad_vector vector;
                     int magnitude;
 

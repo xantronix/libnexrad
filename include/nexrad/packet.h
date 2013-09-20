@@ -7,16 +7,16 @@
 
 #define NEXRAD_PACKET_CELL_ID_LEN 2
 
-enum nexrad_packet_type_id {
-    NEXRAD_PACKET_TYPE_UNKNOWN     =  0,
-    NEXRAD_PACKET_TYPE_TEXT        =  8,
-    NEXRAD_PACKET_TYPE_VECTOR      = 10,
-    NEXRAD_PACKET_TYPE_CELL        = 15,
-    NEXRAD_PACKET_TYPE_RADIAL      = 16,
-    NEXRAD_PACKET_TYPE_HAIL        = 19,
-    NEXRAD_PACKET_TYPE_RADIAL_AF1F = 0xaf1f,
-    NEXRAD_PACKET_TYPE_RASTER_BA0F = 0xba0f,
-    NEXRAD_PACKET_TYPE_RASTER_BA07 = 0xba07
+enum nexrad_packet_type {
+    NEXRAD_PACKET_UNKNOWN     =  0,
+    NEXRAD_PACKET_TEXT        =  8,
+    NEXRAD_PACKET_VECTOR      = 10,
+    NEXRAD_PACKET_CELL        = 15,
+    NEXRAD_PACKET_RADIAL      = 16,
+    NEXRAD_PACKET_HAIL        = 19,
+    NEXRAD_PACKET_RADIAL_AF1F = 0xaf1f,
+    NEXRAD_PACKET_RASTER_BA0F = 0xba0f,
+    NEXRAD_PACKET_RASTER_BA07 = 0xba07
 };
 
 #pragma pack(push)
@@ -71,7 +71,7 @@ typedef struct _nexrad_vector_packet {
 
 #pragma pack(pop)
 
-enum nexrad_packet_type_id nexrad_packet_type(nexrad_packet *packet);
+enum nexrad_packet_type nexrad_packet_get_type(nexrad_packet *packet);
 
 int nexrad_packet_find_text_data(nexrad_packet *packet,
     int *i, int *j, int *color, char **data, size_t *textlen

@@ -30,7 +30,7 @@ nexrad_tabular_block *       nexrad_message_get_tabular_block(nexrad_message *me
 
 time_t nexrad_message_get_scan_timestamp(nexrad_message *message);
 time_t nexrad_message_get_gen_timestamp(nexrad_message *message);
-int    nexrad_message_get_product_id(nexrad_message *message);
+int    nexrad_message_get_product_type(nexrad_message *message);
 int    nexrad_message_find_product_code(nexrad_message *message, char **code, size_t *len);
 int    nexrad_message_find_region(nexrad_message *message, char **region, size_t *len);
 int    nexrad_message_find_office(nexrad_message *message, char **office, size_t *len);

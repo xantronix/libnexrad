@@ -27,7 +27,7 @@ struct _nexrad_message {
     nexrad_graphic_block *       graphic;
     nexrad_tabular_block *       tabular;
 
-    enum nexrad_product_compression_type_id compression;
+    enum nexrad_product_compression_type compression;
 };
 
 static inline int _header_size() {
@@ -89,14 +89,14 @@ static size_t _message_get_body_size(nexrad_message *message) {
     return ret;
 }
 
-static void *_message_get_body(nexrad_message *message, nexrad_product_description *description, enum nexrad_product_compression_type_id *compp) {
+static void *_message_get_body(nexrad_message *message, nexrad_product_description *description, enum nexrad_product_compression_type *compp) {
     /*
      * Locate the body of the NEXRAD data after the message header and product
      * description blocks.
      */
     void *body = nexrad_block_after(description, nexrad_product_description);
 
-    enum nexrad_product_compression_type_id compression = be16toh(
+    enum nexrad_product_compression_type compression = be16toh(
         description->attributes.compression.method
     );
 
@@ -157,7 +157,7 @@ static int _index_message(nexrad_message *message) {
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
 
-    enum nexrad_product_compression_type_id compression;
+    enum nexrad_product_compression_type compression;
 
     nexrad_symbology_block * symbology = NULL;
     nexrad_graphic_block *   graphic   = NULL;
@@ -394,7 +394,7 @@ int nexrad_message_get_product_id(nexrad_message *message) {
         return -1;
     }
 
-    return be16toh(message->message_header->product_id);
+    return be16toh(message->message_header->product_type);
 }
 
 int nexrad_message_find_product_code(nexrad_message *message, char **code, size_t *len) {

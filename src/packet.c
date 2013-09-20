@@ -4,7 +4,7 @@
 
 #include <nexrad/packet.h>
 
-enum nexrad_packet_type_id nexrad_packet_type(nexrad_packet *packet) {
+enum nexrad_packet_type nexrad_packet_get_type(nexrad_packet *packet) {
     if (packet == NULL) return 0;
 
     return be16toh(packet->type);
@@ -78,7 +78,7 @@ int nexrad_packet_read_cell_data(nexrad_packet *packet, int *i, int *j, char *id
 int nexrad_packet_read_hail_data(nexrad_packet *packet, int *i, int *j, int *probability, int *probability_severe, int *max_size) {
     nexrad_hail_packet *hail;
 
-    if (packet == NULL || nexrad_packet_type(packet) != NEXRAD_PACKET_TYPE_HAIL) {
+    if (packet == NULL || nexrad_packet_get_type(packet) != NEXRAD_PACKET_HAIL) {
         return -1;
     }
 

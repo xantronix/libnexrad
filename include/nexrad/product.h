@@ -14,18 +14,18 @@
 #define NEXRAD_PRODUCT_COORD_MAGNITUDE 0.001
 #define NEXRAD_PRODUCT_AVSET_MAGNITUDE 0.1
 
-enum nexrad_product_compression_type_id {
+enum nexrad_product_compression_type {
     NEXRAD_PRODUCT_COMPRESSION_NONE  = 0,
     NEXRAD_PRODUCT_COMPRESSION_BZIP2 = 1
 };
 
-enum nexrad_product_id {
+enum nexrad_product_type {
     NEXRAD_PRODUCT_NHI =  59,
     NEXRAD_PRODUCT_DVL = 134,
     NEXRAD_PRODUCT_EET = 135
 };
 
-enum nexrad_radar_mode_id {
+enum nexrad_radar_mode {
     NEXRAD_RADAR_MODE_PRECIP = 2
 };
 
@@ -64,7 +64,7 @@ typedef struct _nexrad_product_description {
      int32_t    station_lat;      /* Radar site latitude */
      int32_t    station_lon;      /* Radar site longitude */
     uint16_t    station_altitude; /* Radar site altitude */
-    uint16_t    product_id;       /* NOAA product ID */
+    uint16_t    type;             /* NOAA product ID */
     uint16_t    mode;             /* Radar operational mode */
     uint16_t    vcp;              /* Radar volume coverage pattern */
      int16_t    seq;              /* Request sequence number */
@@ -98,7 +98,7 @@ typedef struct _nexrad_product_description {
 
 #pragma pack(pop)
 
-int nexrad_product_get_type_id(nexrad_product_description *product);
+enum nexrad_product_type nexrad_product_get_type(nexrad_product_description *product);
 
 int nexrad_product_read_dvil_attributes(nexrad_product_description *product,
     int *avset_angle, int *max_dvil, int *edited_radials, int *compression, size_t *size
