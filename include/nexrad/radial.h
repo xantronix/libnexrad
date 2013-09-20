@@ -23,7 +23,7 @@ typedef struct _nexrad_radial_packet {
 } nexrad_radial_packet;
 
 typedef struct _nexrad_radial_ray {
-    uint16_t size;        /* Number of bytes or RLE-encoded runs in current ray */
+    uint16_t size;        /* Number of halfwords (0xaf1f) or bytes (16) in current ray */
     uint16_t angle_start; /* Scan angle of current ray */
     uint16_t angle_delta; /* Angle delta from previous ray */
 } nexrad_radial_ray;
@@ -38,7 +38,8 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 typedef struct _nexrad_radial nexrad_radial;
 
 nexrad_radial *     nexrad_radial_packet_open(nexrad_radial_packet *packet);
-nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, void **runs);
+nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial, size_t *sizep, void **bins);
+ssize_t             nexrad_radial_ray_bins(nexrad_radial_ray *ray, enum nexrad_radial_type_id type);
 ssize_t             nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type_id type);
 size_t              nexrad_radial_bytes_read(nexrad_radial *radial);
 void                nexrad_radial_close(nexrad_radial *radial);

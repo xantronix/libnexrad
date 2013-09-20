@@ -66,6 +66,28 @@ error_malloc:
     return NULL;
 }
 
+ssize_t nexrad_radial_ray_bins(nexrad_radial_ray *ray, enum nexrad_radial_type_id type) {
+    if (ray == NULL) {
+        return -1;
+    }
+
+    switch (type) {
+        case NEXRAD_RADIAL_RLE: {
+            return be16toh(ray->size) * 2;
+        }
+
+        case NEXRAD_RADIAL_DIGITAL: {
+            size_t runs = be16toh(ray->size);
+
+            if (runs % 2) runs++;
+
+            return runs;
+        }
+    }
+
+    return -1;
+}
+
 ssize_t nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type_id type) {
     if (ray == NULL) {
         return -1;
