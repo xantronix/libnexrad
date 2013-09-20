@@ -125,6 +125,8 @@ static void *_message_get_body(nexrad_message *message, nexrad_product_descripti
             }
 
             body = dest;
+
+            break;
         }
 
         /*
