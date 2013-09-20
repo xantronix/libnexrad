@@ -81,8 +81,8 @@ typedef struct _nexrad_product_description {
         nexrad_dvil_attributes        dvil;
     } attributes;
 
-     uint8_t version;          /* Version */
-     uint8_t blanking;         /* Spot blanking */
+     uint8_t version;  /* Version */
+     uint8_t blanking; /* Spot blanking */
 
     /*
      * An interesting and mildly annoying note regarding these offsets: NOAA
