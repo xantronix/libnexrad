@@ -42,7 +42,7 @@ static inline off_t _halfword_body_offset(uint32_t value) {
     return (be32toh(value) * 2) - _header_size();
 }
 
-static inline void *_block_pointer(nexrad_message *message, uint32_t raw_offset, enum nexrad_block_id type) {
+static void *_block_pointer(nexrad_message *message, uint32_t raw_offset, enum nexrad_block_id type) {
     uint32_t offset = _halfword_body_offset(raw_offset);
     nexrad_block_header *header;
 
@@ -110,6 +110,10 @@ static void *_message_get_body(nexrad_message *message, nexrad_product_descripti
             size_t bodylen = _message_get_body_size(message);
             void *dest;
 
+            if (destlen > NEXRAD_MESSAGE_MAX_BODY_SIZE) {
+                goto error_decompress_size;
+            }
+
             if ((dest = malloc(destlen)) == NULL) {
                 goto error_decompress_malloc;
             }
@@ -123,6 +127,10 @@ static void *_message_get_body(nexrad_message *message, nexrad_product_descripti
             body = dest;
         }
 
+        /*
+         * If some unsupported compression scheme is indicated here, then return
+         * null.
+         */
         default: {
             return NULL;
         }
@@ -134,6 +142,7 @@ static void *_message_get_body(nexrad_message *message, nexrad_product_descripti
 
 error_decompress:
 error_decompress_malloc:
+error_decompress_size:
     return NULL;
 }
 
