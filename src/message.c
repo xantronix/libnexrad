@@ -17,7 +17,6 @@ struct _nexrad_message {
     size_t page_size;
     size_t mapped_size;
     int    fd;
-    int    compressed;
     void * data;
     void * body;
 
@@ -27,6 +26,8 @@ struct _nexrad_message {
     nexrad_symbology_block *     symbology;
     nexrad_graphic_block *       graphic;
     nexrad_tabular_block *       tabular;
+
+    enum nexrad_product_compression_type_id compression;
 };
 
 static inline int _header_size() {
@@ -78,7 +79,7 @@ static inline nexrad_tabular_block *_tabular_block(nexrad_message *message, nexr
     return (nexrad_tabular_block *)_block_pointer(message, description->tabular_offset, NEXRAD_BLOCK_TABULAR);
 }
 
-static size_t _body_size(nexrad_message *message) {
+static size_t _message_get_body_size(nexrad_message *message) {
     size_t ret = message->size;
 
     ret -= sizeof(nexrad_file_header);
@@ -86,6 +87,54 @@ static size_t _body_size(nexrad_message *message) {
     ret -= sizeof(nexrad_product_description);
 
     return ret;
+}
+
+static void *_message_get_body(nexrad_message *message, nexrad_product_description *description, enum nexrad_product_compression_type_id *compp) {
+    /*
+     * Locate the body of the NEXRAD data after the message header and product
+     * description blocks.
+     */
+    void *body = nexrad_block_after(description, nexrad_product_description);
+
+    enum nexrad_product_compression_type_id compression = be16toh(
+        description->attributes.compression.method
+    );
+
+    switch (compression) {
+        case NEXRAD_PRODUCT_COMPRESSION_NONE: {
+            break;
+        }
+
+        case NEXRAD_PRODUCT_COMPRESSION_BZIP2: {
+            unsigned int destlen = be32toh(description->attributes.compression.size);
+            size_t bodylen = _message_get_body_size(message);
+            void *dest;
+
+            if ((dest = malloc(destlen)) == NULL) {
+                goto error_decompress_malloc;
+            }
+
+            if (BZ2_bzBuffToBuffDecompress(dest, &destlen, body, bodylen, 0, 0) < 0) {
+                free(dest);
+
+                goto error_decompress;
+            }
+
+            body = dest;
+        }
+
+        default: {
+            return NULL;
+        }
+    }
+
+    *compp = compression;
+
+    return body;
+
+error_decompress:
+error_decompress_malloc:
+    return NULL;
 }
 
 /*
@@ -98,7 +147,8 @@ static int _index_message(nexrad_message *message) {
 
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
-    void *                       body;
+
+    enum nexrad_product_compression_type_id compression;
 
     nexrad_symbology_block * symbology = NULL;
     nexrad_graphic_block *   graphic   = NULL;
@@ -132,36 +182,8 @@ static int _index_message(nexrad_message *message) {
         goto error_invalid_product_description;
     }
 
-    /*
-     * Locate the body of the NEXRAD data after the message header and product
-     * description blocks.
-     */
-    body = nexrad_block_after(description, nexrad_product_description);
-
-    /*
-     * Determine if the NEXRAD message is compressed.  If it is, then decompress
-     * the body into a new chunk of memory and assign it to the message object.
-     */
-    if (be16toh(description->attributes.compression.method) == NEXRAD_PRODUCT_COMPRESSION_BZIP2) {
-        unsigned int destlen = be32toh(description->attributes.compression.size);
-        size_t bodylen = _body_size(message);
-        void *dest;
-
-        if ((dest = malloc(destlen)) == NULL) {
-            goto error_decompress_malloc;
-        }
-
-        if (BZ2_bzBuffToBuffDecompress(dest, &destlen, body, bodylen, 0, 0) < 0) {
-            free(dest);
-
-            goto error_decompress;
-        }
-
-        message->body       = dest;
-        message->compressed = 1;
-    } else {
-        message->body       = body;
-        message->compressed = 0;
+    if ((message->body = _message_get_body(message, description, &compression)) == NULL) {
+        goto error_message_get_body;
     }
 
     if (description->symbology_offset != 0 && (symbology = _symbology_block(message, description)) == NULL) {
@@ -179,6 +201,7 @@ static int _index_message(nexrad_message *message) {
     message->file_header    = file_header;
     message->message_header = message_header;
     message->description    = description;
+    message->compression    = compression;
     message->symbology      = symbology;
     message->graphic        = graphic;
     message->tabular        = tabular;
@@ -188,8 +211,9 @@ static int _index_message(nexrad_message *message) {
 error_invalid_tabular_block_offset:
 error_invalid_graphic_block_offset:
 error_invalid_symbology_block_offset:
-error_decompress:
-error_decompress_malloc:
+error_message_get_body:
+    message->body = NULL;
+
 error_invalid_product_description:
 error_invalid_message_header:
 error_invalid_file_header:
@@ -229,11 +253,11 @@ nexrad_message *nexrad_message_open(const char *path) {
     return message;
 
 error_index_message:
-    if (message->compressed) {
+    if (message->compression != NEXRAD_PRODUCT_COMPRESSION_NONE) {
         free(message->body);
 
-        message->compressed = 0;
-        message->body       = NULL;
+        message->compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
+        message->body        = NULL;
     }
 
     munmap(message->data, message->mapped_size);
@@ -267,10 +291,10 @@ void nexrad_message_close(nexrad_message *message) {
         message->fd = 0;
     }
 
-    if (message->compressed) {
+    if (message->compression != NEXRAD_PRODUCT_COMPRESSION_NONE) {
         free(message->body);
 
-        message->compressed = 0;
+        message->compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
     }
 
     message->size           = 0;
