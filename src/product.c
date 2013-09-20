@@ -1,5 +1,23 @@
 #include <nexrad/product.h>
 
+static enum nexrad_product_type compressed_products[] = {
+    NEXRAD_PRODUCT_DVL,
+    NEXRAD_PRODUCT_EET,
+    0
+};
+
+int nexrad_product_type_supports_compression(enum nexrad_product_type type) {
+    int i;
+
+    for (i=0; compressed_products[i]; i++) {
+        if (compressed_products[i] == type) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 enum nexrad_product_type nexrad_product_get_type(nexrad_product_description *product) {
     if (product == NULL) {
         return -1;

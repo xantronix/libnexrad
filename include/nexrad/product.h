@@ -98,6 +98,8 @@ typedef struct _nexrad_product_description {
 
 #pragma pack(pop)
 
+int nexrad_product_type_supports_compression(enum nexrad_product_type type);
+
 enum nexrad_product_type nexrad_product_get_type(nexrad_product_description *product);
 
 int nexrad_product_read_dvil_attributes(nexrad_product_description *product,
