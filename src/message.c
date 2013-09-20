@@ -90,13 +90,23 @@ static size_t _message_get_body_size(nexrad_message *message) {
 }
 
 static void *_message_get_body(nexrad_message *message, nexrad_product_description *description, enum nexrad_product_compression_type *compp) {
+    enum nexrad_product_compression_type compression;
+
     /*
      * Locate the body of the NEXRAD data after the message header and product
      * description blocks.
      */
     void *body = nexrad_block_after(description, nexrad_product_description);
 
-    enum nexrad_product_compression_type compression = be16toh(
+    /*
+     * If the current product does not support compression, then simply return
+     * the current body pointer.
+     */
+    if (!nexrad_product_type_supports_compression(be16toh(description->type))) {
+        return body;
+    }
+
+    compression = be16toh(
         description->attributes.compression.method
     );
 
