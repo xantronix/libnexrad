@@ -89,6 +89,22 @@ error_malloc_image:
     return NULL;
 }
 
+ssize_t nexrad_image_get_size(nexrad_image *image) {
+    if (image == NULL) {
+        return -1;
+    }
+
+    return image->size;
+}
+
+unsigned char * nexrad_image_get_buf(nexrad_image *image) {
+    if (image == NULL) {
+        return NULL;
+    }
+
+    return image->buf;
+}
+
 void nexrad_image_destroy(nexrad_image *image) {
     if (image == NULL) {
         return;

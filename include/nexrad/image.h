@@ -27,6 +27,9 @@ nexrad_image * nexrad_image_create(
     int width, int height, enum nexrad_image_depth depth, enum nexrad_image_color color
 );
 
+ssize_t         nexrad_image_get_size(nexrad_image *image);
+unsigned char * nexrad_image_get_buf(nexrad_image *image);
+
 void nexrad_image_destroy(nexrad_image *image);
 
 #endif /* _NEXRAD_IMAGE_H */
