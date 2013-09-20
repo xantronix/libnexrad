@@ -67,68 +67,6 @@ error_malloc:
     return NULL;
 }
 
-nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, size_t *binsp, size_t *sizep) {
-    nexrad_radial_ray *ray;
-    size_t size;
-    size_t bins;
-
-    if (radial == NULL || radial->rays_left == 0) {
-        return NULL;
-    }
-
-    ray = radial->current;
-
-    if (radial->type == NEXRAD_RADIAL_RLE) {
-        bins = be16toh(ray->size) * 2;
-        size = sizeof(nexrad_radial_ray) + bins;
-    } else if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        bins = be16toh(ray->size);
-        size = sizeof(nexrad_radial_ray) + bins;
-
-        if (size % 2) size++;
-    } else {
-        return NULL;
-    }
-
-    /*
-     * Advance the current ray pointer beyond the ray to follow.
-     */
-    radial->current = (nexrad_radial_ray *)((char *)ray + size);
-
-    /*
-     * Increase the number of bytes read in the current radial packet.
-     */
-    radial->bytes_read += size;
-
-    /*
-     * Decrement the number of rays left to read.
-     */
-     radial->rays_left--;
-
-    /*
-     * If the caller provided a pointer to an address in which to store the
-     * number of range bins of the current ray, then populate that value.
-     */
-    if (binsp)
-        *binsp = bins;   
-
-    /*
-     * If the caller provided a pointer to an address in which to store the size
-     * of the current ray (including header), then populate that value.
-     */
-    if (sizep)
-        *sizep = size;
-
-    /*
-     * If the caller provided a pointer to an address to populate with a pointer
-     * to the bins within the current ray, then provide that.
-     */
-    if (data)
-        *data = (nexrad_radial_run *)((char *)ray + sizeof(nexrad_radial_ray));
-
-    return ray;
-}
-
 size_t nexrad_radial_bytes_read(nexrad_radial *radial) {
     if (radial == NULL) {
         return 0;
@@ -156,19 +94,89 @@ void nexrad_radial_close(nexrad_radial *radial) {
     free(radial);
 }
 
+nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, size_t *runsp, size_t *binsp, size_t *sizep) {
+    nexrad_radial_ray *ray;
+    size_t runs, bins, size;
+
+    if (radial == NULL || radial->rays_left == 0) {
+        return NULL;
+    }
+
+    ray = radial->current;
+
+    if (radial->type == NEXRAD_RADIAL_RLE) {
+        runs = be16toh(ray->size) * 2;
+        bins = be16toh(radial->packet->rangebin_count);
+        size = sizeof(nexrad_radial_ray) + runs;
+    } else if (radial->type == NEXRAD_RADIAL_DIGITAL) {
+        runs = 0;
+        bins = be16toh(ray->size);
+        size = sizeof(nexrad_radial_ray) + bins;
+
+        if (size % 2) size++;
+    } else {
+        return NULL;
+    }
+
+    /*
+     * Advance the current ray pointer beyond the ray to follow.
+     */
+    radial->current = (nexrad_radial_ray *)((char *)ray + size);
+
+    /*
+     * Increase the number of bytes read in the current radial packet.
+     */
+    radial->bytes_read += size;
+
+    /*
+     * Decrement the number of rays left to read.
+     */
+     radial->rays_left--;
+
+    /*
+     * If the caller provided a pointer to an address in which to store the
+     * number of runs in any given ray, then populate that value.
+     */
+    if (runsp)
+        *runsp = runs;
+
+    /*
+     * If the caller provided a pointer to an address in which to store the
+     * number of range bins of the current ray, then populate that value.
+     */
+    if (binsp)
+        *binsp = bins;   
+
+    /*
+     * If the caller provided a pointer to an address in which to store the size
+     * of the current ray (including header), then populate that value.
+     */
+    if (sizep)
+        *sizep = size;
+
+    /*
+     * If the caller provided a pointer to an address to populate with a pointer
+     * to the bins within the current ray, then provide that.
+     */
+    if (data)
+        *data = (nexrad_radial_run *)((char *)ray + sizeof(nexrad_radial_ray));
+
+    return ray;
+}
+
 static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
 
-    size_t offset = 0, bins, size;
+    size_t offset = 0, runs, size;
 
-    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &bins, &size)) != NULL) {
-        int b;
+    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL, &size)) != NULL) {
+        int r;
 
-        for (b=0; b<bins; b++) {
-            memset(buf + offset, data[b].level * NEXRAD_RADIAL_RLE_FACTOR, data[b].length);
+        for (r=0; r<runs; r++) {
+            memset(buf + offset, data[r].level * NEXRAD_RADIAL_RLE_FACTOR, data[r].length);
 
-            offset += data[b].length;
+            offset += data[r].length;
         }
     }
 }
@@ -179,7 +187,7 @@ static void _copy_digital_data(unsigned char *buf, nexrad_radial *radial) {
 
     size_t offset = 0, bins, size;
 
-    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &bins, &size)) != NULL) {
+    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins, &size)) != NULL) {
         memcpy(buf + offset, data, bins);
 
         offset += bins;
