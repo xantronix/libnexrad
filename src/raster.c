@@ -110,17 +110,15 @@ nexrad_raster_line *nexrad_raster_read_line(nexrad_raster *raster, size_t *sizep
      * If the caller provided a pointer to an address to store the resultant
      * raster line size, then populate that address with that value.
      */
-    if (sizep != NULL) {
+    if (sizep)
         *sizep = size;
-    }
 
     /*
      * If the caller provided a pointer to an address to store a pointer to
      * the raster line's RLE-encoded runs, then provide that address.
      */
-    if (runs != NULL) {
+    if (runs)
         *runs = (nexrad_raster_run *)((char *)line + sizeof(nexrad_raster_line));
-    }
 
     return line;
 }
