@@ -188,11 +188,10 @@ static void _copy_digital_data(unsigned char *buf, nexrad_radial *radial) {
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
     nexrad_image *image;
-    int width, height;
+    size_t width, height, size;
     enum nexrad_image_depth depth;
     enum nexrad_image_color color;
     unsigned char *buf;
-    size_t size;
 
     if (radial == NULL) {
         return NULL;
