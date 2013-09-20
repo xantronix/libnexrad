@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <endian.h>
 
 #include <nexrad/radial.h>
@@ -174,4 +175,49 @@ void nexrad_radial_close(nexrad_radial *radial) {
     radial->current    = NULL;
 
     free(radial);
+}
+
+nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
+    nexrad_image *image;
+    int width, height;
+    enum nexrad_image_depth depth;
+    enum nexrad_image_color color;
+    unsigned char *buf;
+    size_t size;
+
+    if (radial == NULL) {
+        return NULL;
+    }
+
+    if (radial->type != NEXRAD_RADIAL_DIGITAL) {
+        return NULL;
+    }
+
+    width  = be16toh(radial->packet->rangebin_count);
+    height = be16toh(radial->packet->rays);
+    depth  = NEXRAD_IMAGE_8BPP;
+    color  = NEXRAD_IMAGE_GRAYSCALE;
+
+    if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
+        goto error_image_create;
+    }
+
+    if ((buf = nexrad_image_get_buf(image)) == NULL) {
+        goto error_image_get_buf;
+    }
+
+    if ((size = nexrad_image_get_size(image)) < 0) {
+        goto error_image_get_size;
+    }
+
+    memset(buf, 0x7f, size);
+
+    return image;
+
+error_image_get_size:
+error_image_get_buf:
+    nexrad_image_destroy(image);
+
+error_image_create:
+    return NULL;
 }

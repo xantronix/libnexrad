@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <nexrad/image.h>
+
 enum nexrad_radial_type {
     NEXRAD_RADIAL_RLE     = 0xaf1f,
     NEXRAD_RADIAL_DIGITAL = 16
@@ -43,5 +45,7 @@ ssize_t             nexrad_radial_ray_bins(nexrad_radial_ray *ray, enum nexrad_r
 ssize_t             nexrad_radial_ray_size(nexrad_radial_ray *ray, enum nexrad_radial_type type);
 size_t              nexrad_radial_bytes_read(nexrad_radial *radial);
 void                nexrad_radial_close(nexrad_radial *radial);
+
+nexrad_image *      nexrad_radial_create_image(nexrad_radial *radial);
 
 #endif /* _NEXRAD_RADIAL_H */
