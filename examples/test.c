@@ -30,7 +30,7 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
         be16toh(packet->rays)
     );
 
-    while ((ray = nexrad_radial_read_ray(radial, NULL, &bins, &ray_size)) != NULL) {
+    while ((ray = nexrad_radial_read_ray(radial, NULL, NULL, &bins, &ray_size)) != NULL) {
         printf("Wee, got a ray sized %lu bytes!\n", ray_size);
     }
 
@@ -45,15 +45,21 @@ static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
     nexrad_raster *raster;
     nexrad_raster_line *line;
     size_t line_size;
+    size_t width, height;
 
     if ((raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet)) == NULL) {
         perror("nexrad_raster_packet_open()");
         exit(1);
     }
 
-    printf("Huzzah, got a raster!\n");
+    if (nexrad_raster_get_info(raster, &width, &height) < 0) {
+        perror("nexrad_raster_get_info()");
+        exit(1);
+    }
 
-    while ((line = nexrad_raster_read_line(raster, &line_size, NULL)) != NULL) {
+    printf("Huzzah, got a raster, %lux%lu\n", width, height);
+
+    while ((line = nexrad_raster_read_line(raster, NULL, &line_size)) != NULL) {
         printf("Wee, got a line sized %lu bytes!\n", line_size);
     }
 

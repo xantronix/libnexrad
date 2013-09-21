@@ -34,10 +34,18 @@ typedef struct _nexrad_raster_run {
 
 typedef struct _nexrad_raster nexrad_raster;
 
-nexrad_raster *      nexrad_raster_packet_open(nexrad_raster_packet *packet);
-nexrad_raster_line * nexrad_raster_read_line(nexrad_raster *raster, size_t *sizep, nexrad_raster_run **runs);
-size_t               nexrad_raster_line_size(nexrad_raster_line *line);
-size_t               nexrad_raster_bytes_read(nexrad_raster *raster);
-void                 nexrad_raster_close(nexrad_raster *raster);
+nexrad_raster * nexrad_raster_packet_open(nexrad_raster_packet *packet);
+size_t          nexrad_raster_line_runs(nexrad_raster_line *line);
+size_t          nexrad_raster_line_width(nexrad_raster_line *line);
+size_t          nexrad_raster_bytes_read(nexrad_raster *raster);
+void            nexrad_raster_close(nexrad_raster *raster);
+
+nexrad_raster_line * nexrad_raster_read_line(nexrad_raster *raster,
+    void **data, size_t *runsp
+);
+
+int nexrad_raster_get_info(nexrad_raster *raster,
+    size_t *widthp, size_t *heightp
+);
 
 #endif /* _NEXRAD_RASTER_H */
