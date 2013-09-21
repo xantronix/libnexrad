@@ -184,7 +184,7 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     return 0;
 }
 
-static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster) {
+static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t width, size_t height) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
 
@@ -192,11 +192,15 @@ static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster) {
 
     while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
         int r;
+        size_t linewidth = 0;
 
         for (r=0; r<runs; r++) {
             memset(buf + offset, data[r].level * NEXRAD_RASTER_RLE_FACTOR, data[r].length);
 
-            offset += data[r].length;
+            linewidth += data[r].length;
+            offset    += data[r].length;
+
+            if (linewidth >= width) break;
         }
     }
 }
@@ -231,7 +235,7 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
         goto error_image_get_size;
     }
 
-    _copy_rle_data(buf, raster);
+    _copy_rle_data(buf, raster, width, height);
 
     return image;
 
