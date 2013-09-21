@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <endian.h>
 
 #include <nexrad/raster.h>
@@ -181,4 +182,64 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
         *heightp = be16toh(raster->packet->lines);
 
     return 0;
+}
+
+static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster) {
+    nexrad_raster_line *line;
+    nexrad_raster_run  *data;
+
+    size_t offset = 0, runs;
+
+    while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
+        int r;
+
+        for (r=0; r<runs; r++) {
+            memset(buf + offset, data[r].level * NEXRAD_RASTER_RLE_FACTOR, data[r].length);
+
+            offset += data[r].length;
+        }
+    }
+}
+
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
+    nexrad_image *image;
+    size_t width, height, size;
+    enum nexrad_image_depth depth;
+    enum nexrad_image_color color;
+    unsigned char *buf;
+
+    if (raster == NULL) {
+        return NULL;
+    }
+
+    if (nexrad_raster_get_info(raster, &width, &height) < 0) {
+        goto error_raster_get_info;
+    }
+
+    depth = NEXRAD_IMAGE_8BPP;
+    color = NEXRAD_IMAGE_GRAYSCALE;
+
+    if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
+        goto error_image_create;
+    }
+
+    if ((buf = nexrad_image_get_buf(image)) == NULL) {
+        goto error_image_get_buf;
+    }
+
+    if ((size = nexrad_image_get_size(image)) < 0) {
+        goto error_image_get_size;
+    }
+
+    _copy_rle_data(buf, raster);
+
+    return image;
+
+error_image_get_size:
+error_image_get_buf:
+    nexrad_image_destroy(image);
+
+error_image_create:
+error_raster_get_info:
+    return NULL;
 }

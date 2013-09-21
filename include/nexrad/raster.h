@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <nexrad/image.h>
+
+#define NEXRAD_RASTER_RLE_FACTOR 16
+
 #pragma pack(1)
 #pragma pack(push)
 
@@ -47,5 +51,7 @@ nexrad_raster_line * nexrad_raster_read_line(nexrad_raster *raster,
 int nexrad_raster_get_info(nexrad_raster *raster,
     size_t *widthp, size_t *heightp
 );
+
+nexrad_image * nexrad_raster_create_image(nexrad_raster *raster);
 
 #endif /* _NEXRAD_RASTER_H */
