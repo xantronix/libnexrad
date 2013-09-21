@@ -178,7 +178,7 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *raysp, size_t *binsp) 
     return 0;
 }
 
-static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial) {
+static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial, size_t width) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
 
@@ -186,11 +186,15 @@ static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial) {
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL, &size)) != NULL) {
         int r;
+        size_t linelen = 0;
 
         for (r=0; r<runs; r++) {
             memset(buf + offset, data[r].level * NEXRAD_RADIAL_RLE_FACTOR, data[r].length);
 
-            offset += data[r].length;
+            offset  += data[r].length;
+            linelen += data[r].length;
+
+            if (linelen >= width) break;
         }
     }
 }
@@ -239,7 +243,7 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
     if (radial->type == NEXRAD_RADIAL_DIGITAL) {
         _copy_digital_data(buf, radial);
     } else if (radial->type == NEXRAD_RADIAL_RLE) {
-        _copy_rle_data(buf, radial);
+        _copy_rle_data(buf, radial, width);
     }
 
     return image;

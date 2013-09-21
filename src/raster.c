@@ -184,7 +184,7 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     return 0;
 }
 
-static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t width, size_t height) {
+static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t width) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
 
@@ -235,7 +235,7 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
         goto error_image_get_size;
     }
 
-    _copy_rle_data(buf, raster, width, height);
+    _copy_rle_data(buf, raster, width);
 
     return image;
 
