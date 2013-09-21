@@ -164,6 +164,20 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, si
     return ray;
 }
 
+int nexrad_radial_get_info(nexrad_radial *radial, size_t *raysp, size_t *binsp) {
+    if (radial == NULL) {
+        return -1;
+    }
+
+    if (raysp)
+        *raysp = be16toh(radial->packet->rays);
+
+    if (binsp)
+        *binsp = be16toh(radial->packet->rangebin_count);
+
+    return 0;
+}
+
 static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;

@@ -41,13 +41,17 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 typedef struct _nexrad_radial nexrad_radial;
 
-nexrad_radial *     nexrad_radial_packet_open(nexrad_radial_packet *packet);
-size_t              nexrad_radial_bytes_read(nexrad_radial *radial);
-void                nexrad_radial_reset(nexrad_radial *radial);
-void                nexrad_radial_close(nexrad_radial *radial);
+nexrad_radial * nexrad_radial_packet_open(nexrad_radial_packet *packet);
+size_t          nexrad_radial_bytes_read(nexrad_radial *radial);
+void            nexrad_radial_reset(nexrad_radial *radial);
+void            nexrad_radial_close(nexrad_radial *radial);
 
 nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial,
     void **data, size_t *runsp, size_t *binsp, size_t *sizep
+);
+
+int nexrad_radial_get_info(nexrad_radial *radial,
+    size_t *raysp, size_t *binsp
 );
 
 nexrad_image * nexrad_radial_create_image(nexrad_radial *radial);
