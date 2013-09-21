@@ -192,15 +192,28 @@ static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t wid
 
     while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
         int r;
-        size_t linewidth = 0;
+        size_t linelen = 0;
 
         for (r=0; r<runs; r++) {
             memset(buf + offset, data[r].level * NEXRAD_RASTER_RLE_FACTOR, data[r].length);
 
-            linewidth += data[r].length;
-            offset    += data[r].length;
+            linelen += data[r].length;
+            offset  += data[r].length;
 
-            if (linewidth >= width) break;
+            if (linelen >= width) break;
+        }
+
+        /*
+         * If the current run failed to extend to the line width, then pad the
+         * rest of the line with black pixels.
+         */
+
+        if (linelen < width) {
+            size_t padding = width - linelen;
+
+            memset(buf + offset, '\0', padding);
+
+            offset += padding;
         }
     }
 }

@@ -196,6 +196,19 @@ static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial, size_t wid
 
             if (linelen >= width) break;
         }
+
+        /*
+         * If the current run failed to extend to the line width, then pad the
+         * rest of the line with black pixels.
+         */
+
+        if (linelen < width) {
+            size_t padding = width - linelen;
+
+            memset(buf + offset, '\0', padding);
+
+            offset += padding;
+        }
     }
 }
 
