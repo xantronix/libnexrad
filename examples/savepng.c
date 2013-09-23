@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <nexrad/message.h>
+#include <nexrad/radial.h>
+#include <nexrad/raster.h>
+
+static void usage(int argc, char **argv) {
+    fprintf(stderr, "usage: %s input.l3 output.png\n", argv[0]);
+    exit(1);
+}
+
+static nexrad_image *get_product_image(const char *file) {
+    nexrad_message *message;
+    nexrad_symbology_block *symbology;
+    nexrad_chunk *block, *layer;
+
+    if ((message = nexrad_message_open(file)) == NULL) {
+        goto error_message_open;
+    }
+
+    if ((symbology = nexrad_message_get_symbology_block(message)) == NULL) {
+        goto error_message_get_symbology_block;
+    }
+
+    if ((block = nexrad_symbology_block_open(symbology)) == NULL) {
+        goto error_symbology_block_open;
+    }
+
+    while ((layer = nexrad_symbology_block_read_layer(block)) != NULL) {
+        nexrad_packet *packet;
+        size_t size;
+
+        while ((packet = nexrad_symbology_layer_peek_packet(layer, &size)) != NULL) {
+            enum nexrad_packet_type type = nexrad_packet_get_type(packet);
+
+            switch (type) {
+                case NEXRAD_PACKET_RADIAL:
+                case NEXRAD_PACKET_RADIAL_AF1F: {
+                    nexrad_radial *radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet);
+
+                    nexrad_image *image = nexrad_radial_create_image(radial,
+                        NEXRAD_IMAGE_8BPP, NEXRAD_IMAGE_GRAYSCALE
+                    );
+
+                    fprintf(stderr, "Found radial packet, creating image\n");
+
+                    return image;
+                }
+
+                case NEXRAD_PACKET_RASTER_BA0F:
+                case NEXRAD_PACKET_RASTER_BA07: {
+                    nexrad_raster *raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet);
+
+                    nexrad_image *image = nexrad_raster_create_image(raster,
+                        NEXRAD_IMAGE_8BPP, NEXRAD_IMAGE_GRAYSCALE
+                    );
+
+                    fprintf(stderr, "Found raster packet, creating image\n");
+
+                    return image;
+                }
+
+                default: {
+                    fprintf(stderr, "Got packet type %d\n", type);
+
+                    break;
+                }
+            }
+
+            nexrad_symbology_layer_next_packet(layer, size);
+        }
+    }
+
+    return NULL;
+
+error_symbology_block_open:
+error_message_get_symbology_block:
+    nexrad_message_close(message);
+
+error_message_open:
+    return NULL;
+}
+
+int main(int argc, char **argv) {
+    char *infile, *outfile;
+    nexrad_image *image;
+
+    if (argc != 3) {
+        usage(argc, argv);
+    }
+
+     infile = argv[1];
+    outfile = argv[2];
+
+    if ((image = get_product_image(infile)) == NULL) {
+        perror("get_produt_image()");
+        exit(1);
+    }
+
+    if (nexrad_image_save_png(image, outfile) < 0) {
+        perror("nexrad_image_save_png()");
+        exit(1);
+    }
+
+    return 0;
+}
