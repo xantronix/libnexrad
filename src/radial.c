@@ -169,11 +169,11 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
         return -1;
     }
 
-    if (raysp)
-        *raysp = be16toh(radial->packet->rays);
-
     if (binsp)
         *binsp = be16toh(radial->packet->rangebin_count);
+
+    if (raysp)
+        *raysp = be16toh(radial->packet->rays);
 
     return 0;
 }
