@@ -176,11 +176,16 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     return 0;
 }
 
-static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t width) {
+static unsigned char *_image_unpack_rle(nexrad_image *image, nexrad_raster *raster, size_t width) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
+    unsigned char *buf;
 
     size_t offset = 0, runs;
+
+    if ((buf = nexrad_image_get_buf(image)) == NULL) {
+        goto error_image_get_buf;
+    }
 
     while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
         int r;
@@ -208,12 +213,16 @@ static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t wid
             offset += padding;
         }
     }
+
+    return buf;
+
+error_image_get_buf:
+    return NULL;
 }
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_image_depth depth, enum nexrad_image_color color) {
     nexrad_image *image;
     size_t width, height;
-    unsigned char *buf;
 
     if (raster == NULL) {
         return NULL;
@@ -227,15 +236,13 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_imag
         goto error_image_create;
     }
 
-    if ((buf = nexrad_image_get_buf(image)) == NULL) {
-        goto error_image_get_buf;
+    if (_image_unpack_rle(image, raster, width) < 0) {
+        goto error_image_unpack;
     }
-
-    _copy_rle_data(buf, raster, width);
 
     return image;
 
-error_image_get_buf:
+error_image_unpack:
     nexrad_image_destroy(image);
 
 error_image_create:

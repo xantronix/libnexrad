@@ -178,11 +178,16 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
     return 0;
 }
 
-static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial, size_t width) {
+static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t width) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
+    unsigned char *buf;
 
     size_t offset = 0, runs, size;
+
+    if ((buf = nexrad_image_get_buf(image)) == NULL) {
+        goto error_image_get_buf;
+    }
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL, &size)) != NULL) {
         int r;
@@ -210,25 +215,38 @@ static void _copy_rle_data(unsigned char *buf, nexrad_radial *radial, size_t wid
             offset += padding;
         }
     }
+
+    return 0;
+
+error_image_get_buf:
+    return -1;
 }
 
-static void _copy_digital_data(unsigned char *buf, nexrad_radial *radial) {
+static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
     nexrad_radial_ray *ray;
-    unsigned char *data;
+    unsigned char *buf, *data;
 
     size_t offset = 0, bins, size;
+
+    if ((buf = nexrad_image_get_buf(image)) == NULL) {
+        goto error_image_get_buf;
+    }
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins, &size)) != NULL) {
         memcpy(buf + offset, data, bins);
 
         offset += bins;
     }
+
+    return 0;
+
+error_image_get_buf:
+    return -1;
 }
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_image_depth depth, enum nexrad_image_color color) {
     nexrad_image *image;
     size_t width, height;
-    unsigned char *buf;
 
     if (radial == NULL) {
         return NULL;
@@ -241,19 +259,15 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_imag
         goto error_image_create;
     }
 
-    if ((buf = nexrad_image_get_buf(image)) == NULL) {
-        goto error_image_get_buf;
-    }
-
     if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        _copy_digital_data(buf, radial);
+        if (_image_unpack_digital(image, radial) < 0)    goto error_image_unpack;
     } else if (radial->type == NEXRAD_RADIAL_RLE) {
-        _copy_rle_data(buf, radial, width);
+        if (_image_unpack_rle(image, radial, width) < 0) goto error_image_unpack;
     }
 
     return image;
 
-error_image_get_buf:
+error_image_unpack:
     nexrad_image_destroy(image);
 
 error_image_create:
