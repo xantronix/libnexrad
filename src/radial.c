@@ -164,7 +164,7 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, si
     return ray;
 }
 
-int nexrad_radial_get_info(nexrad_radial *radial, size_t *raysp, size_t *binsp) {
+int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) {
     if (radial == NULL) {
         return -1;
     }

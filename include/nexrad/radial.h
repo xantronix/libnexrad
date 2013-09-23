@@ -51,7 +51,7 @@ nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial,
 );
 
 int nexrad_radial_get_info(nexrad_radial *radial,
-    size_t *raysp, size_t *binsp
+    size_t *binsp, size_t *raysp
 );
 
 nexrad_image * nexrad_radial_create_image(nexrad_radial *radial);
