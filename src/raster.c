@@ -210,11 +210,9 @@ static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t wid
     }
 }
 
-nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_image_depth depth, enum nexrad_image_color color) {
     nexrad_image *image;
     size_t width, height;
-    enum nexrad_image_depth depth;
-    enum nexrad_image_color color;
     unsigned char *buf;
 
     if (raster == NULL) {
@@ -224,9 +222,6 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
     if (nexrad_raster_get_info(raster, &width, &height) < 0) {
         goto error_raster_get_info;
     }
-
-    depth = NEXRAD_IMAGE_8BPP;
-    color = NEXRAD_IMAGE_GRAYSCALE;
 
     if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
         goto error_image_create;

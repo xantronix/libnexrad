@@ -225,11 +225,9 @@ static void _copy_digital_data(unsigned char *buf, nexrad_radial *radial) {
     }
 }
 
-nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
+nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_image_depth depth, enum nexrad_image_color color) {
     nexrad_image *image;
     size_t width, height;
-    enum nexrad_image_depth depth;
-    enum nexrad_image_color color;
     unsigned char *buf;
 
     if (radial == NULL) {
@@ -238,8 +236,6 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
 
     width  = be16toh(radial->packet->rangebin_count);
     height = be16toh(radial->packet->rays);
-    depth  = NEXRAD_IMAGE_8BPP;
-    color  = NEXRAD_IMAGE_GRAYSCALE;
 
     if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
         goto error_image_create;

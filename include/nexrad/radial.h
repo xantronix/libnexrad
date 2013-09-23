@@ -54,6 +54,9 @@ int nexrad_radial_get_info(nexrad_radial *radial,
     size_t *binsp, size_t *raysp
 );
 
-nexrad_image * nexrad_radial_create_image(nexrad_radial *radial);
+nexrad_image * nexrad_radial_create_image(nexrad_radial *radial,
+    enum nexrad_image_depth depth,
+    enum nexrad_image_color color
+);
 
 #endif /* _NEXRAD_RADIAL_H */
