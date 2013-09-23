@@ -24,11 +24,17 @@ enum nexrad_image_color {
 typedef struct _nexrad_image nexrad_image;
 
 nexrad_image * nexrad_image_create(
-    size_t width, size_t height, enum nexrad_image_depth depth, enum nexrad_image_color color
+    size_t width,
+    size_t height,
+    enum nexrad_image_depth depth,
+    enum nexrad_image_color color
 );
 
 int nexrad_image_get_info(nexrad_image *image,
-    size_t *width, size_t *height, enum nexrad_image_depth *depth, enum nexrad_image_color *color
+    size_t *width,
+    size_t *height,
+    enum nexrad_image_depth *depth,
+    enum nexrad_image_color *color
 );
 
 ssize_t nexrad_image_get_size(nexrad_image *image);
