@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <endian.h>
+#include <errno.h>
 
 #include <nexrad/radial.h>
 
@@ -249,6 +250,11 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_imag
     size_t width, height;
 
     if (radial == NULL) {
+        return NULL;
+    }
+
+    if (depth != NEXRAD_IMAGE_8BPP || color != NEXRAD_IMAGE_GRAYSCALE) {
+        errno = EINVAL;
         return NULL;
     }
 
