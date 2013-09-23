@@ -176,7 +176,7 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     return 0;
 }
 
-static unsigned char *_image_unpack_rle(nexrad_image *image, nexrad_raster *raster, size_t width) {
+static int _image_unpack_rle(nexrad_image *image, nexrad_raster *raster, size_t width) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
     unsigned char *buf;
@@ -214,10 +214,10 @@ static unsigned char *_image_unpack_rle(nexrad_image *image, nexrad_raster *rast
         }
     }
 
-    return buf;
+    return 0;
 
 error_image_get_buf:
-    return NULL;
+    return -1;
 }
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_image_depth depth, enum nexrad_image_color color) {
