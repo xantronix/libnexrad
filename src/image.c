@@ -142,8 +142,8 @@ int nexrad_image_save_png(nexrad_image *image, const char *path) {
     }
 
     if (png_set_data(&png,
-        image->width, image->height, image->depth * 8, image->color, image->buf) < 0
-    ) {
+        image->width, image->height, image->depth * 8, image->color, image->buf
+    ) < 0) {
         goto error_set_data;
     }
 
