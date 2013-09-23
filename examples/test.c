@@ -18,20 +18,22 @@ static void usage(int argc, char **argv) {
 static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
     nexrad_radial *radial;
     nexrad_radial_ray *ray;
-    size_t ray_size, bins;
+    size_t runs, bins;
 
     if ((radial = nexrad_radial_packet_open(packet)) == NULL) {
         perror("nexrad_radial_packet_open()");
         exit(1);
     }
 
-    printf("Huzzah, got a radial with %d rangebin/ray, %d rays\n",
+    printf("Huzzah, got a radial with %d rangebins/ray, %d rays\n",
         be16toh(packet->rangebin_count),
         be16toh(packet->rays)
     );
 
-    while ((ray = nexrad_radial_read_ray(radial, NULL, NULL, &bins, &ray_size)) != NULL) {
-        printf("Wee, got a ray sized %lu bytes!\n", ray_size);
+    while ((ray = nexrad_radial_read_ray(radial, NULL, &runs, &bins)) != NULL) {
+        printf("Wee, got a ray with %lu runs and %lu bins!\n",
+            runs, bins
+        );
     }
 
     *size = nexrad_radial_bytes_read(radial);

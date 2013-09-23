@@ -95,7 +95,7 @@ void nexrad_radial_close(nexrad_radial *radial) {
     free(radial);
 }
 
-nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, size_t *runsp, size_t *binsp, size_t *sizep) {
+nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, size_t *runsp, size_t *binsp) {
     nexrad_radial_ray *ray;
     size_t runs, bins, size;
 
@@ -149,13 +149,6 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, si
         *binsp = bins;   
 
     /*
-     * If the caller provided a pointer to an address in which to store the size
-     * of the current ray (including header), then populate that value.
-     */
-    if (sizep)
-        *sizep = size;
-
-    /*
      * If the caller provided a pointer to an address to populate with a pointer
      * to the bins within the current ray, then provide that.
      */
@@ -184,13 +177,13 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t 
     nexrad_radial_run *data;
     unsigned char *buf;
 
-    size_t offset = 0, runs, size;
+    size_t offset = 0, runs;
 
     if ((buf = nexrad_image_get_buf(image)) == NULL) {
         goto error_image_get_buf;
     }
 
-    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL, &size)) != NULL) {
+    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
         int r;
         size_t linelen = 0;
 
@@ -227,13 +220,13 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
     nexrad_radial_ray *ray;
     unsigned char *buf, *data;
 
-    size_t offset = 0, bins, size;
+    size_t offset = 0, bins;
 
     if ((buf = nexrad_image_get_buf(image)) == NULL) {
         goto error_image_get_buf;
     }
 
-    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins, &size)) != NULL) {
+    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
         memcpy(buf + offset, data, bins);
 
         offset += bins;

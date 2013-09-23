@@ -47,7 +47,7 @@ void            nexrad_radial_reset(nexrad_radial *radial);
 void            nexrad_radial_close(nexrad_radial *radial);
 
 nexrad_radial_ray * nexrad_radial_read_ray(nexrad_radial *radial,
-    void **data, size_t *runsp, size_t *binsp, size_t *sizep
+    void **data, size_t *runsp, size_t *binsp
 );
 
 int nexrad_radial_get_info(nexrad_radial *radial,
