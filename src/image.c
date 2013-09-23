@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <sys/types.h>
+#include "pnglite.h"
 
 #include <nexrad/image.h>
 
@@ -123,6 +124,43 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image) {
     }
 
     return image->buf;
+}
+
+int nexrad_image_save_png(nexrad_image *image, const char *path) {
+    png_t png;
+    
+    if (image == NULL || path == NULL) {
+        return -1;
+    }
+
+    memset(&png, '0', sizeof(png));
+
+    png_init(NULL, NULL);
+
+    if (png_open_file_write(&png, path) < 0) {
+        goto error_open_file_write;
+    }
+
+    if (png_set_data(&png,
+        image->width, image->height, image->depth * 8, image->color, image->buf) < 0
+    ) {
+        goto error_set_data;
+    }
+
+    if (png_close_file(&png) < 0) {
+        goto error_close_file;
+    }
+
+    return 0;
+
+error_close_file:
+    return -1;
+
+error_set_data:
+    png_close_file(&png);
+
+error_open_file_write:
+    return -1;
 }
 
 void nexrad_image_destroy(nexrad_image *image) {

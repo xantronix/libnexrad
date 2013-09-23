@@ -35,6 +35,8 @@ ssize_t nexrad_image_get_size(nexrad_image *image);
 
 unsigned char * nexrad_image_get_buf(nexrad_image *image);
 
+int nexrad_image_save_png(nexrad_image *image, const char *path);
+
 void nexrad_image_destroy(nexrad_image *image);
 
 #endif /* _NEXRAD_IMAGE_H */
