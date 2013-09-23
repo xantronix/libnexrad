@@ -212,7 +212,7 @@ static void _copy_rle_data(unsigned char *buf, nexrad_raster *raster, size_t wid
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
     nexrad_image *image;
-    size_t width, height, size;
+    size_t width, height;
     enum nexrad_image_depth depth;
     enum nexrad_image_color color;
     unsigned char *buf;
@@ -236,15 +236,10 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
         goto error_image_get_buf;
     }
 
-    if ((size = nexrad_image_get_size(image)) < 0) {
-        goto error_image_get_size;
-    }
-
     _copy_rle_data(buf, raster, width);
 
     return image;
 
-error_image_get_size:
 error_image_get_buf:
     nexrad_image_destroy(image);
 

@@ -227,7 +227,7 @@ static void _copy_digital_data(unsigned char *buf, nexrad_radial *radial) {
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
     nexrad_image *image;
-    size_t width, height, size;
+    size_t width, height;
     enum nexrad_image_depth depth;
     enum nexrad_image_color color;
     unsigned char *buf;
@@ -249,10 +249,6 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
         goto error_image_get_buf;
     }
 
-    if ((size = nexrad_image_get_size(image)) < 0) {
-        goto error_image_get_size;
-    }
-
     if (radial->type == NEXRAD_RADIAL_DIGITAL) {
         _copy_digital_data(buf, radial);
     } else if (radial->type == NEXRAD_RADIAL_RLE) {
@@ -261,7 +257,6 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
 
     return image;
 
-error_image_get_size:
 error_image_get_buf:
     nexrad_image_destroy(image);
 
