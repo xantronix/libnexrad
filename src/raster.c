@@ -69,7 +69,7 @@ error_malloc:
     return NULL;
 }
 
-size_t nexrad_raster_line_width(nexrad_raster_line *line) {
+static size_t _raster_line_width(nexrad_raster_line *line) {
     nexrad_raster_run *runs = (nexrad_raster_run *)((char *)line + sizeof(nexrad_raster_line));
 
     size_t width = 0;
@@ -167,7 +167,7 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     if (widthp) {
         nexrad_raster_line *line = (nexrad_raster_line *)((char *)raster->packet + sizeof(nexrad_raster_packet));
 
-        *widthp = nexrad_raster_line_width(line);
+        *widthp = _raster_line_width(line);
     }
 
     if (heightp)
