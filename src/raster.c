@@ -69,14 +69,6 @@ error_malloc:
     return NULL;
 }
 
-size_t nexrad_raster_line_runs(nexrad_raster_line *line) {
-    if (line == NULL) {
-        return 0;
-    }
-
-    return sizeof(nexrad_raster_line) + be16toh(line->runs);
-}
-
 size_t nexrad_raster_line_width(nexrad_raster_line *line) {
     nexrad_raster_run *runs = (nexrad_raster_run *)((char *)line + sizeof(nexrad_raster_line));
 
@@ -104,7 +96,7 @@ nexrad_raster_line *nexrad_raster_read_line(nexrad_raster *raster, void **data, 
     }
 
     line = raster->current;
-    runs = nexrad_raster_line_runs(line);
+    runs = sizeof(nexrad_raster_line) + be16toh(line->runs);
 
     /*
      * Advance the current line pointer beyond the line to follow.
