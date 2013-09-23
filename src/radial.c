@@ -260,7 +260,7 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_imag
     }
 
     if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        if (_image_unpack_digital(image, radial) < 0)    goto error_image_unpack;
+        if (_image_unpack_digital(image, radial)    < 0) goto error_image_unpack;
     } else if (radial->type == NEXRAD_RADIAL_RLE) {
         if (_image_unpack_rle(image, radial, width) < 0) goto error_image_unpack;
     }
