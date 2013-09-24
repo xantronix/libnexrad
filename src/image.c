@@ -112,14 +112,6 @@ int nexrad_image_get_info(nexrad_image *image, size_t *width, size_t *height, en
     return 0;
 }
 
-ssize_t nexrad_image_get_size(nexrad_image *image) {
-    if (image == NULL) {
-        return -1;
-    }
-
-    return image->size;
-}
-
 unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     if (image == NULL) {
         return NULL;
