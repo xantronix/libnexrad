@@ -43,8 +43,8 @@ void nexrad_image_draw_arc_section(nexrad_image *image,
     int level,
     float angle_min,
     float angle_max,
-    float radius_min,
-    float radius_max
+    int radius_min,
+    int radius_max
 );
 
 int nexrad_image_save_png(nexrad_image *image, const char *path);

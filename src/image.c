@@ -10,6 +10,8 @@ struct _nexrad_image {
 
     size_t width;
     size_t height;
+    size_t x_center;
+    size_t y_center;
 
     enum nexrad_image_depth depth;
     enum nexrad_image_color color;
@@ -76,12 +78,14 @@ nexrad_image *nexrad_image_create(size_t width, size_t height, enum nexrad_image
 
     memset(buf, '\0', size);
 
-    image->buf    = buf;
-    image->size   = size;
-    image->width  = width;
-    image->height = height;
-    image->depth  = depth;
-    image->color  = color;
+    image->buf      = buf;
+    image->size     = size;
+    image->width    = width;
+    image->height   = height;
+    image->x_center = width  / 2;
+    image->y_center = height / 2;
+    image->depth    = depth;
+    image->color    = color;
 
     return image;
 
@@ -121,6 +125,52 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
         *size = image->size;
 
     return image->buf;
+}
+
+static inline void _buf_draw_pixel(unsigned char *buf, int c, int x, int y, int w) {
+    buf[(y*w) + x] = c;
+}
+
+void nexrad_image_draw_arc_section(nexrad_image *image, int level, float angle_min, float angle_max, int radius_min, int radius_max) {
+    int w      = image->width;
+    int xc     = image->x_center;
+    int yc     = image->y_center;
+    int x      = image->x_center;
+    int y      = 0;
+    int rerror = 1-x;
+
+    unsigned char *buf = image->buf;
+
+    if (
+        image      == NULL ||
+        angle_min  <    0  ||
+        angle_min  >= 360  ||
+        angle_max  >= 360  ||
+        radius_min <    y  ||
+        radius_max >    x
+    ) {
+        return;
+    }
+
+    while (x >= y) {
+        _buf_draw_pixel(buf, level,  x+xc,  y+yc, w);
+        _buf_draw_pixel(buf, level,  y+xc,  x+yc, w);
+        _buf_draw_pixel(buf, level, -x+xc,  y+yc, w);
+        _buf_draw_pixel(buf, level, -y+xc,  x+yc, w);
+        _buf_draw_pixel(buf, level, -x+xc, -y+yc, w);
+        _buf_draw_pixel(buf, level, -y+xc, -x+yc, w);
+        _buf_draw_pixel(buf, level,  x+xc, -y+yc, w);
+        _buf_draw_pixel(buf, level,  y+xc, -x+yc, w);
+
+        y++;
+
+        if (rerror < 0) {
+            rerror += 2 * y + 1;
+        } else {
+            x--;
+            rerror += 2 * (y - x + 1);
+        }
+    }
 }
 
 int nexrad_image_save_png(nexrad_image *image, const char *path) {
