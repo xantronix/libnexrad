@@ -74,6 +74,8 @@ nexrad_image *nexrad_image_create(size_t width, size_t height, enum nexrad_image
         goto error_malloc_buf;
     }
 
+    memset(buf, '\0', size);
+
     image->buf    = buf;
     image->size   = size;
     image->width  = width;
@@ -133,7 +135,7 @@ int nexrad_image_save_png(nexrad_image *image, const char *path) {
         return -1;
     }
 
-    memset(&png, '0', sizeof(png));
+    memset(&png, '\0', sizeof(png));
 
     png_init(NULL, NULL);
 
