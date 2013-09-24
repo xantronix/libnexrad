@@ -2,7 +2,7 @@ CC		= cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -Wall -O2
 LDFLAGS		= -lnexrad
 
-EXAMPLES	= test savepng
+EXAMPLES	= display savepng
 
 RM		= /bin/rm
 

@@ -39,6 +39,14 @@ int nexrad_image_get_info(nexrad_image *image,
 
 unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size);
 
+void nexrad_image_draw_arc_section(nexrad_image *image,
+    int level,
+    float angle_min,
+    float angle_max,
+    float radius_min,
+    float radius_max
+);
+
 int nexrad_image_save_png(nexrad_image *image, const char *path);
 
 void nexrad_image_destroy(nexrad_image *image);
