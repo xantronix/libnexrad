@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
         goto error_image_create;
     }
 
-    nexrad_image_draw_arc_section(image, 0x7f, 0.0, 1.0, 13, 34);
+    nexrad_image_draw_arc_section(image, 0x7f, 0, 45, 16, 32);
 
     if (nexrad_image_save_png(image, path) < 0) {
         goto error_image_save_png;

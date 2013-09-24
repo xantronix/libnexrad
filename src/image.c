@@ -1,5 +1,6 @@
+#include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <math.h>
 #include "pnglite.h"
 
 #include <nexrad/image.h>
@@ -127,48 +128,82 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_draw_pixel(unsigned char *buf, int c, int x, int y, int w) {
+static inline void _buf_write_pixel(unsigned char *buf, int c, int x, int y, int w) {
     buf[(y*w) + x] = c;
 }
 
-void nexrad_image_draw_arc_section(nexrad_image *image, int level, float angle_min, float angle_max, int radius_min, int radius_max) {
-    int w      = image->width;
-    int xc     = image->x_center;
-    int yc     = image->y_center;
-    int x      = image->x_center;
-    int y      = 0;
-    int rerror = 1-x;
+void nexrad_image_draw_arc_section(nexrad_image *image, uint8_t level, size_t amin, size_t amax, size_t rmin, size_t rmax) {
+    int x, xc, y, yc, w, r, re;
+    unsigned char *buf;
 
-    unsigned char *buf = image->buf;
+    double rad = (M_PI / 180);
 
     if (
-        image      == NULL ||
-        angle_min  <    0  ||
-        angle_min  >= 360  ||
-        angle_max  >= 360  ||
-        radius_min <    y  ||
-        radius_max >    x
+        image == NULL ||
+        amin   > amax ||
+        rmin   > rmax
     ) {
         return;
     }
 
-    while (x >= y) {
-        _buf_draw_pixel(buf, level,  x+xc,  y+yc, w);
-        _buf_draw_pixel(buf, level,  y+xc,  x+yc, w);
-        _buf_draw_pixel(buf, level, -x+xc,  y+yc, w);
-        _buf_draw_pixel(buf, level, -y+xc,  x+yc, w);
-        _buf_draw_pixel(buf, level, -x+xc, -y+yc, w);
-        _buf_draw_pixel(buf, level, -y+xc, -x+yc, w);
-        _buf_draw_pixel(buf, level,  x+xc, -y+yc, w);
-        _buf_draw_pixel(buf, level,  y+xc, -x+yc, w);
+    xc = image->x_center;
+    yc = image->y_center;
+    w  = image->width;
 
-        y++;
+    buf = image->buf;
 
-        if (rerror < 0) {
-            rerror += 2 * y + 1;
+    for (r=rmin; r<rmax; r++) {
+        int xa = (int)round(r * cos(rad * amin));
+        int xb = (int)round(r * cos(rad * amax));
+        int ya = (int)round(r * sin(rad * amin));
+        int yb = (int)round(r * sin(rad * amax));
+
+        int xmin, xmax, ymin, ymax;
+
+        if (xa < xb) {
+            xmin = xa;
+            xmax = xb;
         } else {
-            x--;
-            rerror += 2 * (y - x + 1);
+            xmin = xb;
+            xmax = xa;
+        }
+
+        if (ya < yb) {
+            ymin = ya;
+            ymax = yb;
+        } else {
+            ymin = yb;
+            ymax = ya;
+        }
+
+        x  = r;
+        y  = 0;
+        re = 1 - x;
+
+        while (x >= y) {
+            if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {
+                fprintf(stderr, "r: %d, xmin: %d, x: %d, xmax: %d, ymin: %d, y: %d, ymax: %d\n",
+                    r, xmin, x, xmax, ymin, y, ymax
+                );
+
+                _buf_write_pixel(buf, level,  x+xc,  y+yc, w);
+                _buf_write_pixel(buf, level,  y+xc,  x+yc, w);
+                _buf_write_pixel(buf, level, -x+xc,  y+yc, w);
+                _buf_write_pixel(buf, level, -y+xc,  x+yc, w);
+                _buf_write_pixel(buf, level, -x+xc, -y+yc, w);
+                _buf_write_pixel(buf, level, -y+xc, -x+yc, w);
+                _buf_write_pixel(buf, level,  x+xc, -y+yc, w);
+                _buf_write_pixel(buf, level,  y+xc, -x+yc, w);
+            }
+
+            y++;
+
+            if (re < 0) {
+                re += 2 * y + 1;
+            } else {
+                x--;
+                re += 2 * (y - x + 1);
+            }
         }
     }
 }

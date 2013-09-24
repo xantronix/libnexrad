@@ -1,6 +1,9 @@
 #ifndef _NEXRAD_IMAGE_H
 #define _NEXRAD_IMAGE_H
 
+#include <sys/types.h>
+#include <stdint.h>
+
 enum nexrad_image_type {
     NEXRAD_IMAGE_RASTER,
     NEXRAD_IMAGE_RADIAL
@@ -40,11 +43,11 @@ int nexrad_image_get_info(nexrad_image *image,
 unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size);
 
 void nexrad_image_draw_arc_section(nexrad_image *image,
-    int level,
-    float angle_min,
-    float angle_max,
-    int radius_min,
-    int radius_max
+    uint8_t level,
+    size_t amin,
+    size_t amax,
+    size_t rmin,
+    size_t rmax
 );
 
 int nexrad_image_save_png(nexrad_image *image, const char *path);
