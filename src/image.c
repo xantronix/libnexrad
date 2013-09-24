@@ -120,10 +120,13 @@ ssize_t nexrad_image_get_size(nexrad_image *image) {
     return image->size;
 }
 
-unsigned char * nexrad_image_get_buf(nexrad_image *image) {
+unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     if (image == NULL) {
         return NULL;
     }
+
+    if (size)
+        *size = image->size;
 
     return image->buf;
 }

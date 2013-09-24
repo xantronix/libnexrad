@@ -179,7 +179,7 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t 
 
     size_t offset = 0, runs;
 
-    if ((buf = nexrad_image_get_buf(image)) == NULL) {
+    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
         goto error_image_get_buf;
     }
 
@@ -222,7 +222,7 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
 
     size_t offset = 0, bins;
 
-    if ((buf = nexrad_image_get_buf(image)) == NULL) {
+    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
         goto error_image_get_buf;
     }
 

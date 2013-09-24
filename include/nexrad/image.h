@@ -39,7 +39,7 @@ int nexrad_image_get_info(nexrad_image *image,
 
 ssize_t nexrad_image_get_size(nexrad_image *image);
 
-unsigned char * nexrad_image_get_buf(nexrad_image *image);
+unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size);
 
 int nexrad_image_save_png(nexrad_image *image, const char *path);
 
