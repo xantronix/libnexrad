@@ -2,7 +2,7 @@ CC		= cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -Wall -O2
 LDFLAGS		= -lnexrad
 
-EXAMPLES	= display drawing savepng
+EXAMPLES	= display drawarc savepng
 
 RM		= /bin/rm
 
