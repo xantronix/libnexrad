@@ -10,12 +10,12 @@ static void usage(int argc, char **argv) {
     exit(1);
 }
 
-static nexrad_image *get_product_image(const char *file) {
+static int save_product_image(const char *infile, const char *outfile) {
     nexrad_message *message;
     nexrad_symbology_block *symbology;
     nexrad_chunk *block, *layer;
 
-    if ((message = nexrad_message_open(file)) == NULL) {
+    if ((message = nexrad_message_open(infile)) == NULL) {
         goto error_message_open;
     }
 
@@ -39,26 +39,40 @@ static nexrad_image *get_product_image(const char *file) {
                 case NEXRAD_PACKET_RADIAL_AF1F: {
                     nexrad_radial *radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet);
 
-                    nexrad_image *image = nexrad_radial_create_image(radial,
-                        NEXRAD_IMAGE_8BPP, NEXRAD_IMAGE_GRAYSCALE
+                    nexrad_radial_image *image = nexrad_radial_create_image(radial,
+                        CAIRO_FORMAT_RGB24
                     );
 
-                    fprintf(stderr, "Found radial packet, creating image\n");
+                    fprintf(stderr, "Found radial packet, creating image %s\n", outfile);
 
-                    return image;
+                    if (nexrad_radial_image_save_png(image, outfile) < 0) {
+                        return -1;
+                    }
+
+                    nexrad_radial_image_destroy(image);
+                    nexrad_radial_close(radial);
+
+                    return 0;
                 }
 
                 case NEXRAD_PACKET_RASTER_BA0F:
                 case NEXRAD_PACKET_RASTER_BA07: {
                     nexrad_raster *raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet);
 
-                    nexrad_image *image = nexrad_raster_create_image(raster,
-                        NEXRAD_IMAGE_8BPP, NEXRAD_IMAGE_GRAYSCALE
+                    nexrad_raster_image *image = nexrad_raster_create_image(raster,
+                        NEXRAD_RASTER_IMAGE_8BPP, NEXRAD_RASTER_IMAGE_GRAYSCALE
                     );
 
-                    fprintf(stderr, "Found raster packet, creating image\n");
+                    fprintf(stderr, "Found raster packet, creating image %s\n", outfile);
 
-                    return image;
+                    if (nexrad_raster_image_save_png(image, outfile) < 0) {
+                        return -1;
+                    }
+
+                    nexrad_raster_image_destroy(image);
+                    nexrad_raster_close(raster);
+
+                    return 0;
                 }
 
                 default: {
@@ -72,19 +86,18 @@ static nexrad_image *get_product_image(const char *file) {
         }
     }
 
-    return NULL;
+    return -1;
 
 error_symbology_block_open:
 error_message_get_symbology_block:
     nexrad_message_close(message);
 
 error_message_open:
-    return NULL;
+    return -1;
 }
 
 int main(int argc, char **argv) {
     char *infile, *outfile;
-    nexrad_image *image;
 
     if (argc != 3) {
         usage(argc, argv);
@@ -93,13 +106,8 @@ int main(int argc, char **argv) {
      infile = argv[1];
     outfile = argv[2];
 
-    if ((image = get_product_image(infile)) == NULL) {
-        perror("get_produt_image()");
-        exit(1);
-    }
-
-    if (nexrad_image_save_png(image, outfile) < 0) {
-        perror("nexrad_image_save_png()");
+    if (save_product_image(infile, outfile) < 0) {
+        perror("save_product_image()");
         exit(1);
     }
 
