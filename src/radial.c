@@ -292,13 +292,20 @@ static int _radial_unpack_digital(nexrad_radial *radial, nexrad_radial_image *im
         double angle_start = rad * 0.1 * (double)be16toh(ray->angle_start);
         double angle_end   = rad * 0.1 * (double)be16toh(ray->angle_delta) + angle_start;
 
+        int lastlevel = 0;
         int r;
 
         for (r=0; r<bins; r++) {
-            _context_set_8bit_color(cr, data[r]);
+            int level = data[r];
+
+            if (level != lastlevel) {
+                _context_set_8bit_color(cr, level);
+            }
 
             cairo_arc(cr, center, center, r, angle_start, angle_end);
             cairo_stroke(cr);
+
+            lastlevel = level;
         }
     }
 
