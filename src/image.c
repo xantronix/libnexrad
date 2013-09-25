@@ -214,7 +214,8 @@ void nexrad_image_draw_line(nexrad_image *image, uint8_t level, int x1, int y1, 
 }
 
 void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin, int amax, int rmin, int rmax) {
-    int x, xc, y, yc, r, re;
+    int x, xc, y, yc, r, re, w;
+    unsigned char *buf;
 
     if (
         image == NULL ||
@@ -224,6 +225,9 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         return;
     }
 
+    buf = image->buf;
+    w   = image->width;
+
     xc = image->x_center;
     yc = image->y_center;
 
@@ -232,10 +236,14 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
     re = 1 - x;
 
     while (x >= y) {
-        nexrad_image_draw_line(image, level,  y+xc,  x+yc,  x+xc,  y+yc);
-        nexrad_image_draw_line(image, level, -y+xc,  x+yc, -x+xc,  y+yc);
-        nexrad_image_draw_line(image, level, -y+yc, -x+yc, -x+xc, -y+yc);
-        nexrad_image_draw_line(image, level,  y+xc, -x+yc,  x+xc, -y+yc);
+        _buf_write_pixel(buf, level,  x+xc,  y+yc, w); /* ESE */
+        _buf_write_pixel(buf, level,  y+xc,  x+yc, w); /* SSE */
+        _buf_write_pixel(buf, level, -y+xc,  x+yc, w); /* SSW */
+        _buf_write_pixel(buf, level, -x+xc,  y+yc, w); /* WSW */
+        _buf_write_pixel(buf, level, -x+xc, -y+yc, w); /* WNW */
+        _buf_write_pixel(buf, level, -y+xc, -x+yc, w); /* NNW */
+        _buf_write_pixel(buf, level,  x+xc, -y+yc, w); /* NNE */
+        _buf_write_pixel(buf, level,  y+xc, -x+yc, w); /* ENE */
 
         y++;
 
