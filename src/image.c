@@ -132,25 +132,8 @@ static inline void _buf_write_pixel(unsigned char *buf, uint8_t c, int x, int y,
     buf[(y*w) + x] = c;
 }
 
-static void _swap_double(double *a, double *b) {
-    double c = *a;
-
-    *a = *b;
-    *b =  c;
-}
-
-static void _swap_int(int *a, int *b) {
-    int c = *a;
-
-    *a = *b;
-    *b =  c;
-}
-
-void nexrad_image_draw_line(nexrad_image *image, uint8_t level, int x0, int y0, int x1, int y1) {
-    int x, y, w;
-    double x_delta = x1 - x0;
-    double y_delta = y1 - y0;
-    double error, error_delta;
+void nexrad_image_draw_line(nexrad_image *image, uint8_t level, int x1, int y1, int x2, int y2) {
+    int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i, w;
     unsigned char *buf;
 
     if (image == NULL) {
@@ -158,46 +141,80 @@ void nexrad_image_draw_line(nexrad_image *image, uint8_t level, int x0, int y0, 
     }
 
     buf = image->buf;
+
+    dx  = x2 - x1;
+    dy  = y2 - y1;
+    dx1 = fabs(dx);
+    dy1 = fabs(dy);
+    px  = 2 * dy1 - dx1;
+    py  = 2 * dx1 - dy1;
     w   = image->width;
 
-    x_delta = x1 - x0;
-    y_delta = y1 - y0;
-
-    error = 0.0;
-
-    if (x_delta == 0) {
-        error_delta = 0;
-    } else {
-        error_delta = y_delta / x_delta;
-    }
-
-    if (error_delta < 0) error_delta = 0 - error_delta;
-
-    fprintf(stderr, "x_delta: %f, y_delta: %f\n", x_delta, y_delta);
-    fprintf(stderr, "error_delta is %f\n", error_delta);
-
-    y = y0;
-
-    for (x=x0; x<x1; x++) {
-        fprintf(stderr, "x is %d\n", x);
+    if (dy1 <= dx1) {
+        if (dx >= 0) {
+            x  = x1;
+            y  = y1;
+            xe = x2;
+        } else {
+            x  = x2;
+            y  = y2;
+            xe = x1;
+        }
 
         _buf_write_pixel(buf, level, x, y, w);
 
-        error += error_delta;
+        for (i=0; x<xe; i++) {
+            x++;
 
-        if (error >= 0.5) {
+            if (px < 0) {
+                px = px + 2 * dy1;
+            } else {
+                if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
+                    y++;
+                } else {
+                    y--;
+                }
+
+                px += 2 * (dy1 - dx1);
+            }
+
+            _buf_write_pixel(buf, level, x, y, w);
+        }
+    } else {
+        if (dy >= 0) {
+            x  = x1;
+            y  = y1;
+            ye = y2;
+        } else {
+            x  = x2;
+            y  = y2;
+            ye = y1;
+        }
+
+        _buf_write_pixel(buf, level, x, y, w);
+
+        for (i=0; y<ye; i++) {
             y++;
-            fprintf(stderr, "Incrementing y to %d\n", y);
-            error -= 1.0;
+
+            if (py <= 0) {
+                py += 2 * dx1;
+            } else {
+                if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
+                    x++;
+                } else {
+                    x--;
+                }
+
+                py += 2 * (dx1 - dy1);
+            }
+
+            _buf_write_pixel(buf, level, x, y, w);
         }
     }
 }
 
 void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin, int amax, int rmin, int rmax) {
-    int x, xc, y, yc, w, r, re;
-    unsigned char *buf;
-
-    double rad = (M_PI / 180);
+    int x, xc, y, yc, r, re;
 
     if (
         image == NULL ||
@@ -209,58 +226,24 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
 
     xc = image->x_center;
     yc = image->y_center;
-    w  = image->width;
 
-    buf = image->buf;
+    x  = rmin;
+    y  = 0;
+    re = 1 - x;
 
-    for (r=rmin; r<rmax; r++) {
-        int xa = (int)round(r * cos(rad * amin));
-        int xb = (int)round(r * cos(rad * amax));
-        int ya = (int)round(r * sin(rad * amin));
-        int yb = (int)round(r * sin(rad * amax));
+    while (x >= y) {
+        nexrad_image_draw_line(image, level,  y+xc,  x+yc,  x+xc,  y+yc);
+        nexrad_image_draw_line(image, level, -y+xc,  x+yc, -x+xc,  y+yc);
+        nexrad_image_draw_line(image, level, -y+yc, -x+yc, -x+xc, -y+yc);
+        nexrad_image_draw_line(image, level,  y+xc, -x+yc,  x+xc, -y+yc);
 
-        int xmin, xmax, ymin, ymax;
+        y++;
 
-        if (xa < xb) {
-            xmin = xa;
-            xmax = xb;
+        if (re < 0) {
+            re += 2 * y + 1;
         } else {
-            xmin = xb;
-            xmax = xa;
-        }
-
-        if (ya < yb) {
-            ymin = ya;
-            ymax = yb;
-        } else {
-            ymin = yb;
-            ymax = ya;
-        }
-
-        x  = r;
-        y  = 0;
-        re = 1 - x;
-
-        while (x >= y) {
-            if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {
-                _buf_write_pixel(buf, level,  x+xc,  y+yc, w);
-                _buf_write_pixel(buf, level,  y+xc,  x+yc, w);
-                _buf_write_pixel(buf, level, -x+xc,  y+yc, w);
-                _buf_write_pixel(buf, level, -y+xc,  x+yc, w);
-                _buf_write_pixel(buf, level, -x+xc, -y+yc, w);
-                _buf_write_pixel(buf, level, -y+xc, -x+yc, w);
-                _buf_write_pixel(buf, level,  x+xc, -y+yc, w);
-                _buf_write_pixel(buf, level,  y+xc, -x+yc, w);
-            }
-
-            y++;
-
-            if (re < 0) {
-                re += 2 * y + 1;
-            } else {
-                x--;
-                re += 2 * (y - x + 1);
-            }
+            x--;
+            re += 2 * (y - x + 1);
         }
     }
 }
