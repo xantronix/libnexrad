@@ -251,7 +251,7 @@ static int _radial_unpack_rle(nexrad_radial *radial, nexrad_radial_image *image)
             if (length != lastlength) 
                 cairo_set_line_width(cr, (double)length);
 
-            cairo_arc(cr, center, center, r, angle_start, angle_end);
+            cairo_arc(cr, center, center, linelen + (length / 2), angle_start, angle_end);
             cairo_stroke(cr);
 
             linelen += length;
