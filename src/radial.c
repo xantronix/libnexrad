@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <endian.h>
 #include <errno.h>
-#include <cairo.h>
 
 #include <nexrad/radial.h>
 

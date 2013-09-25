@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <cairo.h>
 
 #define NEXRAD_RADIAL_RLE_FACTOR 16
 
