@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <math.h>
 #include <endian.h>
 #include <errno.h>
 
@@ -182,8 +183,14 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
     return 0;
 }
 
-static inline void _context_set_color(cairo_t *cr, uint8_t level) {
-    double c = 255.0 / (double)level;
+static inline void _context_set_4bit_color(cairo_t *cr, uint8_t level) {
+    double c = (double)(level * NEXRAD_RADIAL_RLE_FACTOR) / 255.0;
+
+    cairo_set_source_rgb(cr, c, c, c);
+}
+
+static inline void _context_set_8bit_color(cairo_t *cr, uint8_t level) {
+    double c = (double)level / 255.0;
 
     cairo_set_source_rgb(cr, c, c, c);
 }
@@ -197,6 +204,8 @@ static int _radial_unpack_rle(nexrad_radial *radial, nexrad_radial_image *image)
     size_t width  = image->width;
     size_t center = image->radius;
 
+    double rad = M_PI / 180.0;
+
     if ((cr = cairo_create(image->surface)) == NULL) {
         goto error_context_create;
     }
@@ -204,15 +213,15 @@ static int _radial_unpack_rle(nexrad_radial *radial, nexrad_radial_image *image)
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
-        double angle_start = 0.1 * (double)be16toh(ray->angle_start);
-        double angle_end   = 0.1 * (double)be16toh(ray->angle_delta) + angle_start;
+        double angle_start = rad * 0.1 * (double)be16toh(ray->angle_start);
+        double angle_end   = rad * 0.1 * (double)be16toh(ray->angle_delta) + angle_start;
 
         size_t linelen = 0;
 
         int r;
 
         for (r=0; r<runs; r++) {
-            _context_set_color(cr, data[r].level);
+            _context_set_4bit_color(cr, data[r].level);
             cairo_set_line_width(cr, (double)data[r].length);
 
             cairo_arc(cr, center, center, r, angle_start, angle_end);
@@ -240,6 +249,8 @@ static int _radial_unpack_digital(nexrad_radial *radial, nexrad_radial_image *im
     size_t center = image->radius;
     size_t bins;
 
+    double rad = M_PI / 180.0;
+
     if ((cr = cairo_create(image->surface)) == NULL) {
         goto error_context_create;
     }
@@ -248,13 +259,13 @@ static int _radial_unpack_digital(nexrad_radial *radial, nexrad_radial_image *im
     cairo_set_line_width(cr, 1.0);
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
-        double angle_start = 0.1 * (double)be16toh(ray->angle_start);
-        double angle_end   = 0.1 * (double)be16toh(ray->angle_delta) + angle_start;
+        double angle_start = rad * 0.1 * (double)be16toh(ray->angle_start);
+        double angle_end   = rad * 0.1 * (double)be16toh(ray->angle_delta) + angle_start;
 
         int r;
 
         for (r=0; r<bins; r++) {
-            _context_set_color(cr, data[r]);
+            _context_set_8bit_color(cr, data[r]);
 
             cairo_arc(cr, center, center, r, angle_start, angle_end);
             cairo_stroke(cr);
@@ -292,6 +303,7 @@ nexrad_radial_image *nexrad_radial_create_image(nexrad_radial *radial, cairo_for
 
     image->surface = surface;
     image->format  = format;
+    image->radius  = radius;
     image->width   = width;
     image->height  = height;
 
