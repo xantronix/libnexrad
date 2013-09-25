@@ -128,11 +128,72 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_write_pixel(unsigned char *buf, int c, int x, int y, int w) {
+static inline void _buf_write_pixel(unsigned char *buf, uint8_t c, int x, int y, int w) {
     buf[(y*w) + x] = c;
 }
 
-void nexrad_image_draw_arc_section(nexrad_image *image, uint8_t level, size_t amin, size_t amax, size_t rmin, size_t rmax) {
+static void _swap_double(double *a, double *b) {
+    double c = *a;
+
+    *a = *b;
+    *b =  c;
+}
+
+static void _swap_int(int *a, int *b) {
+    int c = *a;
+
+    *a = *b;
+    *b =  c;
+}
+
+void nexrad_image_draw_line(nexrad_image *image, uint8_t level, int x0, int y0, int x1, int y1) {
+    int x, y, w;
+    double x_delta = x1 - x0;
+    double y_delta = y1 - y0;
+    double error, error_delta;
+    unsigned char *buf;
+
+    if (image == NULL) {
+        return;
+    }
+
+    buf = image->buf;
+    w   = image->width;
+
+    x_delta = x1 - x0;
+    y_delta = y1 - y0;
+
+    error = 0.0;
+
+    if (x_delta == 0) {
+        error_delta = 0;
+    } else {
+        error_delta = y_delta / x_delta;
+    }
+
+    if (error_delta < 0) error_delta = 0 - error_delta;
+
+    fprintf(stderr, "x_delta: %f, y_delta: %f\n", x_delta, y_delta);
+    fprintf(stderr, "error_delta is %f\n", error_delta);
+
+    y = y0;
+
+    for (x=x0; x<x1; x++) {
+        fprintf(stderr, "x is %d\n", x);
+
+        _buf_write_pixel(buf, level, x, y, w);
+
+        error += error_delta;
+
+        if (error >= 0.5) {
+            y++;
+            fprintf(stderr, "Incrementing y to %d\n", y);
+            error -= 1.0;
+        }
+    }
+}
+
+void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin, int amax, int rmin, int rmax) {
     int x, xc, y, yc, w, r, re;
     unsigned char *buf;
 
@@ -182,10 +243,6 @@ void nexrad_image_draw_arc_section(nexrad_image *image, uint8_t level, size_t am
 
         while (x >= y) {
             if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {
-                fprintf(stderr, "r: %d, xmin: %d, x: %d, xmax: %d, ymin: %d, y: %d, ymax: %d\n",
-                    r, xmin, x, xmax, ymin, y, ymax
-                );
-
                 _buf_write_pixel(buf, level,  x+xc,  y+yc, w);
                 _buf_write_pixel(buf, level,  y+xc,  x+yc, w);
                 _buf_write_pixel(buf, level, -x+xc,  y+yc, w);

@@ -42,12 +42,18 @@ int nexrad_image_get_info(nexrad_image *image,
 
 unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size);
 
-void nexrad_image_draw_arc_section(nexrad_image *image,
+void nexrad_image_draw_line(nexrad_image *image,
     uint8_t level,
-    size_t amin,
-    size_t amax,
-    size_t rmin,
-    size_t rmax
+    int x0, int y0,
+    int x1, int y1
+);
+
+void nexrad_image_draw_arc_segment(nexrad_image *image,
+    uint8_t level,
+    int amin,
+    int amax,
+    int rmin,
+    int rmax
 );
 
 int nexrad_image_save_png(nexrad_image *image, const char *path);
