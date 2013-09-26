@@ -169,7 +169,7 @@ static int _index_message(nexrad_message *message) {
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
 
-    enum nexrad_product_compression_type compression;
+    enum nexrad_product_compression_type compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
 
     nexrad_symbology_block * symbology = NULL;
     nexrad_graphic_block *   graphic   = NULL;
