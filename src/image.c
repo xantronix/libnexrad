@@ -154,20 +154,30 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         return;
     }
 
+    char *octants[] = {
+        "None", "ESE", "SSE", "SSW", "WSW", "WNW", "NNW", "NNE", "ENE"
+    };
+
     _int_order(&amin, &amax);
     _int_order(&rmin, &rmax);
 
-    if ((amin >=  90 && amin <= 135) || (amax >=  90 && amax < 135)) octant = ESE;
-    if ((amin >= 135 && amin <= 180) || (amax >= 135 && amax < 180)) octant = SSE;
-    if ((amin >= 180 && amin <= 225) || (amax >= 180 && amax < 225)) octant = SSW;
-    if ((amin >= 225 && amin <= 270) || (amax >= 225 && amax < 270)) octant = WSW;
-    if ((amin >= 270 && amin <= 315) || (amax >= 270 && amax < 315)) octant = WNW;
-    if ((amin >= 315 && amin <= 360) || (amax >= 315 && amax < 360)) octant = NNW;
-    if ((amin >=   0 && amin <=  45) || (amax >=   0 && amax <  45)) octant = NNE;
-    if ((amin >=  45 && amin <=  90) || (amax >=  45 && amax <  90)) octant = ENE;
+    if (amin >=  90 && amin <= 135 && amax >=  90 && amax <= 135) octant = ESE;
+    if (amin >= 135 && amin <= 180 && amax >= 135 && amax <= 180) octant = SSE;
+    if (amin >= 180 && amin <= 225 && amax >= 180 && amax <= 225) octant = SSW;
+    if (amin >= 225 && amin <= 270 && amax >= 225 && amax <= 270) octant = WSW;
+    if (amin >= 270 && amin <= 315 && amax >= 270 && amax <= 315) octant = WNW;
+    if (amin >= 315 && amin <= 360 && amax >= 315 && amax <= 360) octant = NNW;
+    if (amin >=   0 && amin <=  45 && amax >=   0 && amax <=  45) octant = NNE;
+    if (amin >=  45 && amin <=  90 && amax >=  45 && amax <=  90) octant = ENE;
 
     if (!octant) {
         return;
+    }
+
+    amin = amin % 45;
+
+    if (amax && (amax = amax % 45) == 0) {
+        amax = 45;
     }
 
     buf = image->buf;
@@ -185,12 +195,14 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         _int_order(&xmin, &xmax);
         _int_order(&ymin, &ymax);
 
-        x  = r;
-        y  = 0;
+        //x  = r;
+        //y  = 0;
+        x  = xmin;
+        y  = ymin;
         re = 1 - x;
 
         while (x >= y) {
-            if ((x >= xmin && x <= xmax) || (y >= ymin && y <= ymax)) {
+            //if ((x >= xmin && x <= xmax) && (y >= ymin && y <= ymax)) {
                 switch (octant) {
                     case ESE: _buf_write_pixel(buf, level,  x+xc,  y+yc, w); break;
                     case SSE: _buf_write_pixel(buf, level,  y+xc,  x+yc, w); break;
@@ -205,7 +217,7 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
                         break;
                     }
                 }
-            }
+            //}
 
             y++;
 
