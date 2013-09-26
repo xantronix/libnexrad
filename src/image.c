@@ -131,12 +131,16 @@ static inline void _buf_write_pixel(unsigned char *buf, uint8_t c, int x, int y,
     buf[(y*w) + x] = c;
 }
 
+static inline void _int_swap(int *a, int *b) {
+    int c = *a;
+
+    *a = *b;
+    *b =  c;
+}
+
 static inline void _int_order(int *a, int *b) {
     if (*a > *b) {
-        int c = *a;
-
-        *a = *b;
-        *b =  c;
+        _int_swap(a, b);
     }
 }
 
@@ -186,6 +190,22 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
     xc = image->x_center;
     yc = image->y_center;
 
+    switch (octant) {
+        case ENE:
+        case SSE:
+        case WSW:
+        case NNW: {
+            int adelta = 45 - amax;
+
+            amin += adelta;
+            amax += adelta;
+
+            break;
+        }
+
+        default: break;
+    }
+
     for (r=rmin; r<rmax; r++) {
         xmin = (int)round(r * cos(rad * amin));
         ymin = (int)round(r * sin(rad * amin));
@@ -195,14 +215,12 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         _int_order(&xmin, &xmax);
         _int_order(&ymin, &ymax);
 
-        //x  = r;
-        //y  = 0;
-        x  = xmin;
-        y  = ymin;
+        x  = r;
+        y  = 0;
         re = 1 - x;
 
         while (x >= y) {
-            //if ((x >= xmin && x <= xmax) && (y >= ymin && y <= ymax)) {
+            if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {
                 switch (octant) {
                     case ESE: _buf_write_pixel(buf, level,  x+xc,  y+yc, w); break;
                     case SSE: _buf_write_pixel(buf, level,  y+xc,  x+yc, w); break;
@@ -210,14 +228,14 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
                     case WSW: _buf_write_pixel(buf, level, -x+xc,  y+yc, w); break;
                     case WNW: _buf_write_pixel(buf, level, -x+xc, -y+yc, w); break;
                     case NNW: _buf_write_pixel(buf, level, -y+xc, -x+yc, w); break;
-                    case NNE: _buf_write_pixel(buf, level,  x+xc, -y+yc, w); break;
-                    case ENE: _buf_write_pixel(buf, level,  y+xc, -x+yc, w); break;
+                    case NNE: _buf_write_pixel(buf, level,  y+xc, -x+yc, w); break;
+                    case ENE: _buf_write_pixel(buf, level,  x+xc, -y+yc, w); break;
 
                     default: {
                         break;
                     }
                 }
-            //}
+            }
 
             y++;
 

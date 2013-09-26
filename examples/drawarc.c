@@ -24,9 +24,14 @@ int main(int argc, char **argv) {
         goto error_image_create;
     }
 
-    int i;
-
-    nexrad_image_draw_arc_segment(image, 0xff, 330, 360, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0x1a,   0,  35, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0x30,  45,  80, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0x50,  90, 125, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0x70, 135, 170, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0x90, 180, 215, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0xb0, 225, 260, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0xc0, 270, 305, 164, 180);
+    nexrad_image_draw_arc_segment(image, 0xf0, 315, 350, 164, 180);
 
     if (nexrad_image_save_png(image, path) < 0) {
         goto error_image_save_png;
