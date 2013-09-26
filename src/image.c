@@ -204,10 +204,10 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
     }
 
     for (r=rmin; r<rmax; r++) {
-        xmin = (int)floor(r * cos(rad * amin));
-        ymin = (int)floor(r * sin(rad * amin));
-        xmax = (int)ceil(r * cos(rad * amax));
-        ymax = (int)ceil(r * sin(rad * amax));
+        xmin = (int)round(r * cos(rad * amin));
+        ymin = (int)round(r * sin(rad * amin));
+        xmax = (int)round(r * cos(rad * amax));
+        ymax = (int)round(r * sin(rad * amax));
 
         _int_order(&xmin, &xmax);
         _int_order(&ymin, &ymax);
