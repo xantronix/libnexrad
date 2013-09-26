@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <endian.h>
@@ -175,45 +176,31 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
 static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t width) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
-    unsigned char *buf;
 
-    size_t offset = 0, runs;
-
-    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
-        goto error_image_get_buf;
-    }
+    size_t runs;
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
         int r;
         size_t linelen = 0;
 
         for (r=0; r<runs; r++) {
-            memset(buf + offset, data[r].level * NEXRAD_RADIAL_RLE_FACTOR, data[r].length);
+            int angle_start = be16toh(ray->angle_start) / 10;
+            int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
 
-            offset  += data[r].length;
+            nexrad_image_draw_arc_segment(image,
+                data[r].level * NEXRAD_RADIAL_RLE_FACTOR,
+                angle_start, angle_end,
+                linelen,
+                linelen + data[r].length
+            );
+
             linelen += data[r].length;
 
             if (linelen >= width) break;
         }
-
-        /*
-         * If the current run failed to extend to the line width, then pad the
-         * rest of the line with black pixels.
-         */
-
-        if (linelen < width) {
-            size_t padding = width - linelen;
-
-            memset(buf + offset, '\0', padding);
-
-            offset += padding;
-        }
     }
 
     return 0;
-
-error_image_get_buf:
-    return -1;
 }
 
 static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
@@ -240,7 +227,7 @@ error_image_get_buf:
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_image_depth depth, enum nexrad_image_color color) {
     nexrad_image *image;
-    size_t width, height;
+    size_t width, height, radius;
 
     if (radial == NULL) {
         return NULL;
@@ -251,8 +238,9 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_imag
         return NULL;
     }
 
-    width  = be16toh(radial->packet->rangebin_count);
-    height = be16toh(radial->packet->rays);
+    radius = be16toh(radial->packet->rangebin_count);
+    width  = 2 * radius;
+    height = 2 * radius;
 
     if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
         goto error_image_create;

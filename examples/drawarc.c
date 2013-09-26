@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
         goto error_image_create;
     }
 
-    nexrad_image_draw_arc_segment(image, 0x7f, 0, 45, 16, 32);
+    nexrad_image_draw_arc_segment(image, 0x7f, 15, 45, 16, 32);
 
     //nexrad_image_draw_line(image, 0x7f, 180, 180, 7, 13);
 

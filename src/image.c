@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "pnglite.h"
@@ -132,96 +131,42 @@ static inline void _buf_write_pixel(unsigned char *buf, uint8_t c, int x, int y,
     buf[(y*w) + x] = c;
 }
 
-void nexrad_image_draw_line(nexrad_image *image, uint8_t level, int x1, int y1, int x2, int y2) {
-    int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i, w;
-    unsigned char *buf;
+static inline void _int_order(int *a, int *b) {
+    if (*a > *b) {
+        int c = *a;
 
-    if (image == NULL) {
-        return;
-    }
-
-    buf = image->buf;
-
-    dx  = x2 - x1;
-    dy  = y2 - y1;
-    dx1 = fabs(dx);
-    dy1 = fabs(dy);
-    px  = 2 * dy1 - dx1;
-    py  = 2 * dx1 - dy1;
-    w   = image->width;
-
-    if (dy1 <= dx1) {
-        if (dx >= 0) {
-            x  = x1;
-            y  = y1;
-            xe = x2;
-        } else {
-            x  = x2;
-            y  = y2;
-            xe = x1;
-        }
-
-        _buf_write_pixel(buf, level, x, y, w);
-
-        for (i=0; x<xe; i++) {
-            x++;
-
-            if (px < 0) {
-                px = px + 2 * dy1;
-            } else {
-                if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
-                    y++;
-                } else {
-                    y--;
-                }
-
-                px += 2 * (dy1 - dx1);
-            }
-
-            _buf_write_pixel(buf, level, x, y, w);
-        }
-    } else {
-        if (dy >= 0) {
-            x  = x1;
-            y  = y1;
-            ye = y2;
-        } else {
-            x  = x2;
-            y  = y2;
-            ye = y1;
-        }
-
-        _buf_write_pixel(buf, level, x, y, w);
-
-        for (i=0; y<ye; i++) {
-            y++;
-
-            if (py <= 0) {
-                py += 2 * dx1;
-            } else {
-                if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
-                    x++;
-                } else {
-                    x--;
-                }
-
-                py += 2 * (dx1 - dy1);
-            }
-
-            _buf_write_pixel(buf, level, x, y, w);
-        }
+        *a = *b;
+        *b =  c;
     }
 }
 
 void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin, int amax, int rmin, int rmax) {
     int x, xc, y, yc, r, re, w;
+    int xmin, xmax, ymin, ymax;
     unsigned char *buf;
+    double rad = M_PI / 180;
 
-    if (
-        image == NULL ||
-        amin   > amax ||
-        rmin   > rmax
-    ) {
+    enum {
+        NONE, ESE, SSE, SSW, WSW, WNW, NNW, NNE, ENE
+    } octant = NONE;
+
+    if (image == NULL || amin > amax || rmin > rmax) {
+        return;
+    }
+
+    _int_order(&amin, &amax);
+    _int_order(&rmin, &rmax);
+
+    if ((amin >=  90 && amin <= 135) || (amax >=  90 && amax < 135)) octant = ESE;
+    if ((amin >= 135 && amin <= 180) || (amax >= 135 && amax < 180)) octant = SSE;
+    if ((amin >= 180 && amin <= 225) || (amax >= 180 && amax < 225)) octant = SSW;
+    if ((amin >= 225 && amin <= 270) || (amax >= 225 && amax < 270)) octant = WSW;
+    if ((amin >= 270 && amin <= 315) || (amax >= 270 && amax < 315)) octant = WNW;
+    if ((amin >= 315 && amin <= 360) || (amax >= 315 && amax < 360)) octant = NNW;
+    if ((amin >=   0 && amin <=  45) || (amax >=   0 && amax <  45)) octant = NNE;
+    if ((amin >=  45 && amin <=  90) || (amax >=  45 && amax <  90)) octant = ENE;
+
+    if (!octant) {
         return;
     }
 
@@ -231,27 +176,45 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
     xc = image->x_center;
     yc = image->y_center;
 
-    x  = rmin;
-    y  = 0;
-    re = 1 - x;
+    for (r=rmin; r<rmax; r++) {
+        xmin = (int)round(r * cos(rad * amin));
+        ymin = (int)round(r * sin(rad * amin));
+        xmax = (int)round(r * cos(rad * amax));
+        ymax = (int)round(r * sin(rad * amax));
 
-    while (x >= y) {
-        _buf_write_pixel(buf, level,  x+xc,  y+yc, w); /* ESE */
-        _buf_write_pixel(buf, level,  y+xc,  x+yc, w); /* SSE */
-        _buf_write_pixel(buf, level, -y+xc,  x+yc, w); /* SSW */
-        _buf_write_pixel(buf, level, -x+xc,  y+yc, w); /* WSW */
-        _buf_write_pixel(buf, level, -x+xc, -y+yc, w); /* WNW */
-        _buf_write_pixel(buf, level, -y+xc, -x+yc, w); /* NNW */
-        _buf_write_pixel(buf, level,  x+xc, -y+yc, w); /* NNE */
-        _buf_write_pixel(buf, level,  y+xc, -x+yc, w); /* ENE */
+        _int_order(&xmin, &xmax);
+        _int_order(&ymin, &ymax);
 
-        y++;
+        x  = r;
+        y  = 0;
+        re = 1 - x;
 
-        if (re < 0) {
-            re += 2 * y + 1;
-        } else {
-            x--;
-            re += 2 * (y - x + 1);
+        while (x >= y) {
+            if ((x >= xmin && x <= xmax) || (y >= ymin && y <= ymax)) {
+                switch (octant) {
+                    case ESE: _buf_write_pixel(buf, level,  x+xc,  y+yc, w); break;
+                    case SSE: _buf_write_pixel(buf, level,  y+xc,  x+yc, w); break;
+                    case SSW: _buf_write_pixel(buf, level, -y+xc,  x+yc, w); break;
+                    case WSW: _buf_write_pixel(buf, level, -x+xc,  y+yc, w); break;
+                    case WNW: _buf_write_pixel(buf, level, -x+xc, -y+yc, w); break;
+                    case NNW: _buf_write_pixel(buf, level, -y+xc, -x+yc, w); break;
+                    case NNE: _buf_write_pixel(buf, level,  x+xc, -y+yc, w); break;
+                    case ENE: _buf_write_pixel(buf, level,  y+xc, -x+yc, w); break;
+
+                    default: {
+                        break;
+                    }
+                }
+            }
+
+            y++;
+
+            if (re < 0) {
+                re += 2 * y + 1;
+            } else {
+                x--;
+                re += 2 * (y - x + 1);
+            }
         }
     }
 }
