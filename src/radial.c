@@ -183,10 +183,10 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t 
         int r;
         size_t linelen = 0;
 
-        for (r=0; r<runs; r++) {
-            int angle_start = be16toh(ray->angle_start) / 10;
-            int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
+        int angle_start = be16toh(ray->angle_start) / 10;
+        int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
 
+        for (r=0; r<runs; r++) {
             nexrad_image_draw_arc_segment(image,
                 data[r].level * NEXRAD_RADIAL_RLE_FACTOR,
                 angle_start, angle_end,

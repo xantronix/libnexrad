@@ -158,12 +158,11 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         return;
     }
 
-    char *octants[] = {
-        "None", "ESE", "SSE", "SSW", "WSW", "WNW", "NNW", "NNE", "ENE"
-    };
-
     _int_order(&amin, &amax);
     _int_order(&rmin, &rmax);
+
+    if (amin <   0) amin =   0;
+    if (amax > 360) amax = 360;
 
     if (amin >=  90 && amin <= 135 && amax >=  90 && amax <= 135) octant = ESE;
     if (amin >= 135 && amin <= 180 && amax >= 135 && amax <= 180) octant = SSE;
@@ -199,18 +198,16 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
 
             amin += adelta;
             amax += adelta;
-
-            break;
         }
 
         default: break;
     }
 
     for (r=rmin; r<rmax; r++) {
-        xmin = (int)round(r * cos(rad * amin));
-        ymin = (int)round(r * sin(rad * amin));
-        xmax = (int)round(r * cos(rad * amax));
-        ymax = (int)round(r * sin(rad * amax));
+        xmin = (int)floor(r * cos(rad * amin));
+        ymin = (int)floor(r * sin(rad * amin));
+        xmax = (int)ceil(r * cos(rad * amax));
+        ymax = (int)ceil(r * sin(rad * amax));
 
         _int_order(&xmin, &xmax);
         _int_order(&ymin, &ymax);
