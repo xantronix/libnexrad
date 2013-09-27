@@ -183,30 +183,10 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
     return 0;
 }
 
-static inline void _context_set_4bit_color(cairo_t *cr, uint8_t c) {
-    static struct {
-        double r, g, b;
-    } clut[] = {
-        {          0.0,          0.0,          0.0 },
-        {          0.0, 0xec / 255.0, 0xec / 255.0 },
-        { 0x01 / 255.0, 0xa0 / 255.0, 0xf6 / 255.0 },
-        {          0.0,          0.0, 0xf6 / 255.0 },
-        {          0.0,          1.0,          0.0 },
-        {          0.0, 0xc8 / 255.0,          0.0 },
-        {          0.0, 0x90 / 255.0,          0.0 },
-        {          1.0,          1.0,          0.0 },
-        { 0xe7 / 255.0, 0xc0 / 255.0,          0.0 },
-        { 0xff / 255.0, 0xe4 / 255.0, 0xdc / 255.0 },
-        { 0xff / 255.0, 0x90 / 255.0,          0.0 },
-        {          1.0,          0.0,          0.0 },
-        { 0xd6 / 255.0,          0.0,          0.0 },
-        { 0xc0 / 255.0,          0.0,          0.0 },
-        {          1.0,          0.0,          1.0 },
-        { 0x99 / 255.0, 0x55 / 255.0, 0xc9 / 255.0 },
-        {          1.0,          1.0,          1.0 }
-    };
+static inline void _context_set_4bit_color(cairo_t *cr, uint8_t level) {
+    double c = (double)(level * NEXRAD_RADIAL_RLE_FACTOR) / 255.0;
 
-    cairo_set_source_rgb(cr, clut[c].r, clut[c].g, clut[c].b);
+    cairo_set_source_rgb(cr, c, c, c);
 }
 
 static inline void _context_set_8bit_color(cairo_t *cr, uint8_t level) {
