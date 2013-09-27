@@ -136,7 +136,7 @@ error_malloc:
     return NULL;
 }
 
-nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size) {
+nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, uint8_t *size) {
     if (table == NULL) {
         return NULL;
     }
