@@ -158,12 +158,19 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         return;
     }
 
+    /*
+     * Ensure the angle and radius minimum and maximum arguments are well
+     * ordered and fall within a single rotation of a circle.
+     */
     _int_order(&amin, &amax);
     _int_order(&rmin, &rmax);
 
     if (amin <   0) amin =   0;
     if (amax > 360) amax = 360;
 
+    /*
+     * Then, determine which octant the arc range pertains to.
+     */
     if (amin >=  90 && amin <= 135 && amax >=  90 && amax <= 135) octant = ESE;
     if (amin >= 135 && amin <= 180 && amax >= 135 && amax <= 180) octant = SSE;
     if (amin >= 180 && amin <= 225 && amax >= 180 && amax <= 225) octant = SSW;
@@ -173,22 +180,40 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
     if (amin >=   0 && amin <=  45 && amax >=   0 && amax <=  45) octant = NNE;
     if (amin >=  45 && amin <=  90 && amax >=  45 && amax <=  90) octant = ENE;
 
+    /*
+     * Draw nothing if the angle minimum and maximum do not span a single
+     * octant.
+     */
     if (!octant) {
         return;
     }
 
+    /*
+     * Scale down the angle minimum and maximum to a 45 degree range within the
+     * current octant.
+     */
     amin = amin % 45;
 
     if (amax && (amax = amax % 45) == 0) {
         amax = 45;
     }
 
+    /*
+     * Set up a bit more state for the eventual pixel writing operations.
+     */
     buf = image->buf;
     w   = image->width;
 
     xc = image->x_center;
     yc = image->y_center;
 
+    /*
+     * Using a modified Bresenham's midpoint circle algorithm, every second
+     * octant (starting from NNE, clockwise) is drawn backwards.  Therefore,
+     * in order to ensure angle minimum and maximum are visualized properly, we
+     * need to swap the order of the padding of the angle boundaries within the
+     * 45 degree octant.
+     */
     switch (octant) {
         case ENE:
         case SSE:
@@ -203,7 +228,13 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         default: break;
     }
 
+    /*
+     * For each radius in pixels from center point...
+     */
     for (r=rmin; r<rmax; r++) {
+        /*
+         * Determine the boundings of the current octant's arc segment.
+         */
         xmin = (int)round(r * cos(rad * amin));
         ymin = (int)round(r * sin(rad * amin));
         xmax = (int)round(r * cos(rad * amax));
@@ -216,8 +247,19 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         y  = 0;
         re = 1 - x;
 
-        while (x >= y) {
-            if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {
+        /*
+         * Loop only while X is above or equal to the minimum, and Y is below or
+         * equal to the maximum.
+         */
+        while (x >= xmin && y <= ymax) {
+            /*
+             * However, when determining whether to draw the current point, as
+             * X's minimum and Y's maximum may be reached prior to this condition,
+             * make a separate check for the sake of expediency to determine if
+             * the current points fall within X's maximum and Y's minimum, and
+             * plot a point under the correct octant as needed.
+             */
+            if (x <= xmax && y >= ymin) {
                 switch (octant) {
                     case ESE: _buf_write_pixel(buf, level,  x+xc,  y+yc, w); break;
                     case SSE: _buf_write_pixel(buf, level,  y+xc,  x+yc, w); break;
