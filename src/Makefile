@@ -8,14 +8,14 @@ LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 LDFLAGS		= -lbz2 -lz -lm
 
 HEADERS		= message.h chunk.h product.h symbology.h graphic.h tabular.h \
-		  packet.h radial.h raster.h image.h date.h error.h block.h \
-		  header.h vector.h
+		  packet.h radial.h raster.h image.h color.h date.h error.h \
+		  block.h header.h vector.h
 
 HEADERS_PRIVATE	= util.h pnglite.h
 
 OBJS		= message.o chunk.o product.o symbology.o graphic.o tabular.o \
-		  packet.o radial.o raster.o image.o date.o error.o util.o \
-		  pnglite.o
+		  packet.o radial.o raster.o image.o color.o date.o error.o \
+		  util.o pnglite.o
 
 VERSION_MAJOR	= 0
 VERSION_MINOR	= 0.0
