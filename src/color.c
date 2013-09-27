@@ -8,10 +8,52 @@
 
 #include <nexrad/color.h>
 
+static inline size_t _table_size(uint8_t size) {
+    return size * NEXRAD_COLOR_TABLE_ENTRY_SIZE;
+}
+
+static inline size_t _table_size_total(uint8_t size) {
+    return sizeof(nexrad_color_table) + _table_size(size);
+}
+
+nexrad_color_table *nexrad_color_table_create(uint8_t size) {
+    nexrad_color_table *table;
+    size_t total_size = _table_size_total(size);
+
+    if ((table = malloc(total_size)) == NULL) {
+        goto error_malloc;
+    }
+
+    memcpy(table->magic, "CLUT", 4);
+
+    table->size = size;
+
+    memset((uint8_t *)table + sizeof(nexrad_color_table), '\0', _table_size(size));
+
+    return table;
+
+error_malloc:
+    return NULL;
+}
+
+void nexrad_color_table_store(nexrad_color_table *table, uint8_t index, uint8_t r, uint8_t g, uint8_t b) {
+    uint8_t *entries;
+    size_t offset = index * NEXRAD_COLOR_TABLE_ENTRY_SIZE;
+
+    if (table == NULL) {
+        return;
+    }
+
+    entries = (uint8_t *)table + sizeof(nexrad_color_table);
+    entries[offset]   = r;
+    entries[offset+1] = g;
+    entries[offset+2] = b;
+}
+
 nexrad_color_table *nexrad_color_table_open(const char *path) {
     nexrad_color_table *table;
     struct stat st;
-    size_t size;
+    size_t total_size;
     int fd;
 
     if (path == NULL) {
@@ -51,9 +93,9 @@ nexrad_color_table *nexrad_color_table_open(const char *path) {
      * Calculate the expected total size of the file based on the header.  If the
      * actual file size differs, then fail.
      */
-    size = sizeof(*table) + table->entries * table->entry_size;
+    total_size = _table_size_total(table->size);
 
-    if (size != st.st_size) {
+    if (total_size != st.st_size) {
         goto error_invalid_size;
     }
 
@@ -61,7 +103,7 @@ nexrad_color_table *nexrad_color_table_open(const char *path) {
      * On the other hand, if everything appears to be fine, then reallocate our
      * lookup table buffer and read the rest of the file.
      */
-    if ((table = realloc(table, size)) == NULL) {
+    if ((table = realloc(table, total_size)) == NULL) {
         goto error_realloc;
     }
 
@@ -69,7 +111,7 @@ nexrad_color_table *nexrad_color_table_open(const char *path) {
         goto error_lseek;
     }
 
-    if (read(fd, table, size) < 0) {
+    if (read(fd, table, total_size) < 0) {
         goto error_read_full;
     }
 
@@ -95,15 +137,15 @@ error_malloc:
 }
 
 void nexrad_color_table_close(nexrad_color_table *table) {
-    size_t size;
+    size_t total_size;
 
     if (table == NULL) {
         return;
     }
 
-    size = sizeof(*table) + table->entries * table->entry_size;
+    total_size = _table_size_total(table->size);
 
-    memset(table, '\0', size);
+    memset(table, '\0', total_size);
 
     free(table);
 }
