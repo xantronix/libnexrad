@@ -173,7 +173,7 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
     return 0;
 }
 
-static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t width) {
+static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t width, nexrad_color_table_entry *entries) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
 
@@ -187,8 +187,10 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t 
         int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
 
         for (r=0; r<runs; r++) {
+            uint8_t level = data[r].level * NEXRAD_RADIAL_RLE_FACTOR;
+
             nexrad_image_draw_arc_segment(image,
-                data[r].level * NEXRAD_RADIAL_RLE_FACTOR,
+                entries[level].r, entries[level].g, entries[level].b,
                 angle_start, angle_end,
                 linelen,
                 linelen + data[r].length
@@ -203,7 +205,7 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t 
     return 0;
 }
 
-static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
+static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nexrad_color_table_entry *entries) {
     nexrad_radial_ray *ray;
     unsigned char *data;
 
@@ -216,8 +218,10 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
         int b;
 
         for (b=0; b<bins; b++) {
+            uint8_t level = ((uint8_t *)data)[b];
+
             nexrad_image_draw_arc_segment(image,
-                ((char *)data)[b],
+                entries[level].r, entries[level].g, entries[level].b,
                 angle_start, angle_end,
                 b, b+1
             );
@@ -227,12 +231,17 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
     return 0;
 }
 
-nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
+nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_table *table) {
     nexrad_image *image;
+    nexrad_color_table_entry *entries;
     size_t width, height, radius;
 
-    if (radial == NULL) {
+    if (radial == NULL || table == NULL) {
         return NULL;
+    }
+
+    if ((entries = nexrad_color_table_get_entries(table, NULL)) == NULL) {
+        goto error_color_table_get_entries;
     }
 
     radius = be16toh(radial->packet->rangebin_count);
@@ -244,9 +253,9 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
     }
 
     if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        if (_image_unpack_digital(image, radial)    < 0) goto error_image_unpack;
+        if (_image_unpack_digital(image, radial, entries)    < 0) goto error_image_unpack;
     } else if (radial->type == NEXRAD_RADIAL_RLE) {
-        if (_image_unpack_rle(image, radial, width) < 0) goto error_image_unpack;
+        if (_image_unpack_rle(image, radial, width, entries) < 0) goto error_image_unpack;
     }
 
     return image;
@@ -255,5 +264,6 @@ error_image_unpack:
     nexrad_image_destroy(image);
 
 error_image_create:
+error_color_table_get_entries:
     return NULL;
 }

@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
     path = argv[1];
 
-    if ((image = nexrad_image_create(920, 920, NEXRAD_IMAGE_8BPP, NEXRAD_IMAGE_GRAYSCALE)) == NULL) {
+    if ((image = nexrad_image_create(920, 920)) == NULL) {
         goto error_image_create;
     }
 
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
         for (r=0; r<180; r+=16) {
             if (color >= 0xf0) color = 0x10;
 
-            nexrad_image_draw_arc_segment(image, color, a, a + 35, r - 16, r);
+            nexrad_image_draw_arc_segment(image, color, color, color, a, a + 35, r - 16, r);
 
             color += 0x10;
         }

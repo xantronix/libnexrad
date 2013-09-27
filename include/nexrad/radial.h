@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <nexrad/color.h>
 #include <nexrad/image.h>
 
 #define NEXRAD_RADIAL_RLE_FACTOR 16
@@ -60,6 +61,8 @@ int nexrad_radial_get_info(nexrad_radial *radial,
     size_t *raysp
 );
 
-nexrad_image *nexrad_radial_create_image(nexrad_radial *radial);
+nexrad_image *nexrad_radial_create_image(nexrad_radial *radial,
+    nexrad_color_table *table
+);
 
 #endif /* _NEXRAD_RADIAL_H */

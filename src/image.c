@@ -5,7 +5,7 @@
 #include <nexrad/image.h>
 
 #define NEXRAD_IMAGE_DEPTH       24
-#define NEXRAD_IMAGE_DEPTH_BYTES  8
+#define NEXRAD_IMAGE_DEPTH_BYTES  3
 #define NEXRAD_IMAGE_COLOR        PNG_TRUECOLOR
 
 struct _nexrad_image {
@@ -84,12 +84,7 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_write_pixel(unsigned char *buf,
-    unsigned char r,
-    unsigned char g,
-    unsigned char b,
-    int x, int y, int w
-) {
+static inline void _buf_write_pixel(unsigned char *buf, uint8_t r, uint8_t g, uint8_t b, int x, int y, int w) {
     size_t offset = (y * w * NEXRAD_IMAGE_DEPTH_BYTES) + x * NEXRAD_IMAGE_DEPTH_BYTES;
 
     buf[offset]   = r;
@@ -110,8 +105,8 @@ static inline void _int_order(int *a, int *b) {
     }
 }
 
-void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin, int amax, int rmin, int rmax) {
-    int x, xc, y, yc, r, re, w;
+void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, int amin, int amax, int rmin, int rmax) {
+    int x, xc, y, yc, radius, re, w;
     int xmin, xmax, ymin, ymax;
     unsigned char *buf;
     double rad = M_PI / 180;
@@ -197,19 +192,19 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
     /*
      * For each radius in pixels from center point...
      */
-    for (r=rmin; r<rmax; r++) {
+    for (radius=rmin; radius<rmax; radius++) {
         /*
          * Determine the boundings of the current octant's arc segment.
          */
-        xmin = (int)round(r * cos(rad * amin));
-        ymin = (int)round(r * sin(rad * amin));
-        xmax = (int)round(r * cos(rad * amax));
-        ymax = (int)round(r * sin(rad * amax));
+        xmin = (int)round(radius * cos(rad * amin));
+        ymin = (int)round(radius * sin(rad * amin));
+        xmax = (int)round(radius * cos(rad * amax));
+        ymax = (int)round(radius * sin(rad * amax));
 
         _int_order(&xmin, &xmax);
         _int_order(&ymin, &ymax);
 
-        x  = r;
+        x  = radius;
         y  = 0;
         re = 1 - x;
 
@@ -227,14 +222,14 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
              */
             if (x <= xmax && y >= ymin) {
                 switch (octant) {
-                    case ESE: _buf_write_pixel(buf, level, level, level,  x+xc,  y+yc, w); break;
-                    case SSE: _buf_write_pixel(buf, level, level, level,  y+xc,  x+yc, w); break;
-                    case SSW: _buf_write_pixel(buf, level, level, level, -y+xc,  x+yc, w); break;
-                    case WSW: _buf_write_pixel(buf, level, level, level, -x+xc,  y+yc, w); break;
-                    case WNW: _buf_write_pixel(buf, level, level, level, -x+xc, -y+yc, w); break;
-                    case NNW: _buf_write_pixel(buf, level, level, level, -y+xc, -x+yc, w); break;
-                    case NNE: _buf_write_pixel(buf, level, level, level, y+xc, -x+yc, w); break;
-                    case ENE: _buf_write_pixel(buf, level, level, level, x+xc, -y+yc, w); break;
+                    case ESE: _buf_write_pixel(buf, r, g, b,  x+xc,  y+yc, w); break;
+                    case SSE: _buf_write_pixel(buf, r, g, b,  y+xc,  x+yc, w); break;
+                    case SSW: _buf_write_pixel(buf, r, g, b, -y+xc,  x+yc, w); break;
+                    case WSW: _buf_write_pixel(buf, r, g, b, -x+xc,  y+yc, w); break;
+                    case WNW: _buf_write_pixel(buf, r, g, b, -x+xc, -y+yc, w); break;
+                    case NNW: _buf_write_pixel(buf, r, g, b, -y+xc, -x+yc, w); break;
+                    case NNE: _buf_write_pixel(buf, r, g, b, y+xc, -x+yc, w); break;
+                    case ENE: _buf_write_pixel(buf, r, g, b, x+xc, -y+yc, w); break;
 
                     default: {
                         break;
