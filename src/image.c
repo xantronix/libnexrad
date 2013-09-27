@@ -4,9 +4,9 @@
 
 #include <nexrad/image.h>
 
-#define NEXRAD_IMAGE_DEPTH       24
-#define NEXRAD_IMAGE_DEPTH_BYTES  4
-#define NEXRAD_IMAGE_COLOR        PNG_TRUECOLOR
+#define NEXRAD_IMAGE_PIXEL_BYTES  4
+#define NEXRAD_IMAGE_COLOR_DEPTH  8
+#define NEXRAD_IMAGE_COLOR_FORMAT PNG_TRUECOLOR_ALPHA
 
 struct _nexrad_image {
     unsigned char * buf;
@@ -19,7 +19,7 @@ struct _nexrad_image {
 };
 
 static size_t _image_size(size_t width, size_t height) {
-    return NEXRAD_IMAGE_DEPTH_BYTES * width * height;
+    return NEXRAD_IMAGE_PIXEL_BYTES * width * height;
 }
 
 nexrad_image *nexrad_image_create(size_t width, size_t height) {
@@ -85,12 +85,12 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
 }
 
 static inline void _buf_write_pixel(unsigned char *buf, uint8_t r, uint8_t g, uint8_t b, int x, int y, int w) {
-    size_t offset = (y * w * NEXRAD_IMAGE_DEPTH_BYTES) + x * NEXRAD_IMAGE_DEPTH_BYTES;
+    size_t offset = (y * w * NEXRAD_IMAGE_PIXEL_BYTES) + x * NEXRAD_IMAGE_PIXEL_BYTES;
 
     buf[offset]   = r;
     buf[offset+1] = g;
     buf[offset+2] = b;
-    buf[offset+3] = 0x00;
+    buf[offset+3] = 0xff;
 }
 
 static inline void _int_swap(int *a, int *b) {
@@ -266,7 +266,7 @@ int nexrad_image_save_png(nexrad_image *image, const char *path) {
     }
 
     if (png_set_data(&png,
-        image->width, image->height, NEXRAD_IMAGE_DEPTH, NEXRAD_IMAGE_COLOR, image->buf
+        image->width, image->height, NEXRAD_IMAGE_COLOR_DEPTH, NEXRAD_IMAGE_COLOR_FORMAT, image->buf
     ) < 0) {
         goto error_set_data;
     }
