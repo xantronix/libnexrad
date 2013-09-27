@@ -50,7 +50,7 @@ void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, ui
     entries[index].b = b;
 }
 
-nexrad_color_table *nexrad_color_table_open(const char *path) {
+nexrad_color_table *nexrad_color_table_load(const char *path) {
     nexrad_color_table *table;
     struct stat st;
     size_t table_size;
@@ -176,7 +176,7 @@ error_open:
     return -1;
 }
 
-void nexrad_color_table_close(nexrad_color_table *table) {
+void nexrad_color_table_destroy(nexrad_color_table *table) {
     size_t table_size;
 
     if (table == NULL) {

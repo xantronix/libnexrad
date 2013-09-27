@@ -22,12 +22,12 @@ void nexrad_color_table_store_entry(nexrad_color_table *table,
     uint8_t index, uint8_t r, uint8_t g, uint8_t b
 );
 
-nexrad_color_table *nexrad_color_table_open(const char *path);
+nexrad_color_table *nexrad_color_table_load(const char *path);
 
 nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size);
 
 int nexrad_color_table_save(nexrad_color_table *table, const char *path);
 
-void nexrad_color_table_close(nexrad_color_table *table);
+void nexrad_color_table_destroy(nexrad_color_table *table);
 
 #endif /* _NEXRAD_COLOR_H */
