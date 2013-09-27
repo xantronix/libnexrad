@@ -205,24 +205,26 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t 
 
 static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
     nexrad_radial_ray *ray;
-    unsigned char *buf, *data;
+    unsigned char *data;
 
-    size_t offset = 0, bins;
-
-    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
-        goto error_image_get_buf;
-    }
+    size_t bins;
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
-        memcpy(buf + offset, data, bins);
+        int angle_start = be16toh(ray->angle_start) / 10;
+        int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
 
-        offset += bins;
+        int b;
+
+        for (b=0; b<bins; b++) {
+            nexrad_image_draw_arc_segment(image,
+                ((char *)data)[b],
+                angle_start, angle_end,
+                b, b+1
+            );
+        }
     }
 
     return 0;
-
-error_image_get_buf:
-    return -1;
 }
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_image_depth depth, enum nexrad_image_color color) {
