@@ -18,9 +18,9 @@ static inline size_t _table_size_total(uint8_t size) {
 
 nexrad_color_table *nexrad_color_table_create(uint8_t size) {
     nexrad_color_table *table;
-    size_t total_size = _table_size_total(size);
+    size_t table_size = _table_size_total(size);
 
-    if ((table = malloc(total_size)) == NULL) {
+    if ((table = malloc(table_size)) == NULL) {
         goto error_malloc;
     }
 
@@ -53,7 +53,7 @@ void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, ui
 nexrad_color_table *nexrad_color_table_open(const char *path) {
     nexrad_color_table *table;
     struct stat st;
-    size_t total_size;
+    size_t table_size;
     int fd;
 
     if (path == NULL) {
@@ -93,9 +93,9 @@ nexrad_color_table *nexrad_color_table_open(const char *path) {
      * Calculate the expected total size of the file based on the header.  If the
      * actual file size differs, then fail.
      */
-    total_size = _table_size_total(table->size);
+    table_size = _table_size_total(table->size);
 
-    if (total_size != st.st_size) {
+    if (table_size != st.st_size) {
         goto error_invalid_size;
     }
 
@@ -103,7 +103,7 @@ nexrad_color_table *nexrad_color_table_open(const char *path) {
      * On the other hand, if everything appears to be fine, then reallocate our
      * lookup table buffer and read the rest of the file.
      */
-    if ((table = realloc(table, total_size)) == NULL) {
+    if ((table = realloc(table, table_size)) == NULL) {
         goto error_realloc;
     }
 
@@ -111,7 +111,7 @@ nexrad_color_table *nexrad_color_table_open(const char *path) {
         goto error_lseek;
     }
 
-    if (read(fd, table, total_size) < 0) {
+    if (read(fd, table, table_size) < 0) {
         goto error_read_full;
     }
 
@@ -136,16 +136,56 @@ error_malloc:
     return NULL;
 }
 
+nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size) {
+    if (table == NULL) {
+        return NULL;
+    }
+
+    if (size)
+        *size = table->size;
+
+    return (nexrad_color_table_entry *)((char *)table + sizeof(nexrad_color_table));
+}
+
+int nexrad_color_table_save(nexrad_color_table *table, const char *path) {
+    int fd;
+    size_t table_size;
+
+    if (table == NULL || path == NULL) {
+        return -1;
+    }
+
+    table_size = _table_size_total(table->size);
+
+    if ((fd = open(path, O_WRONLY | O_TRUNC)) < 0) {
+        goto error_open;
+    }
+
+    if (write(fd, table, table_size) < 0) {
+        goto error_write;
+    }
+
+    close(fd);
+
+    return 0;
+
+error_write:
+    close(fd);
+
+error_open:
+    return -1;
+}
+
 void nexrad_color_table_close(nexrad_color_table *table) {
-    size_t total_size;
+    size_t table_size;
 
     if (table == NULL) {
         return;
     }
 
-    total_size = _table_size_total(table->size);
+    table_size = _table_size_total(table->size);
 
-    memset(table, '\0', total_size);
+    memset(table, '\0', table_size);
 
     free(table);
 }

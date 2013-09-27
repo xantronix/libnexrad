@@ -25,10 +25,9 @@ void nexrad_color_table_store_entry(nexrad_color_table *table,
 
 nexrad_color_table *nexrad_color_table_open(const char *path);
 
-int nexrad_color_table_save(nexrad_color_table *table,
-    const char *path,
-    nexrad_color_table_entry *entries
-);
+nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size);
+
+int nexrad_color_table_save(nexrad_color_table *table, const char *path);
 
 void nexrad_color_table_close(nexrad_color_table *table);
 
