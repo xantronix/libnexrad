@@ -196,8 +196,8 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
         case NNW: {
             int adelta = 45 - amax;
 
-            amin += adelta;
-            amax += adelta;
+            amax = 45 - amin;
+            amin = adelta;
         }
 
         default: break;
