@@ -221,6 +221,7 @@ static int _radial_unpack_rle(nexrad_radial *radial, nexrad_radial_image *image)
     cairo_t *cr;
 
     size_t runs;
+    size_t width  = image->width;
     size_t center = image->radius;
 
     double rad = M_PI / 180.0;
@@ -237,29 +238,18 @@ static int _radial_unpack_rle(nexrad_radial *radial, nexrad_radial_image *image)
 
         size_t linelen = 0;
 
-        int lastlevel  = -1;
-        int lastlength = -1;
         int r;
 
         for (r=0; r<runs; r++) {
-            int level  = data[r].level;
-            int length = data[r].length;
-
-            if (level != lastlevel)
-                _context_set_4bit_color(cr, level);
-
-            if (length != lastlength) 
-                cairo_set_line_width(cr, (double)length);
+            _context_set_4bit_color(cr, data[r].level);
+            cairo_set_line_width(cr, (double)data[r].length);
 
             cairo_arc(cr, center, center, r, angle_start, angle_end);
             cairo_stroke(cr);
 
-            linelen += length;
+            linelen += data[r].length;
 
-            lastlevel  = level;
-            lastlength = length;
-
-            if (linelen >= center) break;
+            if (linelen >= width) break;
         }
     }
 
