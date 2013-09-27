@@ -18,6 +18,11 @@ int nexrad_image_get_info(nexrad_image *image,
 
 unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size);
 
+void nexrad_image_draw_pixel(nexrad_image *image,
+    uint8_t r, uint8_t g, uint8_t b,
+    int x, int y
+);
+
 void nexrad_image_draw_arc_segment(nexrad_image *image,
     uint8_t r, uint8_t g, uint8_t b,
     int amin, int amax,

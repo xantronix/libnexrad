@@ -105,6 +105,18 @@ static inline void _int_order(int *a, int *b) {
     }
 }
 
+void nexrad_image_draw_pixel(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, int x, int y) {
+    if (image == NULL) {
+        return;
+    }
+
+    if (x < 0 || x > image->width || y < 0 || y > image->height) {
+        return;
+    }
+
+    _buf_write_pixel(image->buf, r, g, b, x, y, image->width);
+}
+
 void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, int amin, int amax, int rmin, int rmax) {
     int x, xc, y, yc, radius, re, w;
     int xmin, xmax, ymin, ymax;

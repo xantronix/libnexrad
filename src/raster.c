@@ -177,42 +177,46 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     return 0;
 }
 
-static int _image_unpack_rle(nexrad_image *image, nexrad_raster *raster, size_t width) {
+static int _image_unpack_rle(nexrad_image *image, nexrad_raster *raster, size_t width, nexrad_color_table_entry *entries) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
     unsigned char *buf;
 
-    size_t offset = 0, runs;
+    size_t r, runs;
+
+    int y = 0;
 
     if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
         goto error_image_get_buf;
     }
 
     while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
-        int r;
         size_t linelen = 0;
+        int x = 0;
 
         for (r=0; r<runs; r++) {
-            memset(buf + offset, data[r].level * NEXRAD_RASTER_RLE_FACTOR, data[r].length);
+            /*
+             * TODO: Write RLE draw routine in image.c
+             */
+            uint8_t level = data[r].level * NEXRAD_RASTER_RLE_FACTOR;
+
+            int i;
+
+            for (i=0; i<data[r].length; i++) {
+                nexrad_image_draw_pixel(image,
+                    entries[level].r,
+                    entries[level].g,
+                    entries[level].b,
+                    x++, y
+                );
+            }
 
             linelen += data[r].length;
-            offset  += data[r].length;
 
             if (linelen >= width) break;
         }
 
-        /*
-         * If the current run failed to extend to the line width, then pad the
-         * rest of the line with black pixels.
-         */
-
-        if (linelen < width) {
-            size_t padding = width - linelen;
-
-            memset(buf + offset, '\0', padding);
-
-            offset += padding;
-        }
+        y++;
     }
 
     return 0;
@@ -221,11 +225,12 @@ error_image_get_buf:
     return -1;
 }
 
-nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color_table *table) {
     nexrad_image *image;
+    nexrad_color_table_entry *entries;
     size_t width, height;
 
-    if (raster == NULL) {
+    if (raster == NULL || table == NULL) {
         return NULL;
     }
 
@@ -233,11 +238,15 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
         goto error_raster_get_info;
     }
 
+    if ((entries = nexrad_color_table_get_entries(table, NULL)) == NULL) {
+        goto error_color_table_get_entries;
+    }
+
     if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
     }
 
-    if (_image_unpack_rle(image, raster, width) < 0) {
+    if (_image_unpack_rle(image, raster, width, entries) < 0) {
         goto error_image_unpack;
     }
 
@@ -247,6 +256,7 @@ error_image_unpack:
     nexrad_image_destroy(image);
 
 error_image_create:
+error_color_table_get_entries:
 error_raster_get_info:
     return NULL;
 }

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <nexrad/color.h>
 #include <nexrad/image.h>
 
 #define NEXRAD_RASTER_RLE_FACTOR 16
@@ -54,6 +55,8 @@ int nexrad_raster_get_info(nexrad_raster *raster,
     size_t *heightp
 );
 
-nexrad_image *nexrad_raster_create_image(nexrad_raster *raster);
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster,
+    nexrad_color_table *table
+);
 
 #endif /* _NEXRAD_RASTER_H */
