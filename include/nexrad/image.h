@@ -26,7 +26,7 @@ enum nexrad_image_color {
 
 typedef struct _nexrad_image nexrad_image;
 
-nexrad_image * nexrad_image_create(
+nexrad_image *nexrad_image_create(
     size_t width,
     size_t height,
     enum nexrad_image_depth depth,
@@ -40,7 +40,7 @@ int nexrad_image_get_info(nexrad_image *image,
     enum nexrad_image_color *color
 );
 
-unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size);
+unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size);
 
 void nexrad_image_draw_arc_segment(nexrad_image *image,
     uint8_t level,

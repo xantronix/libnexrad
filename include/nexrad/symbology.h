@@ -23,12 +23,18 @@ typedef struct _nexrad_symbology_layer {
 
 #pragma pack(pop)
 
-nexrad_chunk *  nexrad_symbology_block_open(nexrad_symbology_block *block);
-nexrad_chunk *  nexrad_symbology_block_read_layer(nexrad_chunk *block);
-void            nexrad_symbology_layer_next_packet(nexrad_chunk *layer, size_t size);
-nexrad_packet * nexrad_symbology_layer_peek_packet(nexrad_chunk *layer, size_t *size);
-nexrad_packet * nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *size);
-void            nexrad_symbology_layer_close(nexrad_chunk *layer);
-void            nexrad_symbology_block_close(nexrad_chunk *block);
+nexrad_chunk *nexrad_symbology_block_open(nexrad_symbology_block *block);
+
+nexrad_chunk *nexrad_symbology_block_read_layer(nexrad_chunk *block);
+
+void nexrad_symbology_layer_next_packet(nexrad_chunk *layer, size_t size);
+
+nexrad_packet *nexrad_symbology_layer_peek_packet(nexrad_chunk *layer, size_t *size);
+
+nexrad_packet *nexrad_symbology_layer_read_packet(nexrad_chunk *layer, size_t *size);
+
+void nexrad_symbology_layer_close(nexrad_chunk *layer);
+
+void nexrad_symbology_block_close(nexrad_chunk *block);
 
 #endif /* _NEXRAD_SYMBOLOGY_H */

@@ -103,7 +103,11 @@ int nexrad_product_type_supports_compression(enum nexrad_product_type type);
 enum nexrad_product_type nexrad_product_get_type(nexrad_product_description *product);
 
 int nexrad_product_read_dvil_attributes(nexrad_product_description *product,
-    int *avset_angle, int *max_dvil, int *edited_radials, int *compression, size_t *size
+    int *avset_angle,
+    int *max_dvil,
+    int *edited_radials,
+    int *compression,
+    size_t *size
 );
 
 #endif /* _NEXRAD_PRODUCT_H */
