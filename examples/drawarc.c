@@ -20,13 +20,24 @@ int main(int argc, char **argv) {
 
     path = argv[1];
 
-    if ((image = nexrad_image_create(360, 360, NEXRAD_IMAGE_8BPP, NEXRAD_IMAGE_GRAYSCALE)) == NULL) {
+    if ((image = nexrad_image_create(920, 920, NEXRAD_IMAGE_8BPP, NEXRAD_IMAGE_GRAYSCALE)) == NULL) {
         goto error_image_create;
     }
 
-    nexrad_image_draw_arc_segment(image, 0x7f, 0, 45, 16, 32);
+    int a;
 
-    //nexrad_image_draw_line(image, 0x7f, 180, 180, 7, 13);
+    for (a=0; a<360; a+=45) {
+        int color = 0x10;
+        int r;
+
+        for (r=0; r<180; r+=16) {
+            if (color >= 0xf0) color = 0x10;
+
+            nexrad_image_draw_arc_segment(image, color, a, a + 35, r - 16, r);
+
+            color += 0x10;
+        }
+    }
 
     if (nexrad_image_save_png(image, path) < 0) {
         goto error_image_save_png;
