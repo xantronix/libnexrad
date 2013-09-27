@@ -401,7 +401,7 @@ time_t nexrad_message_get_gen_timestamp(nexrad_message *message) {
     return nexrad_date_timestamp(&message->description->gen_date);
 }
 
-int nexrad_message_get_product_id(nexrad_message *message) {
+int nexrad_message_get_product_type(nexrad_message *message) {
     if (message == NULL) {
         return -1;
     }
