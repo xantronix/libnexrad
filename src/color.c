@@ -157,7 +157,7 @@ int nexrad_color_table_save(nexrad_color_table *table, const char *path) {
 
     table_size = _table_size_total(table->size);
 
-    if ((fd = open(path, O_WRONLY | O_TRUNC)) < 0) {
+    if ((fd = open(path, O_CREAT | O_WRONLY | O_TRUNC, 0666)) < 0) {
         goto error_open;
     }
 
