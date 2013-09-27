@@ -8,15 +8,15 @@
 
 #include <nexrad/color.h>
 
-static inline size_t _table_size(uint8_t size) {
+static inline size_t _table_size(size_t size) {
     return size * sizeof(nexrad_color_table_entry);
 }
 
-static inline size_t _table_size_total(uint8_t size) {
+static inline size_t _table_size_total(size_t size) {
     return sizeof(nexrad_color_table) + _table_size(size);
 }
 
-nexrad_color_table *nexrad_color_table_create(uint8_t size) {
+nexrad_color_table *nexrad_color_table_create(size_t size) {
     nexrad_color_table *table;
     size_t table_size = _table_size_total(size);
 
@@ -136,7 +136,7 @@ error_malloc:
     return NULL;
 }
 
-nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, uint8_t *size) {
+nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size) {
     if (table == NULL) {
         return NULL;
     }
