@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "pnglite.h"
@@ -5,7 +6,7 @@
 #include <nexrad/image.h>
 
 #define NEXRAD_IMAGE_DEPTH       24
-#define NEXRAD_IMAGE_DEPTH_BYTES  3
+#define NEXRAD_IMAGE_DEPTH_BYTES  4
 #define NEXRAD_IMAGE_COLOR        PNG_TRUECOLOR
 
 struct _nexrad_image {
@@ -90,6 +91,7 @@ static inline void _buf_write_pixel(unsigned char *buf, uint8_t r, uint8_t g, ui
     buf[offset]   = r;
     buf[offset+1] = g;
     buf[offset+2] = b;
+    buf[offset+3] = 0x00;
 }
 
 static inline void _int_swap(int *a, int *b) {
@@ -118,6 +120,10 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
     if (image == NULL || amin > amax || rmin > rmax) {
         return;
     }
+
+    fprintf(stderr, "Drawing #%02x%02x%02x between %d, %d degrees at %d, %d distance\n",
+        r, g, b, amin, amax, rmin, rmax
+    );
 
     /*
      * Ensure the angle and radius minimum and maximum arguments are well
