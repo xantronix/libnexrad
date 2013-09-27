@@ -9,7 +9,7 @@
 #include <nexrad/color.h>
 
 static inline size_t _table_size(uint8_t size) {
-    return size * NEXRAD_COLOR_TABLE_ENTRY_SIZE;
+    return size * sizeof(nexrad_color_table_entry);
 }
 
 static inline size_t _table_size_total(uint8_t size) {

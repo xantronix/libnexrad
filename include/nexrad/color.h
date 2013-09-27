@@ -11,22 +11,16 @@ typedef struct _nexrad_color_table {
     uint8_t size;     /* Number of entries in table (powers of 2) */
 } nexrad_color_table;
 
-#pragma pack(push)
-#pragma pack(1)
-
 typedef struct _nexrad_color_table_entry {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 } nexrad_color_table_entry;
 
-#pragma pack(pop)
-
 nexrad_color_table *nexrad_color_table_create(uint8_t size);
 
 void nexrad_color_table_store_entry(nexrad_color_table *table,
-    uint8_t index,
-    uint8_t r, uint8_t g, uint8_t b
+    uint8_t index, uint8_t r, uint8_t g, uint8_t b
 );
 
 nexrad_color_table *nexrad_color_table_open(const char *path);
