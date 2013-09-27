@@ -22,7 +22,7 @@ static nexrad_color_table_entry nexrad_clut4_entries[] = {
     { 0xff, 0xff, 0xff }
 };
 
-static nexrad_color_table *create_nexrad_table() {
+static nexrad_color_table *create_reflectivity_table() {
     nexrad_color_table *table;
     int i;
 
@@ -49,12 +49,12 @@ error_color_table_create:
 int main(int argc, char **argv) {
     nexrad_color_table *table;
 
-    if ((table = create_nexrad_table()) == NULL) {
-        perror("create_nexrad_table()");
+    if ((table = create_reflectivity_table()) == NULL) {
+        perror("create_reflectivity_table()");
         exit(1);
     }
 
-    if (nexrad_color_table_save(table, "nexrad.clut") < 0) {
+    if (nexrad_color_table_save(table, "reflectivity.clut") < 0) {
         perror("nexrad_color_table_save()");
         exit(1);
     }
