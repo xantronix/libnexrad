@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <nexrad/image.h>
+
 #define NEXRAD_RADIAL_RLE_FACTOR 16
 
 enum nexrad_radial_type {
@@ -37,8 +39,7 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 #pragma pack(pop)
 
-typedef struct _nexrad_radial       nexrad_radial;
-typedef struct _nexrad_radial_image nexrad_radial_image;
+typedef struct _nexrad_radial nexrad_radial;
 
 nexrad_radial * nexrad_radial_packet_open(nexrad_radial_packet *packet);
 size_t          nexrad_radial_bytes_read(nexrad_radial *radial);
@@ -53,20 +54,9 @@ int nexrad_radial_get_info(nexrad_radial *radial,
     size_t *binsp, size_t *raysp
 );
 
-nexrad_radial_image * nexrad_radial_create_image(nexrad_radial *radial,
-    cairo_format_t format
+nexrad_image * nexrad_radial_create_image(nexrad_radial *radial,
+    enum nexrad_image_depth depth,
+    enum nexrad_image_color color
 );
-
-int nexrad_radial_image_get_info(nexrad_radial_image *image,
-    size_t *width,
-    size_t *height,
-    cairo_format_t *format
-);
-
-cairo_surface_t * nexrad_radial_image_get_surface(nexrad_radial_image *image);
-
-int nexrad_radial_image_save_png(nexrad_radial_image *image, const char *path);
-
-void nexrad_radial_image_destroy(nexrad_radial_image *image);
 
 #endif /* _NEXRAD_RADIAL_H */

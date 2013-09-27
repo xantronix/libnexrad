@@ -4,22 +4,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <nexrad/image.h>
+
 #define NEXRAD_RASTER_RLE_FACTOR 16
-
-enum nexrad_raster_image_depth {
-    NEXRAD_RASTER_IMAGE_32BPP = 4,
-    NEXRAD_RASTER_IMAGE_24BPP = 3,
-    NEXRAD_RASTER_IMAGE_16BPP = 2,
-    NEXRAD_RASTER_IMAGE_8BPP  = 1
-};
-
-enum nexrad_raster_image_color {
-    NEXRAD_RASTER_IMAGE_GRAYSCALE       = 0,
-    NEXRAD_RASTER_IMAGE_TRUECOLOR       = 2,
-    NEXRAD_RASTER_IMAGE_INDEXED         = 3,
-    NEXRAD_RASTER_IMAGE_GRAYSCALE_ALPHA = 4,
-    NEXRAD_RASTER_IMAGE_TRUECOLOR_ALPHA = 6
-};
 
 #pragma pack(1)
 #pragma pack(push)
@@ -49,8 +36,7 @@ typedef struct _nexrad_raster_run {
 
 #pragma pack(pop)
 
-typedef struct _nexrad_raster       nexrad_raster;
-typedef struct _nexrad_raster_image nexrad_raster_image;
+typedef struct _nexrad_raster nexrad_raster;
 
 nexrad_raster * nexrad_raster_packet_open(nexrad_raster_packet *packet);
 size_t          nexrad_raster_bytes_read(nexrad_raster *raster);
@@ -64,22 +50,9 @@ int nexrad_raster_get_info(nexrad_raster *raster,
     size_t *widthp, size_t *heightp
 );
 
-nexrad_raster_image * nexrad_raster_create_image(nexrad_raster *raster,
-    enum nexrad_raster_image_depth depth,
-    enum nexrad_raster_image_color color
+nexrad_image * nexrad_raster_create_image(nexrad_raster *raster,
+    enum nexrad_image_depth depth,
+    enum nexrad_image_color color
 );
-
-int nexrad_raster_image_get_info(nexrad_raster_image *image,
-    size_t *width,
-    size_t *height,
-    enum nexrad_raster_image_depth *depth,
-    enum nexrad_raster_image_color *color
-);
-
-unsigned char * nexrad_raster_image_get_buf(nexrad_raster_image *image, size_t *size);
-
-int nexrad_raster_image_save_png(nexrad_raster_image *image, const char *path);
-
-void nexrad_raster_image_destroy(nexrad_raster_image *image);
 
 #endif /* _NEXRAD_RASTER_H */

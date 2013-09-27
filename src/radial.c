@@ -1,9 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <endian.h>
 #include <errno.h>
-#include <cairo.h>
 
 #include <nexrad/radial.h>
 
@@ -13,15 +11,6 @@ struct _nexrad_radial {
     size_t                  bytes_read;
     size_t                  rays_left;
     nexrad_radial_ray *     current;
-};
-
-struct _nexrad_radial_image {
-    cairo_surface_t * surface;
-    cairo_format_t    format;
-
-    size_t radius;
-    size_t width;
-    size_t height;
 };
 
 static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type type) {
@@ -183,190 +172,103 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
     return 0;
 }
 
-static inline void _context_set_color(cairo_t *cr, uint8_t level) {
-    double c = 255.0 / (double)level;
-
-    cairo_set_source_rgb(cr, c, c, c);
-}
-
-static int _radial_unpack_rle(nexrad_radial *radial, nexrad_radial_image *image) {
+static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t width) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
-    cairo_t *cr;
+    unsigned char *buf;
 
-    size_t runs;
-    size_t width  = image->width;
-    size_t center = image->radius;
+    size_t offset = 0, runs;
 
-    if ((cr = cairo_create(image->surface)) == NULL) {
-        goto error_context_create;
+    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
+        goto error_image_get_buf;
     }
 
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
-
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
-        double angle_start = 0.1 * (double)be16toh(ray->angle_start);
-        double angle_end   = 0.1 * (double)be16toh(ray->angle_delta) + angle_start;
-
+        int r;
         size_t linelen = 0;
 
-        int r;
-
         for (r=0; r<runs; r++) {
-            _context_set_color(cr, data[r].level);
-            cairo_set_line_width(cr, (double)data[r].length);
+            memset(buf + offset, data[r].level * NEXRAD_RADIAL_RLE_FACTOR, data[r].length);
 
-            cairo_arc(cr, center, center, r, angle_start, angle_end);
-            cairo_stroke(cr);
-
+            offset  += data[r].length;
             linelen += data[r].length;
 
             if (linelen >= width) break;
         }
-    }
 
-    cairo_destroy(cr);
+        /*
+         * If the current run failed to extend to the line width, then pad the
+         * rest of the line with black pixels.
+         */
 
-    return 0;
+        if (linelen < width) {
+            size_t padding = width - linelen;
 
-error_context_create:
-    return -1;
-}
+            memset(buf + offset, '\0', padding);
 
-static int _radial_unpack_digital(nexrad_radial *radial, nexrad_radial_image *image) {
-    nexrad_radial_ray *ray;
-    unsigned char *data;
-    cairo_t *cr;
-
-    size_t center = image->radius;
-    size_t bins;
-
-    if ((cr = cairo_create(image->surface)) == NULL) {
-        goto error_context_create;
-    }
-
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
-    cairo_set_line_width(cr, 1.0);
-
-    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
-        double angle_start = 0.1 * (double)be16toh(ray->angle_start);
-        double angle_end   = 0.1 * (double)be16toh(ray->angle_delta) + angle_start;
-
-        int r;
-
-        for (r=0; r<bins; r++) {
-            _context_set_color(cr, data[r]);
-
-            cairo_arc(cr, center, center, r, angle_start, angle_end);
-            cairo_stroke(cr);
+            offset += padding;
         }
     }
 
-    cairo_destroy(cr);
-
     return 0;
 
-error_context_create:
+error_image_get_buf:
     return -1;
 }
 
-nexrad_radial_image *nexrad_radial_create_image(nexrad_radial *radial, cairo_format_t format) {
-    nexrad_radial_image *image;
-    cairo_surface_t *surface;
-    size_t radius, width, height;
+static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
+    nexrad_radial_ray *ray;
+    unsigned char *buf, *data;
+
+    size_t offset = 0, bins;
+
+    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
+        goto error_image_get_buf;
+    }
+
+    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
+        memcpy(buf + offset, data, bins);
+
+        offset += bins;
+    }
+
+    return 0;
+
+error_image_get_buf:
+    return -1;
+}
+
+nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_image_depth depth, enum nexrad_image_color color) {
+    nexrad_image *image;
+    size_t width, height;
 
     if (radial == NULL) {
         return NULL;
     }
 
-    radius = be16toh(radial->packet->rangebin_count);
-    width  = 2 * radius;
-    height = 2 * radius;
-
-    if ((image = malloc(sizeof(nexrad_radial_image))) == NULL) {
-        goto error_malloc_image;
+    if (depth != NEXRAD_IMAGE_8BPP || color != NEXRAD_IMAGE_GRAYSCALE) {
+        errno = EINVAL;
+        return NULL;
     }
 
-    if ((surface = cairo_image_surface_create(format, width, height)) == NULL) {
-        goto error_image_surface_create;
-    }
+    width  = be16toh(radial->packet->rangebin_count);
+    height = be16toh(radial->packet->rays);
 
-    image->surface = surface;
-    image->format  = format;
-    image->width   = width;
-    image->height  = height;
+    if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
+        goto error_image_create;
+    }
 
     if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        if (_radial_unpack_digital(radial, image) < 0) goto error_radial_unpack;
+        if (_image_unpack_digital(image, radial)    < 0) goto error_image_unpack;
     } else if (radial->type == NEXRAD_RADIAL_RLE) {
-        if (_radial_unpack_rle(radial, image)     < 0) goto error_radial_unpack;
+        if (_image_unpack_rle(image, radial, width) < 0) goto error_image_unpack;
     }
 
     return image;
 
-error_radial_unpack:
-    cairo_surface_destroy(surface);
+error_image_unpack:
+    nexrad_image_destroy(image);
 
-error_image_surface_create:
-    free(image);
-
-error_malloc_image:
+error_image_create:
     return NULL;
-}
-
-int nexrad_radial_get_image_info(nexrad_radial_image *image, size_t *width, size_t *height, cairo_format_t *format) {
-    if (image == NULL) {
-        return -1;
-    }
-
-    if (width)
-        *width = image->width;
-
-    if (height)
-        *height = image->height;
-
-    if (format)
-        *format = image->format;
-
-    return 0;
-}
-
-cairo_surface_t *nexrad_radial_image_get_surface(nexrad_radial_image *image) {
-    if (image == NULL) {
-        return NULL;
-    }
-
-    return image->surface;
-}
-
-int nexrad_radial_image_save_png(nexrad_radial_image *image, const char *path) {
-    if (image == NULL || path == NULL) {
-        return -1;
-    }
-
-    if (cairo_surface_write_to_png(image->surface, path) != CAIRO_STATUS_SUCCESS) {
-        goto error_surface_write_to_png;
-    }
-
-    return 0;
-
-error_surface_write_to_png:
-    return -1;
-}
-
-void nexrad_radial_image_destroy(nexrad_radial_image *image) {
-    if (image == NULL) {
-        return;
-    }
-
-    if (image->surface)
-        cairo_surface_destroy(image->surface);
-
-    image->surface = NULL;
-    image->format  = 0;
-    image->radius  = 0;
-    image->width   = 0;
-    image->height  = 0;
-
-    free(image);
 }

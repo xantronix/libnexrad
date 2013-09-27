@@ -2,7 +2,6 @@
 #include <string.h>
 #include <endian.h>
 #include <errno.h>
-#include "pnglite.h"
 
 #include <nexrad/raster.h>
 
@@ -11,17 +10,6 @@ struct _nexrad_raster {
     size_t                 bytes_read;
     size_t                 lines_left;
     nexrad_raster_line *   current;
-};
-
-struct _nexrad_raster_image {
-    unsigned char * buf;
-
-    size_t size;
-    size_t width;
-    size_t height;
-
-    enum nexrad_raster_image_depth depth;
-    enum nexrad_raster_image_color color;
 };
 
 static int _valid_packet(nexrad_raster_packet *packet) {
@@ -189,11 +177,16 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     return 0;
 }
 
-static int _raster_unpack_rle(nexrad_raster *raster, unsigned char *buf, size_t width) {
+static int _image_unpack_rle(nexrad_image *image, nexrad_raster *raster, size_t width) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
+    unsigned char *buf;
 
     size_t offset = 0, runs;
+
+    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
+        goto error_image_get_buf;
+    }
 
     while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
         int r;
@@ -223,14 +216,20 @@ static int _raster_unpack_rle(nexrad_raster *raster, unsigned char *buf, size_t 
     }
 
     return 0;
+
+error_image_get_buf:
+    return -1;
 }
 
-nexrad_raster_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_raster_image_depth depth, enum nexrad_raster_image_color color) {
-    nexrad_raster_image *image;
-    size_t width, height, size;
-    unsigned char *buf;
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_image_depth depth, enum nexrad_image_color color) {
+    nexrad_image *image;
+    size_t width, height;
 
-    if (depth != NEXRAD_RASTER_IMAGE_8BPP || color != NEXRAD_RASTER_IMAGE_GRAYSCALE) {
+    if (raster == NULL) {
+        return NULL;
+    }
+
+    if (depth != NEXRAD_IMAGE_8BPP || color != NEXRAD_IMAGE_GRAYSCALE) {
         errno = EINVAL;
         return NULL;
     }
@@ -239,121 +238,20 @@ nexrad_raster_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexr
         goto error_raster_get_info;
     }
 
-    if ((image = malloc(sizeof(nexrad_raster_image))) == NULL) {
-        goto error_malloc_raster_image;
+    if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
+        goto error_image_create;
     }
 
-    size = width * height * depth;
-
-    if ((buf = malloc(size)) == NULL) {
-        goto error_malloc_buf;
+    if (_image_unpack_rle(image, raster, width) < 0) {
+        goto error_image_unpack;
     }
-
-    if (_raster_unpack_rle(raster, buf, width) < 0) {
-        goto error_raster_unpack_rle;
-    }
-
-    image->buf    = buf;
-    image->size   = size;
-    image->width  = width;
-    image->height = height;
-    image->depth  = depth;
-    image->color  = color;
 
     return image;
 
-error_raster_unpack_rle:
-    free(buf);
+error_image_unpack:
+    nexrad_image_destroy(image);
 
-error_malloc_buf:
-    free(image);
-
-error_malloc_raster_image:
+error_image_create:
 error_raster_get_info:
     return NULL;
-}
-
-int nexrad_raster_image_get_info(nexrad_raster_image *image, size_t *width, size_t *height, enum nexrad_raster_image_depth *depth, enum nexrad_raster_image_color *color) {
-    if (image == NULL) {
-        return -1;
-    }
-
-    if (width)
-        *width = image->width;
-
-    if (height)
-        *height = image->height;
-
-    if (depth)
-        *depth = image->depth;
-
-    if (color)
-        *color = image->color;
-
-    return 0;
-}
-
-unsigned char *nexrad_raster_image_get_buf(nexrad_raster_image *image, size_t *size) {
-    if (image == NULL) {
-        return NULL;
-    }
-
-    if (size)
-        *size = image->size;
-
-    return image->buf;
-}
-
-int nexrad_raster_image_save_png(nexrad_raster_image *image, const char *path) {
-    png_t png;
-
-    if (image == NULL || path == NULL) {
-        return -1;
-    }
-
-    memset(&png, '\0', sizeof(png));
-
-    png_init(NULL, NULL);
-
-    if (png_open_file_write(&png, path) < 0) {
-        goto error_open_file_write;
-    }
-
-    if (png_set_data(&png,
-        image->width, image->height, image->depth * 8, image->color, image->buf
-    ) < 0) {
-        goto error_set_data;
-    }
-
-    if (png_close_file(&png) < 0) {
-        goto error_close_file;
-    }
-
-    return 0;
-
-error_close_file:
-error_set_data:
-    png_close_file(&png);
-
-error_open_file_write:
-    return -1;
-}
-
-void nexrad_raster_image_destroy(nexrad_raster_image *image) {
-    if (image == NULL) {
-        return;
-    }
-
-    if (image->buf) {
-        free(image->buf);
-    }
-
-    image->buf    = NULL;
-    image->size   = 0;
-    image->width  = 0;
-    image->height = 0;
-    image->depth  = 0;
-    image->color  = 0;
-
-    free(image);
 }
