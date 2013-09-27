@@ -54,9 +54,6 @@ int nexrad_raster_get_info(nexrad_raster *raster,
     size_t *heightp
 );
 
-nexrad_image *nexrad_raster_create_image(nexrad_raster *raster,
-    enum nexrad_image_depth depth,
-    enum nexrad_image_color color
-);
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster);
 
 #endif /* _NEXRAD_RASTER_H */

@@ -227,7 +227,7 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial) {
     return 0;
 }
 
-nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_image_depth depth, enum nexrad_image_color color) {
+nexrad_image *nexrad_radial_create_image(nexrad_radial *radial) {
     nexrad_image *image;
     size_t width, height, radius;
 
@@ -235,16 +235,11 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, enum nexrad_imag
         return NULL;
     }
 
-    if (depth != NEXRAD_IMAGE_8BPP || color != NEXRAD_IMAGE_GRAYSCALE) {
-        errno = EINVAL;
-        return NULL;
-    }
-
     radius = be16toh(radial->packet->rangebin_count);
     width  = 2 * radius;
     height = 2 * radius;
 
-    if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
+    if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
     }
 

@@ -221,7 +221,7 @@ error_image_get_buf:
     return -1;
 }
 
-nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_image_depth depth, enum nexrad_image_color color) {
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster) {
     nexrad_image *image;
     size_t width, height;
 
@@ -229,16 +229,11 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, enum nexrad_imag
         return NULL;
     }
 
-    if (depth != NEXRAD_IMAGE_8BPP || color != NEXRAD_IMAGE_GRAYSCALE) {
-        errno = EINVAL;
-        return NULL;
-    }
-
     if (nexrad_raster_get_info(raster, &width, &height) < 0) {
         goto error_raster_get_info;
     }
 
-    if ((image = nexrad_image_create(width, height, depth, color)) == NULL) {
+    if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
     }
 

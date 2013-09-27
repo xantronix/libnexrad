@@ -4,6 +4,10 @@
 
 #include <nexrad/image.h>
 
+#define NEXRAD_IMAGE_DEPTH       24
+#define NEXRAD_IMAGE_DEPTH_BYTES  8
+#define NEXRAD_IMAGE_COLOR        PNG_TRUECOLOR
+
 struct _nexrad_image {
     unsigned char * buf;
     size_t          size;
@@ -12,57 +16,18 @@ struct _nexrad_image {
     size_t height;
     size_t x_center;
     size_t y_center;
-
-    enum nexrad_image_depth depth;
-    enum nexrad_image_color color;
-    enum nexrad_image_type  type;
 };
 
-static size_t _image_size(size_t width, size_t height, enum nexrad_image_depth depth) {
-    return width * height * depth;
+static size_t _image_size(size_t width, size_t height) {
+    return NEXRAD_IMAGE_DEPTH_BYTES * width * height;
 }
 
-static int _valid_args(size_t width, size_t height, enum nexrad_image_depth depth, enum nexrad_image_color color) {
-    if (width == 0 || height == 0) {
-        return 0;
-    }
-
-    switch (depth) {
-        case NEXRAD_IMAGE_32BPP:
-        case NEXRAD_IMAGE_24BPP:
-        case NEXRAD_IMAGE_16BPP:
-        case NEXRAD_IMAGE_8BPP: {
-            break;
-        }
-
-        default: {
-            return 0;
-        }
-    }
-
-    switch (color) {
-        case NEXRAD_IMAGE_GRAYSCALE:
-        case NEXRAD_IMAGE_TRUECOLOR:
-        case NEXRAD_IMAGE_INDEXED:
-        case NEXRAD_IMAGE_GRAYSCALE_ALPHA:
-        case NEXRAD_IMAGE_TRUECOLOR_ALPHA: {
-            break;
-        }
-
-        default: {
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-nexrad_image *nexrad_image_create(size_t width, size_t height, enum nexrad_image_depth depth, enum nexrad_image_color color) {
+nexrad_image *nexrad_image_create(size_t width, size_t height) {
     nexrad_image *image;
     size_t size;
     unsigned char *buf;
 
-    if (!_valid_args(width, height, depth, color)) {
+    if (width == 0 || height == 0) {
         return NULL;
     }
 
@@ -70,7 +35,7 @@ nexrad_image *nexrad_image_create(size_t width, size_t height, enum nexrad_image
         goto error_malloc_image;
     }
 
-    size = _image_size(width, height, depth);
+    size = _image_size(width, height);
 
     if ((buf = malloc(size)) == NULL) {
         goto error_malloc_buf;
@@ -84,8 +49,6 @@ nexrad_image *nexrad_image_create(size_t width, size_t height, enum nexrad_image
     image->height   = height;
     image->x_center = width  / 2;
     image->y_center = height / 2;
-    image->depth    = depth;
-    image->color    = color;
 
     return image;
 
@@ -96,7 +59,7 @@ error_malloc_image:
     return NULL;
 }
 
-int nexrad_image_get_info(nexrad_image *image, size_t *width, size_t *height, enum nexrad_image_depth *depth, enum nexrad_image_color *color) {
+int nexrad_image_get_info(nexrad_image *image, size_t *width, size_t *height) {
     if (image == NULL) {
         return -1;
     }
@@ -106,12 +69,6 @@ int nexrad_image_get_info(nexrad_image *image, size_t *width, size_t *height, en
 
     if (height)
         *height = image->height;
-
-    if (depth)
-        *depth = image->depth;
-
-    if (color)
-        *color = image->color;
 
     return 0;
 }
@@ -127,8 +84,17 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_write_pixel(unsigned char *buf, uint8_t c, int x, int y, int w) {
-    buf[(y*w) + x] = c;
+static inline void _buf_write_pixel(unsigned char *buf,
+    unsigned char r,
+    unsigned char g,
+    unsigned char b,
+    int x, int y, int w
+) {
+    size_t offset = (y * w * NEXRAD_IMAGE_DEPTH_BYTES) + x * NEXRAD_IMAGE_DEPTH_BYTES;
+
+    buf[offset]   = r;
+    buf[offset+1] = g;
+    buf[offset+2] = b;
 }
 
 static inline void _int_swap(int *a, int *b) {
@@ -261,14 +227,14 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t level, int amin,
              */
             if (x <= xmax && y >= ymin) {
                 switch (octant) {
-                    case ESE: _buf_write_pixel(buf, level,  x+xc,  y+yc, w); break;
-                    case SSE: _buf_write_pixel(buf, level,  y+xc,  x+yc, w); break;
-                    case SSW: _buf_write_pixel(buf, level, -y+xc,  x+yc, w); break;
-                    case WSW: _buf_write_pixel(buf, level, -x+xc,  y+yc, w); break;
-                    case WNW: _buf_write_pixel(buf, level, -x+xc, -y+yc, w); break;
-                    case NNW: _buf_write_pixel(buf, level, -y+xc, -x+yc, w); break;
-                    case NNE: _buf_write_pixel(buf, level,  y+xc, -x+yc, w); break;
-                    case ENE: _buf_write_pixel(buf, level,  x+xc, -y+yc, w); break;
+                    case ESE: _buf_write_pixel(buf, level, level, level,  x+xc,  y+yc, w); break;
+                    case SSE: _buf_write_pixel(buf, level, level, level,  y+xc,  x+yc, w); break;
+                    case SSW: _buf_write_pixel(buf, level, level, level, -y+xc,  x+yc, w); break;
+                    case WSW: _buf_write_pixel(buf, level, level, level, -x+xc,  y+yc, w); break;
+                    case WNW: _buf_write_pixel(buf, level, level, level, -x+xc, -y+yc, w); break;
+                    case NNW: _buf_write_pixel(buf, level, level, level, -y+xc, -x+yc, w); break;
+                    case NNE: _buf_write_pixel(buf, level, level, level, y+xc, -x+yc, w); break;
+                    case ENE: _buf_write_pixel(buf, level, level, level, x+xc, -y+yc, w); break;
 
                     default: {
                         break;
@@ -304,7 +270,7 @@ int nexrad_image_save_png(nexrad_image *image, const char *path) {
     }
 
     if (png_set_data(&png,
-        image->width, image->height, image->depth * 8, image->color, image->buf
+        image->width, image->height, NEXRAD_IMAGE_DEPTH, NEXRAD_IMAGE_COLOR, image->buf
     ) < 0) {
         goto error_set_data;
     }
@@ -338,8 +304,6 @@ void nexrad_image_destroy(nexrad_image *image) {
     image->size   = 0;
     image->width  = 0;
     image->height = 0;
-    image->depth  = 0;
-    image->color  = 0;
 
     free(image);
 }
