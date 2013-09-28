@@ -266,14 +266,53 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
              */
             if (x <= xmax && y >= ymin) {
                 switch (octant) {
-                    case ESE: _buf_write_pixel(buf, r, g, b,  x+xc,  y+yc, w); break;
-                    case SSE: _buf_write_pixel(buf, r, g, b,  y+xc,  x+yc, w); break;
-                    case SSW: _buf_write_pixel(buf, r, g, b, -y+xc,  x+yc, w); break;
-                    case WSW: _buf_write_pixel(buf, r, g, b, -x+xc,  y+yc, w); break;
-                    case WNW: _buf_write_pixel(buf, r, g, b, -x+xc, -y+yc, w); break;
-                    case NNW: _buf_write_pixel(buf, r, g, b, -y+xc, -x+yc, w); break;
-                    case NNE: _buf_write_pixel(buf, r, g, b,  y+xc, -x+yc, w); break;
-                    case ENE: _buf_write_pixel(buf, r, g, b,  x+xc, -y+yc, w); break;
+                    case ESE: {
+                        _buf_write_pixel(buf, r, g, b,  x+xc,  y+yc, w);
+                        _buf_write_pixel(buf, r, g, b,  x+xc+1,  y+yc, w);
+                        break;
+                    }
+
+                    case SSE: {
+                        _buf_write_pixel(buf, r, g, b,  y+xc,  x+yc, w);
+                        _buf_write_pixel(buf, r, g, b,  y+xc+1,  x+yc, w);
+                        break;
+                    }
+
+                    case SSW: {
+                        _buf_write_pixel(buf, r, g, b, -y+xc,  x+yc, w);
+                        _buf_write_pixel(buf, r, g, b, -y+xc+1,  x+yc, w);
+                        break;
+                    }
+
+                    case WSW: {
+                        _buf_write_pixel(buf, r, g, b, -x+xc,  y+yc, w);
+                        _buf_write_pixel(buf, r, g, b, -x+xc+1,  y+yc, w);
+                        break;
+                    }
+
+                    case WNW: {
+                        _buf_write_pixel(buf, r, g, b, -x+xc, -y+yc, w);
+                        _buf_write_pixel(buf, r, g, b, -x+xc+1, -y+yc, w);
+                        break;
+                    }
+
+                    case NNW: {
+                        _buf_write_pixel(buf, r, g, b, -y+xc, -x+yc, w);
+                        _buf_write_pixel(buf, r, g, b, -y+xc+1, -x+yc, w);
+                        break;
+                    }
+
+                    case NNE: {
+                        _buf_write_pixel(buf, r, g, b,  y+xc, -x+yc, w);
+                        _buf_write_pixel(buf, r, g, b,  y+xc+1, -x+yc, w);
+                        break;
+                    }
+
+                    case ENE: {
+                        _buf_write_pixel(buf, r, g, b,  x+xc, -y+yc, w);
+                        _buf_write_pixel(buf, r, g, b,  x+xc+1, -y+yc, w);
+                        break;
+                    }
 
                     default: {
                         break;
