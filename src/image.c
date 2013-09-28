@@ -240,8 +240,8 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
                     case WSW: _buf_write_pixel(buf, r, g, b, -x+xc,  y+yc, w); break;
                     case WNW: _buf_write_pixel(buf, r, g, b, -x+xc, -y+yc, w); break;
                     case NNW: _buf_write_pixel(buf, r, g, b, -y+xc, -x+yc, w); break;
-                    case NNE: _buf_write_pixel(buf, r, g, b, y+xc, -x+yc, w); break;
-                    case ENE: _buf_write_pixel(buf, r, g, b, x+xc, -y+yc, w); break;
+                    case NNE: _buf_write_pixel(buf, r, g, b,  y+xc, -x+yc, w); break;
+                    case ENE: _buf_write_pixel(buf, r, g, b,  x+xc, -y+yc, w); break;
 
                     default: {
                         break;
