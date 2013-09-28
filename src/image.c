@@ -8,21 +8,25 @@
 #define NEXRAD_IMAGE_COLOR_DEPTH  8
 #define NEXRAD_IMAGE_COLOR_FORMAT PNG_TRUECOLOR
 
+#define NEXRAD_IMAGE_PIXEL_OFFSET(x, y, w) \
+  ((y * w * NEXRAD_IMAGE_PIXEL_BYTES) + x * NEXRAD_IMAGE_PIXEL_BYTES)
+
 struct _nexrad_image {
     unsigned char * buf;
     size_t          size;
 
-    size_t width;
-    size_t height;
-    size_t x_center;
-    size_t y_center;
+    uint16_t width;
+    uint16_t height;
+    uint16_t radius;
+    uint16_t x_center;
+    uint16_t y_center;
 };
 
-static size_t _image_size(size_t width, size_t height) {
+static size_t _image_size(uint16_t width, uint16_t height) {
     return NEXRAD_IMAGE_PIXEL_BYTES * width * height;
 }
 
-nexrad_image *nexrad_image_create(size_t width, size_t height) {
+nexrad_image *nexrad_image_create(uint16_t width, uint16_t height) {
     nexrad_image *image;
     size_t size;
     unsigned char *buf;
@@ -47,8 +51,9 @@ nexrad_image *nexrad_image_create(size_t width, size_t height) {
     image->size     = size;
     image->width    = width;
     image->height   = height;
-    image->x_center = width  / 2;
-    image->y_center = height / 2;
+    image->radius   = width > height? height: width;
+    image->x_center = width  >> 1;
+    image->y_center = height >> 1;
 
     return image;
 
@@ -59,7 +64,7 @@ error_malloc_image:
     return NULL;
 }
 
-int nexrad_image_get_info(nexrad_image *image, size_t *width, size_t *height) {
+int nexrad_image_get_info(nexrad_image *image, uint16_t *width, uint16_t *height) {
     if (image == NULL) {
         return -1;
     }
@@ -73,7 +78,7 @@ int nexrad_image_get_info(nexrad_image *image, size_t *width, size_t *height) {
     return 0;
 }
 
-unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
+unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     if (image == NULL) {
         return NULL;
     }
@@ -84,8 +89,8 @@ unsigned char * nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_write_pixel(unsigned char *buf, uint8_t r, uint8_t g, uint8_t b, int x, int y, int w) {
-    size_t offset = (y * w * NEXRAD_IMAGE_PIXEL_BYTES) + x * NEXRAD_IMAGE_PIXEL_BYTES;
+static inline void _buf_write_pixel(unsigned char *buf, uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y, uint16_t w) {
+    size_t offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, w);
 
     buf[offset]   = r;
     buf[offset+1] = g;
@@ -105,7 +110,7 @@ static inline void _int_order(int *a, int *b) {
     }
 }
 
-void nexrad_image_draw_pixel(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, int x, int y) {
+void nexrad_image_draw_pixel(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y) {
     if (image == NULL) {
         return;
     }
@@ -115,6 +120,29 @@ void nexrad_image_draw_pixel(nexrad_image *image, uint8_t r, uint8_t g, uint8_t 
     }
 
     _buf_write_pixel(image->buf, r, g, b, x, y, image->width);
+}
+
+void nexrad_image_draw_run(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y, uint16_t length) {
+    unsigned char *buf;
+    size_t offset;
+    uint16_t i;
+
+    if (image == NULL) {
+        return;
+    }
+
+    if (x >= image->width || y >= image->height || x + length > image->width) {
+        return;
+    }
+
+    buf    = image->buf;
+    offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, image->width);
+
+    for (i=0; i<length; i++) {
+        buf[offset++] = r;
+        buf[offset++] = g;
+        buf[offset++] = b;
+    }
 }
 
 void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, int amin, int amax, int rmin, int rmax) {
@@ -128,6 +156,10 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
     } octant = NONE;
 
     if (image == NULL || amin > amax || rmin > rmax) {
+        return;
+    }
+
+    if (rmin >= image->radius || rmax >= image->radius) {
         return;
     }
 
@@ -311,6 +343,7 @@ void nexrad_image_destroy(nexrad_image *image) {
     image->size   = 0;
     image->width  = 0;
     image->height = 0;
+    image->radius = 0;
 
     free(image);
 }

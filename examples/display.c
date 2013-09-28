@@ -18,7 +18,7 @@ static void usage(int argc, char **argv) {
 static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
     nexrad_radial *radial;
     nexrad_radial_ray *ray;
-    size_t runs, bins;
+    uint16_t runs, bins;
 
     if ((radial = nexrad_radial_packet_open(packet)) == NULL) {
         perror("nexrad_radial_packet_open()");
@@ -31,7 +31,7 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
     );
 
     while ((ray = nexrad_radial_read_ray(radial, NULL, &runs, &bins)) != NULL) {
-        printf("Wee, got a ray with %lu runs and %lu bins!\n",
+        printf("Wee, got a ray with %hu runs and %hu bins!\n",
             runs, bins
         );
     }
@@ -46,8 +46,8 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
 static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
     nexrad_raster *raster;
     nexrad_raster_line *line;
-    size_t line_size;
-    size_t width, height;
+    uint16_t line_size;
+    uint16_t width, height;
 
     if ((raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet)) == NULL) {
         perror("nexrad_raster_packet_open()");
@@ -59,10 +59,10 @@ static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
         exit(1);
     }
 
-    printf("Huzzah, got a raster, %lux%lu\n", width, height);
+    printf("Huzzah, got a raster, %hu%hu\n", width, height);
 
     while ((line = nexrad_raster_read_line(raster, NULL, &line_size)) != NULL) {
-        printf("Wee, got a line sized %lu bytes!\n", line_size);
+        printf("Wee, got a line sized %hu bytes!\n", line_size);
     }
 
     *size = nexrad_raster_bytes_read(raster);

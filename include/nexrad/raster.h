@@ -47,12 +47,12 @@ void nexrad_raster_close(nexrad_raster *raster);
 
 nexrad_raster_line *nexrad_raster_read_line(nexrad_raster *raster,
     void **data,
-    size_t *runsp
+    uint16_t *runsp
 );
 
 int nexrad_raster_get_info(nexrad_raster *raster,
-    size_t *widthp,
-    size_t *heightp
+    uint16_t *widthp,
+    uint16_t *heightp
 );
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster,

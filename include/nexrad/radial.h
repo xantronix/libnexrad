@@ -52,13 +52,13 @@ void nexrad_radial_close(nexrad_radial *radial);
 
 nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial,
     void **data,
-    size_t *runsp,
-    size_t *binsp
+    uint16_t *runsp,
+    uint16_t *binsp
 );
 
 int nexrad_radial_get_info(nexrad_radial *radial,
-    size_t *binsp,
-    size_t *raysp
+    uint16_t *binsp,
+    uint16_t *raysp
 );
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial,

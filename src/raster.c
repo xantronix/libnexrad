@@ -8,7 +8,7 @@
 struct _nexrad_raster {
     nexrad_raster_packet * packet;
     size_t                 bytes_read;
-    size_t                 lines_left;
+    uint16_t               lines_left;
     nexrad_raster_line *   current;
 };
 
@@ -70,12 +70,11 @@ error_malloc:
     return NULL;
 }
 
-static size_t _raster_line_width(nexrad_raster_line *line) {
+static uint16_t _raster_line_width(nexrad_raster_line *line) {
     nexrad_raster_run *runs = (nexrad_raster_run *)((char *)line + sizeof(nexrad_raster_line));
 
-    size_t width = 0;
-
-    int i, nruns = be16toh(line->runs);
+    uint16_t width = 0;
+    uint16_t i, nruns = be16toh(line->runs);
 
     for (i=0; i<nruns; i++) {
         width += runs[i].length;
@@ -84,9 +83,9 @@ static size_t _raster_line_width(nexrad_raster_line *line) {
     return width;
 }
 
-nexrad_raster_line *nexrad_raster_read_line(nexrad_raster *raster, void **data, size_t *runsp) {
+nexrad_raster_line *nexrad_raster_read_line(nexrad_raster *raster, void **data, uint16_t *runsp) {
     nexrad_raster_line *line;
-    size_t runs;
+    uint16_t runs;
 
     if (raster == NULL) {
         return NULL;
@@ -152,7 +151,7 @@ void nexrad_raster_close(nexrad_raster *raster) {
     free(raster);
 }
 
-int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *heightp) {
+int nexrad_raster_get_info(nexrad_raster *raster, uint16_t *widthp, uint16_t *heightp) {
     if (raster == NULL) {
         return -1;
     }
@@ -177,50 +176,50 @@ int nexrad_raster_get_info(nexrad_raster *raster, size_t *widthp, size_t *height
     return 0;
 }
 
-static int _image_unpack_rle(nexrad_image *image, nexrad_raster *raster, size_t width, nexrad_color_table_entry *entries) {
+static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad_color_table_entry *entries) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
     unsigned char *buf;
 
-    size_t r, runs;
-
-    int y = 0;
+    uint16_t y = 0;
+    uint16_t runs;
+    uint16_t width, height;
 
     if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
         goto error_image_get_buf;
     }
 
+    if (nexrad_image_get_info(image, &width, &height) < 0) {
+        goto error_image_get_info;
+    }
+
     while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
-        size_t linelen = 0;
-        int x = 0;
+        uint16_t r, x = 0;
 
         for (r=0; r<runs; r++) {
-            /*
-             * TODO: Write RLE draw routine in image.c
-             */
-            uint8_t level = data[r].level * NEXRAD_RASTER_RLE_FACTOR;
+            uint8_t level  = data[r].level * NEXRAD_RASTER_RLE_FACTOR;
+            uint8_t length = data[r].length;
 
-            int i;
+            nexrad_image_draw_run(image,
+                entries[level].r,
+                entries[level].g,
+                entries[level].b,
+                x, y, length
+            );
 
-            for (i=0; i<data[r].length; i++) {
-                nexrad_image_draw_pixel(image,
-                    entries[level].r,
-                    entries[level].g,
-                    entries[level].b,
-                    x++, y
-                );
-            }
+            x += length;
 
-            linelen += data[r].length;
-
-            if (linelen >= width) break;
+            if (x >= width) break;
         }
 
         y++;
+
+        if (y >= height) break;
     }
 
     return 0;
 
+error_image_get_info:
 error_image_get_buf:
     return -1;
 }
@@ -228,7 +227,7 @@ error_image_get_buf:
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color_table *table) {
     nexrad_image *image;
     nexrad_color_table_entry *entries;
-    size_t width, height;
+    uint16_t width, height;
 
     if (raster == NULL || table == NULL) {
         return NULL;
@@ -246,7 +245,7 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color_tab
         goto error_image_create;
     }
 
-    if (_image_unpack_rle(image, raster, width, entries) < 0) {
+    if (_raster_unpack_rle(raster, image, entries) < 0) {
         goto error_image_unpack;
     }
 

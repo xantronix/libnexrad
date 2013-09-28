@@ -95,9 +95,10 @@ void nexrad_radial_close(nexrad_radial *radial) {
     free(radial);
 }
 
-nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, size_t *runsp, size_t *binsp) {
+nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, uint16_t *runsp, uint16_t *binsp) {
     nexrad_radial_ray *ray;
-    size_t runs, bins, size;
+    uint16_t runs, bins;
+    size_t size;
 
     if (radial == NULL || radial->rays_left == 0) {
         return NULL;
@@ -158,7 +159,7 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, si
     return ray;
 }
 
-int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) {
+int nexrad_radial_get_info(nexrad_radial *radial, uint16_t *binsp, uint16_t *raysp) {
     if (radial == NULL) {
         return -1;
     }
@@ -172,18 +173,22 @@ int nexrad_radial_get_info(nexrad_radial *radial, size_t *binsp, size_t *raysp) 
     return 0;
 }
 
-static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t width, nexrad_color_table_entry *entries) {
+static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_color_table_entry *entries) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
 
-    size_t runs;
+    uint16_t width, runs;
+
+    if (nexrad_image_get_info(image, &width, NULL) < 0) {
+        goto error_image_get_info;
+    }
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
         int r;
-        size_t linelen = 0;
 
         int angle_start = be16toh(ray->angle_start) / 10;
         int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
+        int radius = 0;
 
         for (r=0; r<runs; r++) {
             uint8_t level = data[r].level * NEXRAD_RADIAL_RLE_FACTOR;
@@ -191,24 +196,25 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, size_t 
             nexrad_image_draw_arc_segment(image,
                 entries[level].r, entries[level].g, entries[level].b,
                 angle_start, angle_end,
-                linelen,
-                linelen + data[r].length
+                radius,
+                radius + data[r].length
             );
 
-            linelen += data[r].length;
-
-            if (linelen >= width) break;
+            radius += data[r].length;
         }
     }
 
     return 0;
+
+error_image_get_info:
+    return -1;
 }
 
 static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nexrad_color_table_entry *entries) {
     nexrad_radial_ray *ray;
     unsigned char *data;
 
-    size_t bins;
+    uint16_t bins;
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
         int angle_start = be16toh(ray->angle_start) / 10;
@@ -252,9 +258,9 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_tab
     }
 
     if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        if (_image_unpack_digital(image, radial, entries)    < 0) goto error_image_unpack;
+        if (_image_unpack_digital(image, radial, entries) < 0) goto error_image_unpack;
     } else if (radial->type == NEXRAD_RADIAL_RLE) {
-        if (_image_unpack_rle(image, radial, width, entries) < 0) goto error_image_unpack;
+        if (_image_unpack_rle(image, radial, entries)     < 0) goto error_image_unpack;
     }
 
     return image;
