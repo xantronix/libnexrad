@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <endian.h>
@@ -13,18 +14,7 @@ struct _nexrad_radial {
     nexrad_radial_ray *     current;
 };
 
-static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type type) {
-    switch (type) {
-        case NEXRAD_RADIAL_RLE:
-        case NEXRAD_RADIAL_DIGITAL: {
-            break;
-        }
-
-        default: {
-            return 0;
-        }
-    }
-
+static int _valid_rle_packet(nexrad_radial_packet *packet) {
     if (
       be16toh(packet->rangebin_first) >   460 ||
       be16toh(packet->rangebin_count) >   460 ||
@@ -36,6 +26,33 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
     }
 
     return 1;
+}
+
+static int _valid_digital_packet(nexrad_radial_packet *packet) {
+    if (
+      be16toh(packet->rangebin_first) >   230 ||
+      be16toh(packet->rangebin_count) >  1840 ||
+      be16toh(packet->scale)          >  1000 ||
+      be16toh(packet->scale)          <     1 ||
+      be16toh(packet->rays)           >   720
+    ) {
+        return 0;
+    }
+
+    return 1;
+}
+
+static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type type) {
+    switch (type) {
+        case NEXRAD_RADIAL_RLE:     return _valid_rle_packet(packet);
+        case NEXRAD_RADIAL_DIGITAL: return _valid_digital_packet(packet);
+
+        default: {
+            break;
+        }
+    }
+
+    return 0;
 }
 
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {

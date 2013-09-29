@@ -22,7 +22,8 @@ enum nexrad_product_compression_type {
 enum nexrad_product_type {
     NEXRAD_PRODUCT_NHI =  59,
     NEXRAD_PRODUCT_DVL = 134,
-    NEXRAD_PRODUCT_EET = 135
+    NEXRAD_PRODUCT_EET = 135,
+    NEXRAD_PRODUCT_N0X = 159
 };
 
 enum nexrad_radar_mode {

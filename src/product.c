@@ -3,6 +3,7 @@
 static enum nexrad_product_type compressed_products[] = {
     NEXRAD_PRODUCT_DVL,
     NEXRAD_PRODUCT_EET,
+    NEXRAD_PRODUCT_N0X,
     0
 };
 
