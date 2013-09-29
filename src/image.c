@@ -257,6 +257,9 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
          * equal to the maximum.
          */
         while (x >= xmin && y <= ymax) {
+            int decrx = (re >= 0)?                1: 0;
+            int draw  = (x <= xmax && y >= ymin)? 1: 0;
+
             /*
              * However, when determining whether to draw the current point, as
              * X's minimum and Y's maximum may be reached prior to this condition,
@@ -264,69 +267,52 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
              * the current points fall within X's maximum and Y's minimum, and
              * plot a point under the correct octant as needed.
              */
-            if (x <= xmax && y >= ymin) {
+            if (draw) {
                 switch (octant) {
-                    case ESE: {
-                        _buf_write_pixel(buf, r, g, b,  x+xc,  y+yc, w);
-                        _buf_write_pixel(buf, r, g, b,  x+xc+1,  y+yc, w);
-                        break;
-                    }
-
-                    case SSE: {
-                        _buf_write_pixel(buf, r, g, b,  y+xc,  x+yc, w);
-                        _buf_write_pixel(buf, r, g, b,  y+xc+1,  x+yc, w);
-                        break;
-                    }
-
-                    case SSW: {
-                        _buf_write_pixel(buf, r, g, b, -y+xc,  x+yc, w);
-                        _buf_write_pixel(buf, r, g, b, -y+xc+1,  x+yc, w);
-                        break;
-                    }
-
-                    case WSW: {
-                        _buf_write_pixel(buf, r, g, b, -x+xc,  y+yc, w);
-                        _buf_write_pixel(buf, r, g, b, -x+xc+1,  y+yc, w);
-                        break;
-                    }
-
-                    case WNW: {
-                        _buf_write_pixel(buf, r, g, b, -x+xc, -y+yc, w);
-                        _buf_write_pixel(buf, r, g, b, -x+xc+1, -y+yc, w);
-                        break;
-                    }
-
-                    case NNW: {
-                        _buf_write_pixel(buf, r, g, b, -y+xc, -x+yc, w);
-                        _buf_write_pixel(buf, r, g, b, -y+xc+1, -x+yc, w);
-                        break;
-                    }
-
-                    case NNE: {
-                        _buf_write_pixel(buf, r, g, b,  y+xc, -x+yc, w);
-                        _buf_write_pixel(buf, r, g, b,  y+xc+1, -x+yc, w);
-                        break;
-                    }
-
-                    case ENE: {
-                        _buf_write_pixel(buf, r, g, b,  x+xc, -y+yc, w);
-                        _buf_write_pixel(buf, r, g, b,  x+xc+1, -y+yc, w);
-                        break;
-                    }
+                    case ESE: _buf_write_pixel(buf, r, g, b,  x+xc,  y+yc, w); break;
+                    case SSE: _buf_write_pixel(buf, r, g, b,  y+xc,  x+yc, w); break;
+                    case SSW: _buf_write_pixel(buf, r, g, b, -y+xc,  x+yc, w); break;
+                    case WSW: _buf_write_pixel(buf, r, g, b, -x+xc,  y+yc, w); break;
+                    case WNW: _buf_write_pixel(buf, r, g, b, -x+xc, -y+yc, w); break;
+                    case NNW: _buf_write_pixel(buf, r, g, b, -y+xc, -x+yc, w); break;
+                    case NNE: _buf_write_pixel(buf, r, g, b,  y+xc, -x+yc, w); break;
+                    case ENE: _buf_write_pixel(buf, r, g, b,  x+xc, -y+yc, w); break;
 
                     default: {
                         break;
+                    }
+                }
+
+                /*
+                 * If X will be decremented soon, then we will need to fill in the
+                 * next pixel over to prevent a Moire pattern from presenting itself
+                 * in any filled arcs.
+                 */
+                if (decrx) {
+                    switch (octant) {
+                        case ESE: _buf_write_pixel(buf, r, g, b,  x+xc-1,  y+yc, w); break;
+                        case SSE: _buf_write_pixel(buf, r, g, b,  y+xc+1,  x+yc, w); break;
+                        case SSW: _buf_write_pixel(buf, r, g, b, -y+xc-1,  x+yc, w); break;
+                        case WSW: _buf_write_pixel(buf, r, g, b, -x+xc+1,  y+yc, w); break;
+                        case WNW: _buf_write_pixel(buf, r, g, b, -x+xc+1, -y+yc, w); break;
+                        case NNW: _buf_write_pixel(buf, r, g, b, -y+xc-1, -x+yc, w); break;
+                        case NNE: _buf_write_pixel(buf, r, g, b,  y+xc+1, -x+yc, w); break;
+                        case ENE: _buf_write_pixel(buf, r, g, b,  x+xc-1, -y+yc, w); break;
+
+                        default: {
+                            break;
+                        }
                     }
                 }
             }
 
             y++;
 
-            if (re < 0) {
-                re += 2 * y + 1;
-            } else {
+            if (decrx) {
                 x--;
                 re += 2 * (y - x + 1);
+            } else {
+                re += 2 * y + 1;
             }
         }
     }
