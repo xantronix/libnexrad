@@ -203,8 +203,10 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
         int r;
 
-        int angle_start = be16toh(ray->angle_start) / 10;
-        int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
+        int angle_start = (int16_t)be16toh(ray->angle_start);
+        int angle_delta = (int16_t)be16toh(ray->angle_delta);
+        int angle_end   = angle_start + angle_delta;
+
         int radius = 0;
 
         for (r=0; r<runs; r++) {
@@ -212,9 +214,9 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_
 
             nexrad_image_draw_arc_segment(image,
                 entries[level].r, entries[level].g, entries[level].b,
-                angle_start, angle_end,
-                radius,
-                radius + data[r].length
+                angle_start * NEXRAD_RADIAL_ANGLE_FACTOR,
+                angle_end   * NEXRAD_RADIAL_ANGLE_FACTOR,
+                radius, radius + data[r].length
             );
 
             radius += data[r].length;
@@ -234,8 +236,9 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
     uint16_t bins;
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
-        int angle_start = be16toh(ray->angle_start) / 10;
-        int angle_end   = (be16toh(ray->angle_delta) / 10) + angle_start;
+        int angle_start = (int16_t)be16toh(ray->angle_start);
+        int angle_delta = (int16_t)be16toh(ray->angle_delta);
+        int angle_end   = angle_start + angle_delta;
 
         int b;
 
@@ -244,7 +247,8 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
 
             nexrad_image_draw_arc_segment(image,
                 entries[level].r, entries[level].g, entries[level].b,
-                angle_start, angle_end,
+                angle_start * NEXRAD_RADIAL_ANGLE_FACTOR,
+                angle_end   * NEXRAD_RADIAL_ANGLE_FACTOR,
                 b, b+1
             );
         }
