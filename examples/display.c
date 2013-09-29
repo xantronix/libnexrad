@@ -31,8 +31,8 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
     );
 
     while ((ray = nexrad_radial_read_ray(radial, NULL, &runs, &bins)) != NULL) {
-        printf("Wee, got a ray with %hu runs and %hu bins!\n",
-            runs, bins
+        printf("Wee, got a ray with %hu runs and %hu bins, %hu start and %hu delta\n",
+            runs, bins, be16toh(ray->angle_start), be16toh(ray->angle_delta)
         );
     }
 
