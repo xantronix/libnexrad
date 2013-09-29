@@ -3,7 +3,7 @@ CFLAGS		= -g -Wno-unused-result -fno-inline -Wall -O2
 LDFLAGS		= -lnexrad
 
 GENCLUTS	= gencluts
-CLUTS		= reflectivity.clut
+CLUTS		= reflectivity.clut velocity.clut
 
 PREFIX		= /usr/local
 INSTALL_SHARE	= $(PREFIX)/share
