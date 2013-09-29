@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <endian.h>
+#include <math.h>
 #include <errno.h>
 
 #include <nexrad/radial.h>
@@ -203,9 +204,11 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
         int r;
 
-        int angle_start = (int16_t)be16toh(ray->angle_start);
-        int angle_delta = (int16_t)be16toh(ray->angle_delta);
-        int angle_end   = angle_start + angle_delta;
+        int angle_start_i = (int16_t)be16toh(ray->angle_start);
+        int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
+
+        int angle_start = round(NEXRAD_RADIAL_ANGLE_FACTOR * angle_start_i);
+        int angle_end   = round(NEXRAD_RADIAL_ANGLE_FACTOR * (angle_start_i + angle_delta_i));
 
         int radius = 0;
 
@@ -214,8 +217,7 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_
 
             nexrad_image_draw_arc_segment(image,
                 entries[level].r, entries[level].g, entries[level].b,
-                angle_start * NEXRAD_RADIAL_ANGLE_FACTOR,
-                angle_end   * NEXRAD_RADIAL_ANGLE_FACTOR,
+                angle_start, angle_end,
                 radius, radius + data[r].length
             );
 
@@ -236,9 +238,11 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
     uint16_t bins;
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
-        int angle_start = (int16_t)be16toh(ray->angle_start);
-        int angle_delta = (int16_t)be16toh(ray->angle_delta);
-        int angle_end   = angle_start + angle_delta;
+        int angle_start_i = (int16_t)be16toh(ray->angle_start);
+        int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
+
+        int angle_start = round(NEXRAD_RADIAL_ANGLE_FACTOR * angle_start_i);
+        int angle_end   = round(NEXRAD_RADIAL_ANGLE_FACTOR * (angle_start_i + angle_delta_i));
 
         int b;
 
@@ -247,8 +251,7 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
 
             nexrad_image_draw_arc_segment(image,
                 entries[level].r, entries[level].g, entries[level].b,
-                angle_start * NEXRAD_RADIAL_ANGLE_FACTOR,
-                angle_end   * NEXRAD_RADIAL_ANGLE_FACTOR,
+                angle_start, angle_end,
                 b, b+1
             );
         }
