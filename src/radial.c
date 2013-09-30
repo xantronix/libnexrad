@@ -214,11 +214,13 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_
         for (r=0; r<runs; r++) {
             uint8_t level = data[r].level * NEXRAD_RADIAL_RLE_FACTOR;
 
-            nexrad_image_draw_arc_segment(image,
-                entries[level].r, entries[level].g, entries[level].b,
-                angle_start, angle_end,
-                radius, radius + data[r].length
-            );
+            if (level > 0) {
+                nexrad_image_draw_arc_segment(image,
+                    entries[level].r, entries[level].g, entries[level].b,
+                    angle_start, angle_end,
+                    radius, radius + data[r].length
+                );
+            }
 
             radius += data[r].length;
         }
@@ -250,11 +252,13 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
         for (b=0; b<bins; b++) {
             uint8_t level = ((uint8_t *)data)[b];
 
-            nexrad_image_draw_arc_segment(image,
-                entries[level].r, entries[level].g, entries[level].b,
-                angle_start, angle_end,
-                radius, radius+1
-            );
+            if (level > 0x0f) {
+                nexrad_image_draw_arc_segment(image,
+                    entries[level].r, entries[level].g, entries[level].b,
+                    angle_start, angle_end,
+                    radius, radius+1
+                );
+            }
 
             radius++;
         }
