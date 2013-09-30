@@ -58,8 +58,12 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial,
 );
 
 int nexrad_radial_get_info(nexrad_radial *radial,
-    uint16_t *raysp,
-    uint16_t *binsp
+    uint16_t *rangebin_first,
+    uint16_t *rangebin_count,
+     int16_t *i,
+     int16_t *j,
+    uint16_t *scale,
+    uint16_t *rays
 );
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial,

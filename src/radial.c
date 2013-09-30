@@ -176,16 +176,28 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, ui
     return ray;
 }
 
-int nexrad_radial_get_info(nexrad_radial *radial, uint16_t *raysp, uint16_t *binsp) {
+int nexrad_radial_get_info(nexrad_radial *radial, uint16_t *rangebin_first, uint16_t *rangebin_count, int16_t *i, int16_t *j, uint16_t *scale, uint16_t *rays) {
     if (radial == NULL) {
         return -1;
     }
 
-    if (raysp)
-        *raysp = be16toh(radial->packet->rays);
+    if (rangebin_first)
+        *rangebin_first = be16toh(radial->packet->rangebin_first);
 
-    if (binsp)
-        *binsp = be16toh(radial->packet->rangebin_count);
+    if (rangebin_count)
+        *rangebin_count = be16toh(radial->packet->rangebin_count);
+
+    if (i)
+        *i = (int16_t)be16toh(radial->packet->i);
+
+    if (j)
+        *j = (int16_t)be16toh(radial->packet->j);
+
+    if (scale)
+        *scale = be16toh(radial->packet->scale);
+
+    if (rays)
+        *rays = be16toh(radial->packet->rays);
 
     return 0;
 }
