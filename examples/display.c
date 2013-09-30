@@ -25,7 +25,8 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
         exit(1);
     }
 
-    printf("Huzzah, got a radial with %d rangebin offset, %d rangebins/ray, %d rays\n",
+    printf("Huzzah, got a radial type %d packet with %d rangebin offset, %d rangebins/ray, %d rays\n",
+        (int)be16toh(packet->type),
         (int)be16toh(packet->rangebin_first),
         (int)be16toh(packet->rangebin_count),
         (int)be16toh(packet->rays)
