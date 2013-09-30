@@ -202,6 +202,14 @@ int nexrad_radial_get_info(nexrad_radial *radial, uint16_t *rangebin_first, uint
     return 0;
 }
 
+nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial) {
+    if (radial == NULL) {
+        return NULL;
+    }
+
+    return radial->packet;
+}
+
 static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_color_table_entry *entries) {
     nexrad_radial_ray *ray;
     nexrad_radial_run *data;
