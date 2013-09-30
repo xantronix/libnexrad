@@ -4,9 +4,9 @@
 
 #include <nexrad/image.h>
 
-#define NEXRAD_IMAGE_PIXEL_BYTES  3
+#define NEXRAD_IMAGE_PIXEL_BYTES  4
 #define NEXRAD_IMAGE_COLOR_DEPTH  8
-#define NEXRAD_IMAGE_COLOR_FORMAT PNG_TRUECOLOR
+#define NEXRAD_IMAGE_COLOR_FORMAT PNG_TRUECOLOR_ALPHA
 
 #define NEXRAD_IMAGE_PIXEL_OFFSET(x, y, w) \
   ((y * w * NEXRAD_IMAGE_PIXEL_BYTES) + x * NEXRAD_IMAGE_PIXEL_BYTES)
@@ -95,6 +95,7 @@ static inline void _buf_write_pixel(unsigned char *buf, uint8_t r, uint8_t g, ui
     buf[offset]   = r;
     buf[offset+1] = g;
     buf[offset+2] = b;
+    buf[offset+3] = 0xff;
 }
 
 static inline void _int_swap(int *a, int *b) {
@@ -142,6 +143,7 @@ void nexrad_image_draw_run(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b,
         buf[offset++] = r;
         buf[offset++] = g;
         buf[offset++] = b;
+        buf[offset++] = 0xff;
     }
 }
 
