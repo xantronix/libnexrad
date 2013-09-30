@@ -149,7 +149,7 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
     int x, xc, y, yc, radius, re, w;
     int xmin, xmax, ymin, ymax;
     unsigned char *buf;
-    double rad = M_PI / 180;
+    static double rad = M_PI / 180;
 
     enum {
         NONE, ESE, SSE, SSW, WSW, WNW, NNW, NNE, ENE
