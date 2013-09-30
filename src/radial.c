@@ -201,15 +201,15 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_
     }
 
     while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
-        int r;
-
         int angle_start_i = (int16_t)be16toh(ray->angle_start);
         int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
 
         int angle_start = round(NEXRAD_RADIAL_ANGLE_FACTOR * angle_start_i);
         int angle_end   = round(NEXRAD_RADIAL_ANGLE_FACTOR * (angle_start_i + angle_delta_i));
 
-        int radius = 0;
+        int radius = be16toh(radial->packet->rangebin_first);
+
+        int r;
 
         for (r=0; r<runs; r++) {
             uint8_t level = data[r].level * NEXRAD_RADIAL_RLE_FACTOR;
@@ -243,6 +243,8 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
         int angle_start = round(NEXRAD_RADIAL_ANGLE_FACTOR * angle_start_i);
         int angle_end   = round(NEXRAD_RADIAL_ANGLE_FACTOR * (angle_start_i + angle_delta_i));
 
+        int radius = be16toh(radial->packet->rangebin_first);
+
         int b;
 
         for (b=0; b<bins; b++) {
@@ -251,8 +253,10 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
             nexrad_image_draw_arc_segment(image,
                 entries[level].r, entries[level].g, entries[level].b,
                 angle_start, angle_end,
-                b, b+1
+                radius, radius+1
             );
+
+            radius++;
         }
     }
 
@@ -272,7 +276,7 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_tab
         goto error_color_table_get_entries;
     }
 
-    radius = be16toh(radial->packet->rangebin_count);
+    radius = be16toh(radial->packet->rangebin_first) + be16toh(radial->packet->rangebin_count);
     width  = 2 * radius;
     height = 2 * radius;
 
