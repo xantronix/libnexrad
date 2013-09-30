@@ -171,7 +171,10 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
     _int_order(&rmin, &rmax);
 
     amin = amin % 360;
-    amax = amax % 360;
+
+    if (amax && (amax = amax % 360) == 0) {
+        amax = 360;
+    }
 
     /*
      * Then, determine which octant the arc range pertains to.
