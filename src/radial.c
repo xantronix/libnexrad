@@ -176,6 +176,14 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, ui
     return ray;
 }
 
+enum nexrad_radial_type nexrad_radial_get_type(nexrad_radial *radial) {
+    if (radial == NULL) {
+        return -1;
+    }
+
+    return be16toh(radial->packet->type);
+}
+
 int nexrad_radial_get_info(nexrad_radial *radial, uint16_t *rangebin_first, uint16_t *rangebin_count, int16_t *i, int16_t *j, uint16_t *scale, uint16_t *rays) {
     if (radial == NULL) {
         return -1;

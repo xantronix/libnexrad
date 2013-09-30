@@ -57,6 +57,8 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial,
     uint16_t *binsp
 );
 
+enum nexrad_radial_type nexrad_radial_get_type(nexrad_radial *radial);
+
 int nexrad_radial_get_info(nexrad_radial *radial,
     uint16_t *rangebin_first,
     uint16_t *rangebin_count,
