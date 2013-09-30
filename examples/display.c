@@ -25,9 +25,10 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
         exit(1);
     }
 
-    printf("Huzzah, got a radial with %d rangebins/ray, %d rays\n",
-        be16toh(packet->rangebin_count),
-        be16toh(packet->rays)
+    printf("Huzzah, got a radial with %d rangebin offset, %d rangebins/ray, %d rays\n",
+        (int)be16toh(packet->rangebin_first),
+        (int)be16toh(packet->rangebin_count),
+        (int)be16toh(packet->rays)
     );
 
     while ((ray = nexrad_radial_read_ray(radial, NULL, &runs, &bins)) != NULL) {
