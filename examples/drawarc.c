@@ -30,10 +30,10 @@ int main(int argc, char **argv) {
         int color = 0x10;
         int r;
 
-        for (r=0; r<180; r+=16) {
+        for (r=0; r<180; r+=8) {
             if (color >= 0xf0) color = 0x10;
 
-            nexrad_image_draw_arc_segment(image, color, color, color, a, a + 35, r, r+16);
+            nexrad_image_draw_arc_segment(image, color, color % 0x3f, color % 0x7f, a, a + 35, r, r+2);
 
             color += 0x10;
         }
