@@ -210,6 +210,14 @@ int nexrad_radial_get_info(nexrad_radial *radial, uint16_t *rangebin_first, uint
     return 0;
 }
 
+uint16_t nexrad_radial_rays_left(nexrad_radial *radial) {
+    if (radial == NULL) {
+        return 0;
+    }
+
+    return radial->rays_left;
+}
+
 nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial) {
     if (radial == NULL) {
         return NULL;

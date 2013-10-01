@@ -68,6 +68,8 @@ int nexrad_radial_get_info(nexrad_radial *radial,
     uint16_t *rays
 );
 
+uint16_t nexrad_radial_rays_left(nexrad_radial *radial);
+
 nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial);
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial,
