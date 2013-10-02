@@ -32,6 +32,12 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
         (int)be16toh(packet->rays)
     );
 
+    printf("Radial has scale %d with %d, %d offset\n",
+        (int)be16toh(packet->scale),
+        (int)be16toh(packet->i),
+        (int)be16toh(packet->j)
+    );
+
     while ((ray = nexrad_radial_read_ray(radial, NULL, &runs, &bins)) != NULL) {
         printf("Wee, got a ray with %hu runs and %hu bins, %hu start and %hu delta\n",
             runs, bins, be16toh(ray->angle_start), be16toh(ray->angle_delta)
