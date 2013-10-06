@@ -18,8 +18,7 @@ typedef struct _nexrad_file_header {
     char _whitespace3[3];
     char product_code[3];
     char station[3];
-    char _whitespace4[2];
-    char nul;
+    char _whitespace4[3];
 } nexrad_file_header;
 
 typedef struct _nexrad_message_header {
