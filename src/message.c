@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <endian.h>
 #include <bzlib.h>
 #include "util.h"
 

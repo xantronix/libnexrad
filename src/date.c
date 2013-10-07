@@ -1,4 +1,4 @@
-#include <endian.h>
+#include "util.h"
 
 #include <nexrad/date.h>
 

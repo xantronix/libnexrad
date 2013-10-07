@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <errno.h>
-#include <endian.h>
+#include "util.h"
 
 #include <nexrad/header.h>
 #include <nexrad/product.h>

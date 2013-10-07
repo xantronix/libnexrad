@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include <endian.h>
 #include <math.h>
 #include <errno.h>
+#include "util.h"
 
 #include <nexrad/radial.h>
 

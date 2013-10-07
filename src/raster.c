@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include <endian.h>
 #include <errno.h>
+#include "util.h"
 
 #include <nexrad/raster.h>
 

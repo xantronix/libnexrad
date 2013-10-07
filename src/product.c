@@ -1,3 +1,5 @@
+#include "util.h"
+
 #include <nexrad/product.h>
 
 static enum nexrad_product_type compressed_products[] = {

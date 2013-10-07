@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <endian.h>
 #include "util.h"
 
 #include <nexrad/packet.h>
