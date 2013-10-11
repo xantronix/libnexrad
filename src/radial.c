@@ -156,6 +156,23 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth
     return NULL;
 }
 
+int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t range) {
+    nexrad_radial_ray *ray;
+
+    if (radial == NULL) {
+        return -1;
+    }
+
+    if ((ray = nexrad_radial_get_ray(radial, azimuth)) == NULL) {
+        goto error_radial_get_ray;
+    }
+
+    return (int)((uint8_t *)ray + sizeof(nexrad_radial_ray))[range];
+
+error_radial_get_ray:
+    return -1;
+}
+
 nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, uint16_t *runsp, uint16_t *binsp) {
     nexrad_radial_ray *ray;
     uint16_t runs, bins;
