@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "util.h"
 
 #include <nexrad/tabular.h>
 

@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include "config.h"
 
-#define bswap16(v) (((v & 0xff00) >> 16) | (v & 0x00ff) << 16)
+#define bswap16(v) (((v & 0xff00) >> 8) | (v & 0x00ff) << 8)
 
 #define bswap32(v) \
     (((v & 0xff000000) >> 24) | \
@@ -14,10 +14,10 @@
 
 #ifndef _ENDIAN_H
 #ifdef __DO_SWAP_BYTES
-#define be16toh(v) bswap16(v)
-#define be32toh(v) bswap32(v)
-#define htobe16(v) bswap16(v)
-#define htobe32(v) bswap32(v)
+#define be16toh(v) bswap16((uint16_t)v)
+#define be32toh(v) bswap32((uint32_t)v)
+#define htobe16(v) bswap16((uint16_t)v)
+#define htobe32(v) bswap32((uint32_t)v)
 #endif /* __DO_SWAP_BYTES */
 #endif /* !_ENDIAN_H */
 
