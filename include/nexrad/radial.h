@@ -51,6 +51,10 @@ void nexrad_radial_reset(nexrad_radial *radial);
 
 void nexrad_radial_close(nexrad_radial *radial);
 
+nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth);
+
+int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t range);
+
 nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial,
     void **data,
     uint16_t *runsp,

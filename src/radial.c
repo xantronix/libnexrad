@@ -112,6 +112,50 @@ void nexrad_radial_close(nexrad_radial *radial) {
     free(radial);
 }
 
+static inline nexrad_radial_ray *_radial_ray_at_azimuth(nexrad_radial *radial, uint16_t azimuth) {
+    return (nexrad_radial_ray *)&((char *)radial->packet + sizeof(nexrad_radial_packet))[azimuth];
+}
+
+nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth) {
+    nexrad_radial_ray *ray;
+    uint16_t rays, a;
+
+    if (radial == NULL) {
+        return NULL;
+    }
+
+    rays = be16toh(radial->packet->rays);
+
+    /*
+     * Do not allow this operation on RLE-encoded radials.
+     */
+    if (nexrad_radial_get_type(radial) != NEXRAD_RADIAL_DIGITAL || azimuth > rays) {
+        errno = ENOENT;
+        return NULL;
+    }
+
+    /*
+     * If the ray in the position in memory directly correlating to the current
+     * azimuth is of a different angle than the azimuth, then brute forcedly
+     * locate the correct ray.
+     */
+    ray = _radial_ray_at_azimuth(radial, azimuth);
+
+    if (azimuth == (int)round(NEXRAD_RADIAL_ANGLE_FACTOR * be16toh(ray->angle_start))) {
+        return ray;
+    }
+
+    for (a=0; a<rays; a++) {
+        ray = _radial_ray_at_azimuth(radial, a);
+
+        if (azimuth == (int)round(NEXRAD_RADIAL_ANGLE_FACTOR * be16toh(ray->angle_start))) {
+            return ray;
+        }
+    }
+
+    return NULL;
+}
+
 nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, uint16_t *runsp, uint16_t *binsp) {
     nexrad_radial_ray *ray;
     uint16_t runs, bins;
