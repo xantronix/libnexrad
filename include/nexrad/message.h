@@ -16,7 +16,11 @@
 
 typedef struct _nexrad_message nexrad_message;
 
+nexrad_message *nexrad_message_open_buf(void *buf, size_t len);
+
 nexrad_message *nexrad_message_open(const char *path);
+
+void nexrad_message_destroy(nexrad_message *message);
 
 void nexrad_message_close(nexrad_message *message);
 

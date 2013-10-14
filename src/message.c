@@ -90,6 +90,7 @@ static size_t _message_get_body_size(nexrad_message *message) {
 
 static void *_message_get_body(nexrad_message *message, nexrad_product_description *description, enum nexrad_product_compression_type *compp) {
     enum nexrad_product_compression_type compression;
+    void *dest;
 
     /*
      * Locate the body of the NEXRAD data after the message header and product
@@ -117,7 +118,6 @@ static void *_message_get_body(nexrad_message *message, nexrad_product_descripti
         case NEXRAD_PRODUCT_COMPRESSION_BZIP2: {
             unsigned int destlen = be32toh(description->attributes.compression.size);
             size_t bodylen = _message_get_body_size(message);
-            void *dest;
 
             if (destlen > NEXRAD_MESSAGE_MAX_BODY_SIZE) {
                 goto error_decompress_size;
@@ -128,8 +128,6 @@ static void *_message_get_body(nexrad_message *message, nexrad_product_descripti
             }
 
             if (BZ2_bzBuffToBuffDecompress(dest, &destlen, body, bodylen, 0, 0) < 0) {
-                free(dest);
-
                 goto error_decompress;
             }
 
@@ -152,6 +150,8 @@ static void *_message_get_body(nexrad_message *message, nexrad_product_descripti
     return body;
 
 error_decompress:
+    free(dest);
+
 error_decompress_malloc:
 error_decompress_size:
     return NULL;
@@ -162,7 +162,7 @@ error_decompress_size:
  * produce a high-level table-of-contents indicating the locations of the five
  * blocks within the message.
  */
-static int _index_message(nexrad_message *message) {
+static int _message_index(nexrad_message *message) {
     nexrad_file_header *file_header = message->data;
 
     nexrad_message_header *      message_header;
@@ -232,14 +232,38 @@ error_invalid_tabular_block_offset:
 error_invalid_graphic_block_offset:
 error_invalid_symbology_block_offset:
 error_message_get_body:
-    message->body = NULL;
-
 error_invalid_product_description:
 error_invalid_message_header:
 error_invalid_file_header:
     errno = EINVAL;
 
     return -1;
+}
+
+nexrad_message *nexrad_message_open_buf(void *buf, size_t len) {
+    nexrad_message *message;
+
+    if ((message = malloc(sizeof(nexrad_message))) == NULL) {
+        goto error_malloc;
+    }
+
+    message->size        = len;
+    message->page_size   = 0;
+    message->mapped_size = 0;
+    message->fd          = 0;
+    message->data        = buf;
+
+    if (_message_index(message) < 0) {
+        goto error_message_index;
+    }
+
+    return message;
+
+error_message_index:
+    nexrad_message_destroy(message);
+
+error_malloc:
+    return NULL;
 }
 
 nexrad_message *nexrad_message_open(const char *path) {
@@ -266,34 +290,27 @@ nexrad_message *nexrad_message_open(const char *path) {
         goto error_mmap;
     }
 
-    if (_index_message(message) < 0) {
-        goto error_index_message;
+    if (_message_index(message) < 0) {
+        goto error_message_index;
     }
 
     return message;
 
-error_index_message:
-    if (message->compression != NEXRAD_PRODUCT_COMPRESSION_NONE) {
-        free(message->body);
-
-        message->compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
-        message->body        = NULL;
-    }
-
+error_message_index:
     munmap(message->data, message->mapped_size);
 
 error_mmap:
     close(message->fd);
 
 error_open:
-    free(message);
+    nexrad_message_destroy(message);
 
 error_stat:
 error_malloc:
     return NULL;
 }
 
-void nexrad_message_close(nexrad_message *message) {
+void nexrad_message_destroy(nexrad_message *message) {
     if (message == NULL) {
         return;
     }
@@ -311,10 +328,9 @@ void nexrad_message_close(nexrad_message *message) {
         message->fd = 0;
     }
 
-    if (message->compression != NEXRAD_PRODUCT_COMPRESSION_NONE) {
-        free(message->body);
-
+    if (message->body && message->compression != NEXRAD_PRODUCT_COMPRESSION_NONE) {
         message->compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
+        free(message->body);
     }
 
     message->size           = 0;
@@ -330,6 +346,10 @@ void nexrad_message_close(nexrad_message *message) {
     free(message);
 
     return;
+}
+
+void nexrad_message_close(nexrad_message *message) {
+    nexrad_message_destroy(message);
 }
 
 nexrad_chunk *nexrad_message_open_symbology_block(nexrad_message *message) {
