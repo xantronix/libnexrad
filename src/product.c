@@ -3,11 +3,9 @@
 #include <nexrad/product.h>
 
 static enum nexrad_product_type compressed_products[] = {
-    NEXRAD_PRODUCT_DVL,
-    NEXRAD_PRODUCT_N0R,
-    NEXRAD_PRODUCT_EET,
-    NEXRAD_PRODUCT_N0X,
-    0
+     32,  94,  99, 134, 135, 136, 138, 149, 152,
+    153, 154, 155, 159, 161, 163, 165, 170, 172,
+    173, 174, 175, 176, 177, 194, 195, 199,   0
 };
 
 int nexrad_product_type_supports_compression(enum nexrad_product_type type) {
