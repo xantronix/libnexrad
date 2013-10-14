@@ -9,7 +9,7 @@
 #pragma pack(push)
 #pragma pack(1)
 
-typedef struct _nexrad_file_header {
+typedef struct _nexrad_wmo_header {
     char region[6];
     char _whitespace1;
     char office[4];
@@ -19,7 +19,7 @@ typedef struct _nexrad_file_header {
     char product_code[3];
     char station[3];
     char _whitespace4[3];
-} nexrad_file_header;
+} nexrad_wmo_header;
 
 typedef struct _nexrad_message_header {
      int16_t    product_type; /* Product type ID */
