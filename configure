@@ -1,0 +1,14 @@
+#! /bin/sh
+
+OS=`uname -s`
+
+case $OS in
+    Linux)
+        cat <<EOF > src/config.h
+#ifndef _CONFIG_H
+#define _CONFIG_H
+#include <endian.h>
+#endif /* _CONFIG_H */
+EOF
+    ;;
+esac
