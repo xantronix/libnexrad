@@ -508,7 +508,7 @@ int nexrad_message_read_station_location(nexrad_message *message, double *lat, d
     *lon = NEXRAD_PRODUCT_COORD_MAGNITUDE * (int32_t)be32toh(message->description->station_lon);
 
     if (alt)
-        *alt = (int16_t)be16toh(message->description->station_altitude);
+        *alt = NEXRAD_PRODUCT_ALT_FACTOR * (int16_t)be16toh(message->description->station_altitude);
 
     return 0;
 }

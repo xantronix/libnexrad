@@ -12,6 +12,7 @@
 #define NEXRAD_VERSION 1
 
 #define NEXRAD_PRODUCT_COORD_MAGNITUDE 0.001
+#define NEXRAD_PRODUCT_ALT_FACTOR      0.3048
 #define NEXRAD_PRODUCT_AVSET_MAGNITUDE 0.1
 
 enum nexrad_product_compression_type {
