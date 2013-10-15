@@ -499,13 +499,16 @@ int nexrad_message_read_station(nexrad_message *message, char *dest, size_t dest
     );
 }
 
-int nexrad_message_read_station_coords(nexrad_message *message, double *lat, double *lon) {
+int nexrad_message_read_station_location(nexrad_message *message, double *lat, double *lon, double *alt) {
     if (message == NULL || lat == NULL || lon == NULL) {
         return -1;
     }
 
     *lat = NEXRAD_PRODUCT_COORD_MAGNITUDE * (int32_t)be32toh(message->description->station_lat);
     *lon = NEXRAD_PRODUCT_COORD_MAGNITUDE * (int32_t)be32toh(message->description->station_lon);
+
+    if (alt)
+        *alt = (int16_t)be16toh(message->description->station_altitude);
 
     return 0;
 }

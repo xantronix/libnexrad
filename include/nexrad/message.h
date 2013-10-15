@@ -66,9 +66,10 @@ int nexrad_message_read_station(nexrad_message *message,
     size_t destlen
 );
 
-int nexrad_message_read_station_coords(nexrad_message *message,
+int nexrad_message_read_station_location(nexrad_message *message,
     double *lat,
-    double *lon
+    double *lon,
+    double *alt
 );
 
 #endif /* _NEXRAD_MESSAGE_H */

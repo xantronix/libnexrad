@@ -65,7 +65,7 @@ typedef struct _nexrad_product_description {
      int16_t    divider;          /* Start of block */
      int32_t    station_lat;      /* Radar site latitude */
      int32_t    station_lon;      /* Radar site longitude */
-    uint16_t    station_altitude; /* Radar site altitude */
+     int16_t    station_altitude; /* Radar site altitude */
     uint16_t    type;             /* NOAA product ID */
     uint16_t    mode;             /* Radar operational mode */
     uint16_t    vcp;              /* Radar volume coverage pattern */
