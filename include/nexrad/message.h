@@ -72,4 +72,6 @@ int nexrad_message_read_station_location(nexrad_message *message,
     double *alt
 );
 
+nexrad_packet *nexrad_message_find_symbology_packet_by_type(nexrad_message *message, enum nexrad_packet_type);
+
 #endif /* _NEXRAD_MESSAGE_H */

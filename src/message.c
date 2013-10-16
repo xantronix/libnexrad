@@ -512,3 +512,49 @@ int nexrad_message_read_station_location(nexrad_message *message, double *lat, d
 
     return 0;
 }
+
+nexrad_packet *nexrad_message_find_symbology_packet_by_type(nexrad_message *message, enum nexrad_packet_type type) {
+    nexrad_symbology_block *symbology;
+    nexrad_chunk *block, *layer;
+    nexrad_packet *ret = NULL;
+
+    if (message == NULL) {
+        return NULL;
+    }
+
+    if ((symbology = nexrad_message_get_symbology_block(message)) == NULL) {
+        goto error_get_symbology_block;
+    }
+
+    if ((block = nexrad_symbology_block_open(symbology)) == NULL) {
+        goto error_symbology_block_open;
+    }
+
+    while ((layer = nexrad_symbology_block_read_layer(block)) != NULL) {
+        nexrad_packet *packet;
+        size_t size;
+
+        while ((packet = nexrad_symbology_layer_peek_packet(layer, &size)) != NULL) {
+            if (nexrad_packet_get_type(packet) != type) {
+                continue;
+            }
+
+            ret = packet;
+
+            nexrad_symbology_layer_close(layer);
+
+            goto done;
+        }
+
+        nexrad_symbology_layer_close(layer);
+    }
+
+done:
+    nexrad_symbology_block_close(block);
+
+    return ret;
+
+error_symbology_block_open:
+error_get_symbology_block:
+    return NULL;
+}
