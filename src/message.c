@@ -536,6 +536,8 @@ nexrad_packet *nexrad_message_find_symbology_packet_by_type(nexrad_message *mess
 
         while ((packet = nexrad_symbology_layer_peek_packet(layer, &size)) != NULL) {
             if (nexrad_packet_get_type(packet) != type) {
+                nexrad_symbology_layer_next_packet(layer, size);
+
                 continue;
             }
 
