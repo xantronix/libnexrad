@@ -36,7 +36,9 @@ void *nexrad_chunk_read(nexrad_chunk *iterator,
     void **data
 );
 
-nexrad_chunk *nexrad_chunk_read_block_layer(nexrad_chunk *block, enum nexrad_chunk_type type);
+nexrad_chunk *nexrad_chunk_read_block_layer(nexrad_chunk *block,
+    enum nexrad_chunk_type type
+);
 
 void nexrad_chunk_close(nexrad_chunk *iterator);
 
