@@ -112,8 +112,11 @@ void nexrad_radial_close(nexrad_radial *radial) {
     free(radial);
 }
 
-static inline nexrad_radial_ray *_radial_ray_at_azimuth(nexrad_radial *radial, uint16_t azimuth) {
-    return (nexrad_radial_ray *)&((char *)radial->packet + sizeof(nexrad_radial_packet))[azimuth];
+static inline nexrad_radial_ray *_radial_ray_by_index(nexrad_radial *radial, uint16_t azimuth) {
+    uint16_t bins = be16toh(radial->packet->rangebin_count);
+    size_t offset = sizeof(nexrad_radial_packet) + azimuth * (sizeof(nexrad_radial_ray) + bins);
+
+    return (nexrad_radial_ray *)((char *)radial->packet + offset);
 }
 
 nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth) {
@@ -130,7 +133,7 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth
      * Do not allow this operation on RLE-encoded radials.
      */
     if (nexrad_radial_get_type(radial) != NEXRAD_RADIAL_DIGITAL || azimuth > rays) {
-        errno = ENOENT;
+        errno = EINVAL;
         return NULL;
     }
 
@@ -139,14 +142,14 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth
      * azimuth is of a different angle than the azimuth, then brute forcedly
      * locate the correct ray.
      */
-    ray = _radial_ray_at_azimuth(radial, azimuth);
+    ray = _radial_ray_by_index(radial, azimuth);
 
     if (azimuth == (int)round(NEXRAD_RADIAL_ANGLE_FACTOR * be16toh(ray->angle_start))) {
         return ray;
     }
 
     for (a=0; a<rays; a++) {
-        ray = _radial_ray_at_azimuth(radial, a);
+        ray = _radial_ray_by_index(radial, a);
 
         if (azimuth == (int)round(NEXRAD_RADIAL_ANGLE_FACTOR * be16toh(ray->angle_start))) {
             return ray;
