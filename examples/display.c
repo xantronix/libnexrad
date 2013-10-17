@@ -279,7 +279,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    nexrad_message_read_station_coords(message, &lat, &lon);
+    nexrad_message_read_station_location(message, &lat, &lon, NULL);
 
     printf("Radar lat/lon: %f, %f\n", lat, lon);
 
