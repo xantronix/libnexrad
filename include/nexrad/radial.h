@@ -7,8 +7,9 @@
 #include <nexrad/color.h>
 #include <nexrad/image.h>
 
-#define NEXRAD_RADIAL_RLE_FACTOR   16
-#define NEXRAD_RADIAL_ANGLE_FACTOR  0.1
+#define NEXRAD_RADIAL_RLE_FACTOR     16
+#define NEXRAD_RADIAL_AZIMUTH_FACTOR  0.1
+#define NEXRAD_RADIAL_RANGE_FACTOR    0.001
 
 enum nexrad_radial_type {
     NEXRAD_RADIAL_RLE     = 0xaf1f,

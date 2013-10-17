@@ -144,14 +144,14 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth
      */
     ray = _radial_ray_by_index(radial, azimuth);
 
-    if (azimuth == (int)round(NEXRAD_RADIAL_ANGLE_FACTOR * be16toh(ray->angle_start))) {
+    if (azimuth == (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start))) {
         return ray;
     }
 
     for (a=0; a<rays; a++) {
         ray = _radial_ray_by_index(radial, a);
 
-        if (azimuth == (int)round(NEXRAD_RADIAL_ANGLE_FACTOR * be16toh(ray->angle_start))) {
+        if (azimuth == (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start))) {
             return ray;
         }
     }
@@ -304,8 +304,8 @@ static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_
         int angle_start_i = (int16_t)be16toh(ray->angle_start);
         int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
 
-        int angle_start = round(NEXRAD_RADIAL_ANGLE_FACTOR * angle_start_i);
-        int angle_end   = round(NEXRAD_RADIAL_ANGLE_FACTOR * (angle_start_i + angle_delta_i));
+        int angle_start = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * angle_start_i);
+        int angle_end   = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * (angle_start_i + angle_delta_i));
 
         int radius = be16toh(radial->packet->rangebin_first);
 
@@ -342,8 +342,8 @@ static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nex
         int angle_start_i = (int16_t)be16toh(ray->angle_start);
         int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
 
-        int angle_start = round(NEXRAD_RADIAL_ANGLE_FACTOR * angle_start_i);
-        int angle_end   = round(NEXRAD_RADIAL_ANGLE_FACTOR * (angle_start_i + angle_delta_i));
+        int angle_start = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * angle_start_i);
+        int angle_end   = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * (angle_start_i + angle_delta_i));
 
         int radius = be16toh(radial->packet->rangebin_first);
 
