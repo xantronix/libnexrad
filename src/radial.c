@@ -119,7 +119,7 @@ static inline nexrad_radial_ray *_radial_ray_by_index(nexrad_radial *radial, uin
     return (nexrad_radial_ray *)((char *)radial->packet + offset);
 }
 
-nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth) {
+nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth) {
     nexrad_radial_ray *ray;
     uint16_t rays, a;
 
@@ -157,6 +157,14 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, uint16_t azimuth
     }
 
     return NULL;
+}
+
+int nexrad_radial_ray_get_azimuth(nexrad_radial_ray *ray) {
+    if (ray == NULL) {
+        return -1;
+    }
+
+    return (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start));
 }
 
 int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t range) {
