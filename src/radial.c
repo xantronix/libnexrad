@@ -119,9 +119,9 @@ static inline nexrad_radial_ray *_radial_ray_by_index(nexrad_radial *radial, uin
     return (nexrad_radial_ray *)((char *)radial->packet + offset);
 }
 
-nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth) {
+nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, void **data, uint16_t *runsp, uint16_t *binsp) {
     nexrad_radial_ray *ray;
-    uint16_t rays, a;
+    uint16_t rays, a, runs = 0, bins = 0;
 
     if (radial == NULL) {
         return NULL;
@@ -145,18 +145,38 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth) {
     ray = _radial_ray_by_index(radial, azimuth);
 
     if (azimuth == (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start))) {
-        return ray;
+        goto success;
     }
 
     for (a=0; a<rays; a++) {
         ray = _radial_ray_by_index(radial, a);
 
         if (azimuth == (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start))) {
-            return ray;
+            goto success;
         }
     }
 
     return NULL;
+
+success:
+    if (radial->type == NEXRAD_RADIAL_RLE) {
+        runs = be16toh(ray->size) * 2;
+        bins = be16toh(radial->packet->rangebin_count);
+    } else if (radial->type == NEXRAD_RADIAL_DIGITAL) {
+        runs = 0;
+        bins = be16toh(ray->size);
+    }
+
+    if (data)
+        *data = (void *)((char *)ray + sizeof(nexrad_radial_ray));
+
+    if (runsp)
+        *runsp = runs;
+
+    if (binsp)
+        *binsp = bins;
+        
+    return ray;
 }
 
 int nexrad_radial_ray_get_azimuth(nexrad_radial_ray *ray) {
@@ -169,6 +189,7 @@ int nexrad_radial_ray_get_azimuth(nexrad_radial_ray *ray) {
 
 int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t range) {
     nexrad_radial_ray *ray;
+    uint8_t *data;
 
     if (radial == NULL) {
         return -1;
@@ -178,11 +199,11 @@ int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t
         goto error_invalid_range;
     }
 
-    if ((ray = nexrad_radial_get_ray(radial, azimuth)) == NULL) {
+    if ((ray = nexrad_radial_get_ray(radial, azimuth, (void **)&data, NULL, NULL)) == NULL) {
         goto error_radial_get_ray;
     }
 
-    return (int)((uint8_t *)ray + sizeof(nexrad_radial_ray))[range];
+    return (int)data[range];
 
 error_invalid_range:
 error_radial_get_ray:
