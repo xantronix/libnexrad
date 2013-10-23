@@ -94,6 +94,10 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *rle, siz
         uint16_t azimuth = (uint16_t)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(rle_ray->angle_start));
         uint16_t b = 0, r;
 
+        if (azimuth >= 360) {
+            azimuth = azimuth % 360;
+        }
+
         nexrad_radial_ray *digital_ray = (nexrad_radial_ray *)((char *)digital + sizeof(nexrad_radial_packet) + azimuth * ray_size);
 
         uint8_t *data = (uint8_t *)digital_ray + sizeof(nexrad_radial_ray);
