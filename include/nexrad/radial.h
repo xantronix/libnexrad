@@ -44,6 +44,8 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 typedef struct _nexrad_radial nexrad_radial;
 
+nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t *sizep);
+
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet);
 
 size_t nexrad_radial_bytes_read(nexrad_radial *radial);

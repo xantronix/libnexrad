@@ -55,6 +55,85 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
     return 0;
 }
 
+nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *rle, size_t *sizep) {
+    nexrad_radial_packet *digital;
+    nexrad_radial *radial;
+    nexrad_radial_ray *rle_ray;
+    nexrad_radial_run *runs;
+    size_t packet_size, ray_size;
+    uint16_t rays, bins, nruns, scale;
+
+    if (rle == NULL) {
+        return NULL;
+    }
+
+    if (be16toh(rle->type) != NEXRAD_RADIAL_RLE) {
+        return NULL;
+    }
+
+    if (!_valid_rle_packet(rle)) {
+        goto error_invalid_rle_packet;
+    }
+
+    rays  = be16toh(rle->rays);
+    bins  = be16toh(rle->rangebin_count);
+    scale = be16toh(rle->scale);
+
+    ray_size    = sizeof(nexrad_radial_ray)    + bins;
+    packet_size = sizeof(nexrad_radial_packet) + rays * ray_size;
+
+    if ((digital = malloc(packet_size)) == NULL) {
+        goto error_malloc;
+    }
+
+    if ((radial = nexrad_radial_packet_open(rle)) == NULL) {
+        goto error_radial_packet_open;
+    }
+
+    while ((rle_ray = nexrad_radial_read_ray(radial, (void **)&runs, &nruns, NULL)) != NULL) {
+        uint16_t azimuth = (uint16_t)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(rle_ray->angle_start));
+        uint16_t b = 0, r;
+
+        nexrad_radial_ray *digital_ray = (nexrad_radial_ray *)((char *)digital + sizeof(nexrad_radial_packet) + azimuth * ray_size);
+
+        uint8_t *data = (uint8_t *)digital_ray + sizeof(nexrad_radial_ray);
+
+        digital_ray->size        = htobe16(bins);
+        digital_ray->angle_start = htobe16(azimuth / NEXRAD_RADIAL_AZIMUTH_FACTOR);
+        digital_ray->angle_delta = htobe16(1 / NEXRAD_RADIAL_AZIMUTH_FACTOR);
+
+        for (r=0; r<nruns; r++) {
+            uint16_t i;
+
+            for (i=0; i<runs[r].length; i++) {
+                data[b++] = NEXRAD_RADIAL_RLE_FACTOR * runs[r].level;
+            }
+        }
+    }
+
+    nexrad_radial_close(radial);
+
+    digital->type           = htobe16(NEXRAD_RADIAL_DIGITAL);
+    digital->rangebin_first = 0;
+    digital->rangebin_count = htobe16(bins);
+    digital->i              = 0;
+    digital->j              = 0;
+    digital->scale          = htobe16(scale);
+    digital->rays           = htobe16(rays);
+
+    if (sizep)
+        *sizep = packet_size;
+
+    return digital;
+
+error_radial_packet_open:
+    free(digital);
+
+error_malloc:
+error_invalid_rle_packet:
+    return NULL;
+}
+
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
     nexrad_radial *radial;
     enum nexrad_radial_type type;
