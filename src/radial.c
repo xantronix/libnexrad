@@ -565,12 +565,16 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         return NULL;
     }
 
-    if ((entries = nexrad_color_table_get_entries(table, &table_size)) == NULL) {
-        goto error_color_table_get_entries;
+    if (nexrad_radial_get_type(radial) != NEXRAD_RADIAL_DIGITAL) {
+        goto error_invalid_radial_type;
     }
 
     if (nexrad_radial_get_info(radial, NULL, &bins, NULL, NULL, NULL, NULL) < 0) {
         goto error_radial_get_info;
+    }
+
+    if ((entries = nexrad_color_table_get_entries(table, &table_size)) == NULL) {
+        goto error_color_table_get_entries;
     }
 
     _find_cartesian_bounds(bins, radar, &min, &max, spheroid);
@@ -618,7 +622,8 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
     return image;
 
 error_image_create:
-error_radial_get_info:
 error_color_table_get_entries:
+error_radial_get_info:
+error_invalid_radial_type:
     return NULL;
 }
