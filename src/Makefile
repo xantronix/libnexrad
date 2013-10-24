@@ -9,13 +9,13 @@ LDFLAGS		= -lbz2 -lz -lm
 
 HEADERS		= message.h chunk.h product.h symbology.h graphic.h tabular.h \
 		  packet.h radial.h raster.h image.h color.h date.h error.h \
-		  block.h header.h vector.h
+		  block.h header.h vector.h geo.h
 
-HEADERS_PRIVATE	= config.h util.h pnglite.h
+HEADERS_PRIVATE	= config.h util.h pnglite.h geodesic.h
 
 OBJS		= message.o chunk.o product.o symbology.o graphic.o tabular.o \
 		  packet.o radial.o raster.o image.o color.o date.o error.o \
-		  util.o pnglite.o
+		  geo.o util.o pnglite.o geodesic.o
 
 VERSION_MAJOR	= 0
 VERSION_MINOR	= 0.0

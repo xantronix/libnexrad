@@ -6,6 +6,7 @@
 
 #include <nexrad/color.h>
 #include <nexrad/image.h>
+#include <nexrad/geo.h>
 
 #define NEXRAD_RADIAL_RLE_FACTOR     16
 #define NEXRAD_RADIAL_AZIMUTH_FACTOR  0.1
@@ -88,6 +89,13 @@ nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial);
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial,
     nexrad_color_table *table
+);
+
+nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial,
+    nexrad_color_table *   table,
+    nexrad_geo_cartesian * radar,
+    nexrad_geo_spheroid *  spheroid,
+    double scale
 );
 
 #endif /* _NEXRAD_RADIAL_H */

@@ -530,3 +530,85 @@ error_image_create:
 error_color_table_get_entries:
     return NULL;
 }
+
+nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, double scale) {
+    nexrad_image *image;
+    nexrad_color_table_entry *entries;
+    size_t table_size;
+
+    double hypot;
+    uint16_t range;
+    nexrad_geo_cartesian nw_cart, se_cart;
+    nexrad_geo_polar nw_polar, se_polar;
+    uint16_t x, y, width, height;
+    double lat, lon;
+
+    if (radial == NULL || radar == NULL || spheroid == NULL) {
+        return NULL;
+    }
+
+    if ((entries = nexrad_color_table_get_entries(table, &table_size)) == NULL) {
+        goto error_color_table_get_entries;
+    }
+
+    if (nexrad_radial_get_info(radial, NULL, &range, NULL, NULL, NULL, NULL) < 0) {
+        goto error_radial_get_info;
+    }
+
+    hypot = sqrt(2 * range * range) / NEXRAD_RADIAL_RANGE_FACTOR;
+
+    nw_polar.azimuth = 315;
+    nw_polar.range   = hypot;
+
+    se_polar.azimuth = 135;
+    se_polar.range   = hypot;
+
+    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &nw_cart, &nw_polar);
+    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &se_cart, &se_polar);
+
+    width  = (uint16_t)round((se_cart.lon - nw_cart.lon) / scale);
+    height = (uint16_t)round((nw_cart.lat - se_cart.lat) / scale);
+
+    if ((image = nexrad_image_create(width, height)) == NULL) {
+        goto error_image_create;
+    }
+
+    for (y=0, lat=nw_cart.lat; y<height; y++, lat -= scale) {
+        for (x=0, lon=nw_cart.lon; x<width; x++, lon += scale) {
+            int azimuth, range, value;
+
+            nexrad_geo_polar polar;
+
+            nexrad_geo_cartesian cart = {
+                .lat = lat,
+                .lon = lon
+            };
+
+            nexrad_geo_spheroid_find_polar_dest(spheroid, radar, &cart, &polar);
+
+            azimuth = (int)round(polar.azimuth);
+            range   = (int)round(NEXRAD_RADIAL_RANGE_FACTOR * polar.range);
+
+            if (azimuth < 0) azimuth += 360;
+
+            if ((value = nexrad_radial_get_rangebin(radial, azimuth, range)) > 0) {
+                uint8_t r, g, b;
+
+                r = entries[value].r;
+                g = entries[value].g;
+                b = entries[value].b;
+
+                if (!r && !g && !b) continue;
+
+                nexrad_image_draw_pixel(image, r, g, b, x, y);
+            }
+        }
+    }
+
+    return image;
+
+error_image_create:
+error_radial_get_info:
+error_color_table_get_entries:
+    return NULL;
+}
