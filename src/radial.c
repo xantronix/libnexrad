@@ -536,10 +536,9 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
     nexrad_color_table_entry *entries;
     size_t table_size;
 
-    double hypot;
     uint16_t range;
-    nexrad_geo_cartesian nw_cart, se_cart;
-    nexrad_geo_polar nw_polar, se_polar;
+    nexrad_geo_cartesian n_cart, e_cart, s_cart, w_cart;
+    nexrad_geo_polar n_polar, e_polar, s_polar, w_polar;
     uint16_t x, y, width, height;
     double lat, lon;
 
@@ -555,26 +554,32 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         goto error_radial_get_info;
     }
 
-    hypot = sqrt(2 * range * range) / NEXRAD_RADIAL_RANGE_FACTOR;
+    n_polar.azimuth = 0;
+    n_polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
 
-    nw_polar.azimuth = 315;
-    nw_polar.range   = hypot;
+    e_polar.azimuth = 90;
+    e_polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
 
-    se_polar.azimuth = 135;
-    se_polar.range   = hypot;
+    s_polar.azimuth = 180;
+    s_polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
 
-    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &nw_cart, &nw_polar);
-    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &se_cart, &se_polar);
+    w_polar.azimuth = 270;
+    w_polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
 
-    width  = (uint16_t)round((se_cart.lon - nw_cart.lon) / scale);
-    height = (uint16_t)round((nw_cart.lat - se_cart.lat) / scale);
+    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &n_cart, &n_polar);
+    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &e_cart, &e_polar);
+    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &s_cart, &s_polar);
+    nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &w_cart, &w_polar);
+
+    width  = (uint16_t)round((e_cart.lon - w_cart.lon) / scale);
+    height = (uint16_t)round((n_cart.lat - s_cart.lat) / scale);
 
     if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
     }
 
-    for (y=0, lat=nw_cart.lat; y<height; y++, lat -= scale) {
-        for (x=0, lon=nw_cart.lon; x<width; x++, lon += scale) {
+    for (y=0, lat=n_cart.lat; y<height; y++, lat -= scale) {
+        for (x=0, lon=w_cart.lon; x<width; x++, lon += scale) {
             int azimuth, range, value;
 
             nexrad_geo_polar polar;
