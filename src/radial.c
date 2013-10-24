@@ -581,13 +581,10 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
     for (y=0, lat=n_cart.lat; y<height; y++, lat -= scale) {
         for (x=0, lon=w_cart.lon; x<width; x++, lon += scale) {
             int azimuth, range, value;
+            nexrad_color_table_entry entry;
 
             nexrad_geo_polar polar;
-
-            nexrad_geo_cartesian cart = {
-                .lat = lat,
-                .lon = lon
-            };
+            nexrad_geo_cartesian cart = { lat, lon };
 
             nexrad_geo_spheroid_find_polar_dest(spheroid, radar, &cart, &polar);
 
@@ -596,16 +593,14 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
 
             if (azimuth < 0) azimuth += 360;
 
-            if ((value = nexrad_radial_get_rangebin(radial, azimuth, range)) > 0) {
-                uint8_t r, g, b;
+            if ((value = nexrad_radial_get_rangebin(radial, azimuth, range)) <= 0) {
+                continue;
+            }
 
-                r = entries[value].r;
-                g = entries[value].g;
-                b = entries[value].b;
+            entry = entries[value];
 
-                if (!r && !g && !b) continue;
-
-                nexrad_image_draw_pixel(image, r, g, b, x, y);
+            if (entry.r || entry.g || entry.b) {
+                nexrad_image_draw_pixel(image, entry.r, entry.g, entry.b, x, y);
             }
         }
     }
