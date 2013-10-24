@@ -595,7 +595,13 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
             azimuth = (int)round(polar.azimuth);
             range   = (int)round(NEXRAD_RADIAL_RANGE_FACTOR * polar.range);
 
-            while (azimuth < 0) azimuth += 360;
+            if (range > bins) {
+                continue;
+            }
+
+            while (azimuth < 0) {
+                azimuth += 360;
+            }
 
             if ((value = nexrad_radial_get_rangebin(radial, azimuth, range)) <= 0) {
                 continue;
