@@ -531,7 +531,7 @@ error_color_table_get_entries:
     return NULL;
 }
 
-static void _get_bounds(uint16_t bins, nexrad_geo_cartesian *radar, nexrad_geo_cartesian *min, nexrad_geo_cartesian *max, nexrad_geo_spheroid *spheroid) {
+static void _find_cartesian_bounds(uint16_t bins, nexrad_geo_cartesian *radar, nexrad_geo_cartesian *min, nexrad_geo_cartesian *max, nexrad_geo_spheroid *spheroid) {
     nexrad_geo_polar     polar_extents[4];
     nexrad_geo_cartesian cart_extents[4];
 
@@ -573,7 +573,7 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         goto error_radial_get_info;
     }
 
-    _get_bounds(bins, radar, &min, &max, spheroid);
+    _find_cartesian_bounds(bins, radar, &min, &max, spheroid);
 
     width  = (uint16_t)round((max.lon - min.lon) / scale);
     height = (uint16_t)round((max.lat - min.lat) / scale);
