@@ -1,6 +1,6 @@
 CC		= cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -Wall -O2
-LDFLAGS		= -lnexrad
+LDFLAGS		= -lnexrad -lbz2 -lz
 
 EXAMPLES	= display drawarc savepng
 
