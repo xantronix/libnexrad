@@ -103,8 +103,8 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *rle, siz
         uint8_t *data = (uint8_t *)digital_ray + sizeof(nexrad_radial_ray);
 
         digital_ray->size        = htobe16(bins);
-        digital_ray->angle_start = htobe16(azimuth / NEXRAD_RADIAL_AZIMUTH_FACTOR);
-        digital_ray->angle_delta = htobe16(1 / NEXRAD_RADIAL_AZIMUTH_FACTOR);
+        digital_ray->angle_start = htobe16((uint16_t)round(azimuth / NEXRAD_RADIAL_AZIMUTH_FACTOR));
+        digital_ray->angle_delta = htobe16((uint16_t)round(1 / NEXRAD_RADIAL_AZIMUTH_FACTOR));
 
         for (r=0; r<nruns; r++) {
             uint16_t i;
