@@ -555,7 +555,9 @@ static void _find_cartesian_bounds(uint16_t bins, nexrad_geo_cartesian *radar, n
 nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, double scale) {
     nexrad_image *image;
     nexrad_color_table_entry *entries;
+    nexrad_radial_packet *packet;
     size_t table_size;
+    int packet_needs_freed = 0;
 
     nexrad_geo_cartesian min, max;
     uint16_t x, y, width, height, bins;
@@ -563,6 +565,18 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
 
     if (radial == NULL || radar == NULL || spheroid == NULL) {
         return NULL;
+    }
+
+    if (nexrad_radial_get_type(radial) == NEXRAD_RADIAL_RLE) {
+        if ((packet = nexrad_radial_packet_unpack(radial->packet, NULL)) == NULL) {
+            goto error_radial_packet_unpack;
+        }
+
+        packet_needs_freed = 1;
+    } else {
+        if ((packet = nexrad_radial_get_packet(radial)) == NULL) {
+            goto error_radial_get_packet;
+        }
     }
 
     if (nexrad_radial_get_type(radial) != NEXRAD_RADIAL_DIGITAL) {
@@ -588,8 +602,9 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
 
     for (y=0, lat=max.lat; y<height; y++, lat -= scale) {
         for (x=0, lon=min.lon; x<width; x++, lon += scale) {
-            int azimuth, range, value;
+            int azimuth, range;
             nexrad_color_table_entry entry;
+            uint8_t *values;
 
             nexrad_geo_polar polar;
             nexrad_geo_cartesian cart = { lat, lon };
@@ -607,11 +622,16 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
                 azimuth += 360;
             }
 
-            if ((value = nexrad_radial_get_rangebin(radial, azimuth, range)) <= 0) {
-                continue;
+            while (azimuth >= 360) {
+                azimuth -= 360;
             }
 
-            entry = entries[value];
+            values = (uint8_t *)packet
+                + sizeof(nexrad_radial_packet)
+                + azimuth * (sizeof(nexrad_radial_ray) + bins)
+                + sizeof(nexrad_radial_ray);
+
+            entry = entries[values[range]];
 
             if (entry.r || entry.g || entry.b) {
                 nexrad_image_draw_pixel(image, entry.r, entry.g, entry.b, x, y);
@@ -619,11 +639,19 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         }
     }
 
+    if (packet_needs_freed)
+        free(packet);
+
     return image;
 
 error_image_create:
 error_color_table_get_entries:
 error_radial_get_info:
+    if (packet_needs_freed)
+        free(packet);
+
+error_radial_packet_unpack:
+error_radial_get_packet:
 error_invalid_radial_type:
     return NULL;
 }
