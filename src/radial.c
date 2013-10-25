@@ -579,10 +579,6 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         }
     }
 
-    if (nexrad_radial_get_type(radial) != NEXRAD_RADIAL_DIGITAL) {
-        goto error_invalid_radial_type;
-    }
-
     if (nexrad_radial_get_info(radial, NULL, &bins, NULL, NULL, NULL, NULL) < 0) {
         goto error_radial_get_info;
     }
@@ -652,6 +648,5 @@ error_radial_get_info:
 
 error_radial_packet_unpack:
 error_radial_get_packet:
-error_invalid_radial_type:
     return NULL;
 }

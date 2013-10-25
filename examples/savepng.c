@@ -56,8 +56,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *tab
                 }
 
                 case NEXRAD_PACKET_RADIAL_AF1F: {
-                    nexrad_radial_packet *digital = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet, NULL);
-                    nexrad_radial *radial = nexrad_radial_packet_open(digital);
+                    nexrad_radial *radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet);
 
                     nexrad_image *image = nexrad_radial_create_unprojected_image(radial, table, &radar, spheroid, 0.00815);
 
