@@ -531,25 +531,54 @@ error_color_table_get_entries:
     return NULL;
 }
 
-static void _find_cartesian_bounds(uint16_t bins, nexrad_geo_cartesian *radar, nexrad_geo_cartesian *min, nexrad_geo_cartesian *max, nexrad_geo_spheroid *spheroid) {
-    nexrad_geo_polar     polar_extents[4];
-    nexrad_geo_cartesian cart_extents[4];
+static void _find_cartesian_image_extents(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, uint16_t bins, nexrad_geo_cartesian_trapezoid *extents) {
+    nexrad_geo_polar polar;
 
     double range = bins / NEXRAD_RADIAL_RANGE_FACTOR;
 
-    int i, a;
+    polar.azimuth = 0;
+    polar.range   = range;
 
-    for (i=0, a=0; i<4; i++, a+=90) {
-        polar_extents[i].azimuth = a;
-        polar_extents[i].range   = range;
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->a, &polar);
 
-        nexrad_geo_spheroid_find_cartesian_dest(spheroid, radar, &cart_extents[i], &polar_extents[i]);
-    }
+    polar.azimuth = 90;
+    polar.range   = range;
 
-    min->lat = cart_extents[2].lat;
-    min->lon = cart_extents[3].lon;
-    max->lat = cart_extents[0].lat;
-    max->lon = cart_extents[1].lon;
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->b, &polar);
+
+    polar.azimuth = 180;
+    polar.range   = range;
+
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->c, &polar);
+
+    polar.azimuth = 270;
+    polar.range   = range;
+
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->d, &polar);
+}
+
+static void _find_cartesian_rangebin_extents(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, int azimuth, int range, nexrad_geo_cartesian_trapezoid *extents) {
+    nexrad_geo_polar polar;
+
+    polar.azimuth = azimuth;
+    polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
+
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->a, &polar);
+
+    polar.azimuth = azimuth + 1;
+    polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
+
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->b, &polar);
+
+    polar.azimuth = azimuth + 1;
+    polar.range   = (range + 1) / NEXRAD_RADIAL_RANGE_FACTOR;
+
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->c, &polar);
+
+    polar.azimuth = azimuth;
+    polar.range   = (range + 1) / NEXRAD_RADIAL_RANGE_FACTOR;
+
+    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents->d, &polar);
 }
 
 nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, double scale) {
@@ -559,7 +588,7 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
     size_t table_size;
     int packet_needs_freed = 0;
 
-    nexrad_geo_cartesian min, max;
+    nexrad_geo_cartesian_trapezoid extents;
     uint16_t x, y, width, height, bins;
     double lat, lon;
 
@@ -587,17 +616,17 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         goto error_color_table_get_entries;
     }
 
-    _find_cartesian_bounds(bins, radar, &min, &max, spheroid);
+    _find_cartesian_image_extents(spheroid, radar, bins, &extents);
 
-    width  = (uint16_t)round((max.lon - min.lon) / scale);
-    height = (uint16_t)round((max.lat - min.lat) / scale);
+    width  = (uint16_t)round((extents.b.lon - extents.d.lon) / scale);
+    height = (uint16_t)round((extents.a.lat - extents.c.lat) / scale);
 
     if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
     }
 
-    for (y=0, lat=max.lat; y<height; y++, lat -= scale) {
-        for (x=0, lon=min.lon; x<width; x++, lon += scale) {
+    for (y=0, lat=extents.a.lat; y<height; y++, lat -= scale) {
+        for (x=0, lon=extents.d.lon; x<width; x++, lon += scale) {
             int azimuth, range;
             nexrad_color_table_entry entry;
             uint8_t *values;
@@ -605,7 +634,7 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
             nexrad_geo_polar polar;
             nexrad_geo_cartesian cart = { lat, lon };
 
-            nexrad_geo_spheroid_find_polar_dest(spheroid, radar, &cart, &polar);
+            nexrad_geo_find_polar_dest(spheroid, radar, &cart, &polar);
 
             azimuth = (int)round(polar.azimuth);
             range   = (int)round(NEXRAD_RADIAL_RANGE_FACTOR * polar.range);

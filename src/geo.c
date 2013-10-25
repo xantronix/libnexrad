@@ -58,23 +58,23 @@ double nexrad_geo_spheroid_get_flattening(nexrad_geo_spheroid *spheroid) {
     return spheroid->flattening;
 }
 
-void nexrad_geo_spheroid_find_cartesian_dest(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *origin, nexrad_geo_cartesian *dest, nexrad_geo_polar *polar) {
-    if (spheroid == NULL || origin == NULL || dest == NULL || polar == NULL) {
-        return;
-    }
-
-    geod_direct(spheroid->geod,
-        origin->lat, origin->lon, polar->azimuth, polar->range, &dest->lat, &dest->lon, NULL
-    );
-}
-
-void nexrad_geo_spheroid_find_polar_dest(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *origin, nexrad_geo_cartesian *dest, nexrad_geo_polar *polar) {
+void nexrad_geo_find_polar_dest(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *origin, nexrad_geo_cartesian *dest, nexrad_geo_polar *polar) {
     if (spheroid == NULL || origin == NULL || dest == NULL || polar == NULL) {
         return;
     }
 
     geod_inverse(spheroid->geod,
         origin->lat, origin->lon, dest->lat, dest->lon, &polar->range, NULL, &polar->azimuth
+    );
+}
+
+void nexrad_geo_find_cartesian_dest(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *origin, nexrad_geo_cartesian *dest, nexrad_geo_polar *polar) {
+    if (spheroid == NULL || origin == NULL || dest == NULL || polar == NULL) {
+        return;
+    }
+
+    geod_direct(spheroid->geod,
+        origin->lat, origin->lon, polar->azimuth, polar->range, &dest->lat, &dest->lon, NULL
     );
 }
 
