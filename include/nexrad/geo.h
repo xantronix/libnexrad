@@ -16,10 +16,6 @@ typedef struct _nexrad_geo_cartesian {
     double lon;
 } nexrad_geo_cartesian;
 
-typedef struct _nexrad_geo_cartesian_trapezoid {
-    nexrad_geo_cartesian a, b, c, d;
-} nexrad_geo_cartesian_trapezoid;
-
 typedef struct _nexrad_geo_spheroid nexrad_geo_spheroid;
 
 nexrad_geo_spheroid *nexrad_geo_spheroid_create();

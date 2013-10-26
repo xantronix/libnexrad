@@ -8,10 +8,6 @@ typedef struct _nexrad_image_point {
     uint16_t x, y;
 } nexrad_image_point;
 
-typedef struct _nexrad_image_trapezoid {
-    nexrad_image_point a, b, c, d;
-} nexrad_image_trapezoid;
-
 typedef struct _nexrad_image nexrad_image;
 
 nexrad_image *nexrad_image_create(
