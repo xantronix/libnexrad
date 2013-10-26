@@ -45,7 +45,9 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 typedef struct _nexrad_radial nexrad_radial;
 
-nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t *sizep);
+nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet,
+    size_t *sizep
+);
 
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet);
 
@@ -57,19 +59,18 @@ void nexrad_radial_close(nexrad_radial *radial);
 
 nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial,
     int azimuth,
-    void **data,
-    uint16_t *runsp,
-    uint16_t *binsp
+    uint8_t **values
 );
 
 int nexrad_radial_ray_get_azimuth(nexrad_radial_ray *ray);
 
-int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t range);
+int nexrad_radial_get_rangebin(nexrad_radial *radial,
+    uint16_t azimuth,
+    uint16_t range
+);
 
 nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial,
-    void **data,
-    uint16_t *runsp,
-    uint16_t *binsp
+    uint8_t **values
 );
 
 enum nexrad_radial_type nexrad_radial_get_type(nexrad_radial *radial);

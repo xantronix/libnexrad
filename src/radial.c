@@ -9,9 +9,13 @@
 struct _nexrad_radial {
     nexrad_radial_packet *  packet;
     enum nexrad_radial_type type;
-    size_t                  bytes_read;
-    size_t                  rays_left;
     nexrad_radial_ray *     current;
+
+    size_t bytes_read;
+    size_t rays_left;
+
+    uint16_t  bins;
+    uint8_t * values;
 };
 
 static int _valid_rle_packet(nexrad_radial_packet *packet) {
@@ -59,9 +63,9 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *rle, siz
     nexrad_radial_packet *digital;
     nexrad_radial *radial;
     nexrad_radial_ray *rle_ray;
-    nexrad_radial_run *runs;
     size_t packet_size, ray_size;
-    uint16_t rays, bins, nruns, scale;
+    uint16_t rays, bins, scale;
+    uint8_t *values;
 
     if (rle == NULL) {
         return NULL;
@@ -90,29 +94,22 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *rle, siz
         goto error_radial_packet_open;
     }
 
-    while ((rle_ray = nexrad_radial_read_ray(radial, (void **)&runs, &nruns, NULL)) != NULL) {
+    while ((rle_ray = nexrad_radial_read_ray(radial, &values)) != NULL) {
+        nexrad_radial_ray *digital_ray;
+        uint8_t *data;
         uint16_t azimuth = (uint16_t)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(rle_ray->angle_start));
-        uint16_t b = 0, r;
 
-        if (azimuth >= 360) {
-            azimuth = azimuth % 360;
-        }
+        while (azimuth > 360) azimuth -= 360;
 
-        nexrad_radial_ray *digital_ray = (nexrad_radial_ray *)((char *)digital + sizeof(nexrad_radial_packet) + azimuth * ray_size);
+        digital_ray = (nexrad_radial_ray *)((char *)digital + sizeof(nexrad_radial_packet) + azimuth * ray_size);
 
-        uint8_t *data = (uint8_t *)digital_ray + sizeof(nexrad_radial_ray);
+        data = (uint8_t *)digital_ray + sizeof(nexrad_radial_ray);
+
+        memcpy(data, values, bins);
 
         digital_ray->size        = htobe16(bins);
         digital_ray->angle_start = htobe16((uint16_t)round(azimuth / NEXRAD_RADIAL_AZIMUTH_FACTOR));
         digital_ray->angle_delta = htobe16((uint16_t)round(1 / NEXRAD_RADIAL_AZIMUTH_FACTOR));
-
-        for (r=0; r<nruns; r++) {
-            uint16_t i;
-
-            for (i=0; i<runs[r].length; i++) {
-                data[b++] = NEXRAD_RADIAL_RLE_FACTOR * runs[r].level;
-            }
-        }
     }
 
     nexrad_radial_close(radial);
@@ -141,6 +138,8 @@ error_invalid_rle_packet:
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
     nexrad_radial *radial;
     enum nexrad_radial_type type;
+    uint16_t bins;
+    uint8_t *values;
 
     if (packet == NULL) {
         return NULL;
@@ -153,7 +152,13 @@ nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
     }
 
     if ((radial = malloc(sizeof(*radial))) == NULL) {
-        goto error_malloc;
+        goto error_malloc_radial;
+    }
+
+    bins = be16toh(packet->rangebin_count);
+
+    if ((values = malloc(bins)) == NULL) {
+        goto error_malloc_values;
     }
 
     radial->packet     = packet;
@@ -161,10 +166,15 @@ nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet) {
     radial->bytes_read = sizeof(nexrad_radial_packet);
     radial->rays_left  = be16toh(packet->rays);
     radial->current    = (nexrad_radial_ray *)((char *)packet + sizeof(nexrad_radial_packet));
+    radial->bins       = bins;
+    radial->values     = values;
 
     return radial;
 
-error_malloc:
+error_malloc_values:
+    free(radial);
+
+error_malloc_radial:
     return NULL;
 }
 
@@ -187,10 +197,10 @@ void nexrad_radial_reset(nexrad_radial *radial) {
 void nexrad_radial_close(nexrad_radial *radial) {
     if (radial == NULL) return;
 
-    radial->packet     = NULL;
-    radial->bytes_read = 0;
-    radial->rays_left  = 0;
-    radial->current    = NULL;
+    if (radial->values)
+        free(radial->values);
+
+    memset(radial, '\0', sizeof(*radial));
 
     free(radial);
 }
@@ -202,9 +212,10 @@ static inline nexrad_radial_ray *_radial_ray_by_index(nexrad_radial *radial, uin
     return (nexrad_radial_ray *)((char *)radial->packet + offset);
 }
 
-nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, void **data, uint16_t *runsp, uint16_t *binsp) {
+nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, uint8_t **values) {
     nexrad_radial_ray *ray;
-    uint16_t rays, a, runs = 0, bins = 0;
+    uint16_t rays, bins, a;
+    uint8_t *data;
 
     if (radial == NULL) {
         return NULL;
@@ -242,22 +253,14 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, voi
     return NULL;
 
 success:
-    if (radial->type == NEXRAD_RADIAL_RLE) {
-        runs = be16toh(ray->size) * 2;
-        bins = be16toh(radial->packet->rangebin_count);
-    } else if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        runs = 0;
-        bins = be16toh(ray->size);
-    }
+    bins = be16toh(ray->size);
 
-    if (data)
-        *data = (void *)((char *)ray + sizeof(nexrad_radial_ray));
+    data = (uint8_t *)ray + sizeof(nexrad_radial_ray);
 
-    if (runsp)
-        *runsp = runs;
+    memcpy(radial->values, data, radial->bins > bins? bins: radial->bins);
 
-    if (binsp)
-        *binsp = bins;
+    if (values)
+        *values = radial->values;
         
     return ray;
 }
@@ -282,7 +285,7 @@ int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t
         goto error_invalid_range;
     }
 
-    if ((ray = nexrad_radial_get_ray(radial, azimuth, (void **)&data, NULL, NULL)) == NULL) {
+    if ((ray = nexrad_radial_get_ray(radial, azimuth, &data)) == NULL) {
         goto error_radial_get_ray;
     }
 
@@ -293,9 +296,8 @@ error_radial_get_ray:
     return -1;
 }
 
-nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, uint16_t *runsp, uint16_t *binsp) {
+nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, uint8_t **values) {
     nexrad_radial_ray *ray;
-    uint16_t runs, bins;
     size_t size;
 
     if (radial == NULL || radial->rays_left == 0) {
@@ -305,12 +307,29 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, ui
     ray = radial->current;
 
     if (radial->type == NEXRAD_RADIAL_RLE) {
-        runs = be16toh(ray->size) * 2;
-        bins = be16toh(radial->packet->rangebin_count);
+        uint16_t runs = be16toh(ray->size) * 2;
+        uint16_t bins = be16toh(radial->packet->rangebin_count);
+
+        nexrad_radial_run *data = (nexrad_radial_run *)((char *)ray + sizeof(nexrad_radial_ray));
+
+        uint16_t r, b;
+
+        for (r=0, b=0; r<runs; r++) {
+            uint16_t i;
+
+            for (i=0; i<data[r].length && b<bins; i++, b++) {
+                radial->values[b] = data[r].level;
+            }
+        }
+
         size = sizeof(nexrad_radial_ray) + runs;
     } else if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        runs = 0;
-        bins = be16toh(ray->size);
+        uint16_t bins = be16toh(ray->size);
+
+        uint8_t *data = (uint8_t *)ray + sizeof(nexrad_radial_ray);
+
+        memcpy(radial->values, data, radial->bins > bins? bins: radial->bins);
+
         size = sizeof(nexrad_radial_ray) + bins;
 
         if (size % 2) size++;
@@ -333,26 +352,8 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, void **data, ui
      */
      radial->rays_left--;
 
-    /*
-     * If the caller provided a pointer to an address in which to store the
-     * number of runs in any given ray, then populate that value.
-     */
-    if (runsp)
-        *runsp = runs;
-
-    /*
-     * If the caller provided a pointer to an address in which to store the
-     * number of range bins of the current ray, then populate that value.
-     */
-    if (binsp)
-        *binsp = bins;   
-
-    /*
-     * If the caller provided a pointer to an address to populate with a pointer
-     * to the bins within the current ray, then provide that.
-     */
-    if (data)
-        *data = (nexrad_radial_run *)((char *)ray + sizeof(nexrad_radial_ray));
+    if (values)
+        *values = radial->values;
 
     return ray;
 }
@@ -407,60 +408,13 @@ nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial) {
     return radial->packet;
 }
 
-static int _image_unpack_rle(nexrad_image *image, nexrad_radial *radial, nexrad_color_table_entry *entries) {
+static int _radial_draw_image(nexrad_radial *radial, nexrad_image *image, nexrad_color_table_entry *entries) {
     nexrad_radial_ray *ray;
-    nexrad_radial_run *data;
+    uint8_t *data;
 
-    uint16_t width, runs;
+    uint16_t bins = radial->bins;
 
-    if (nexrad_image_get_info(image, &width, NULL) < 0) {
-        goto error_image_get_info;
-    }
-
-    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, &runs, NULL)) != NULL) {
-        int angle_start_i = (int16_t)be16toh(ray->angle_start);
-        int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
-
-        int angle_start = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * angle_start_i);
-        int angle_end   = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * (angle_start_i + angle_delta_i));
-
-        int radius = be16toh(radial->packet->rangebin_first);
-
-        int r;
-
-        for (r=0; r<runs; r++) {
-            uint8_t level = data[r].level * NEXRAD_RADIAL_RLE_FACTOR;
-            uint8_t r, g, b;
-
-            r = entries[level].r;
-            g = entries[level].g;
-            b = entries[level].b;
-
-            if (r || g || b) {
-                nexrad_image_draw_arc_segment(image,
-                    r, g, b,
-                    angle_start, angle_end,
-                    radius, radius + data[r].length
-                );
-            }
-
-            radius += data[r].length;
-        }
-    }
-
-    return 0;
-
-error_image_get_info:
-    return -1;
-}
-
-static int _image_unpack_digital(nexrad_image *image, nexrad_radial *radial, nexrad_color_table_entry *entries) {
-    nexrad_radial_ray *ray;
-    unsigned char *data;
-
-    uint16_t bins;
-
-    while ((ray = nexrad_radial_read_ray(radial, (void **)&data, NULL, &bins)) != NULL) {
+    while ((ray = nexrad_radial_read_ray(radial, &data)) != NULL) {
         int angle_start_i = (int16_t)be16toh(ray->angle_start);
         int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
 
@@ -515,10 +469,8 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_tab
         goto error_image_create;
     }
 
-    if (radial->type == NEXRAD_RADIAL_DIGITAL) {
-        if (_image_unpack_digital(image, radial, entries) < 0) goto error_image_unpack;
-    } else if (radial->type == NEXRAD_RADIAL_RLE) {
-        if (_image_unpack_rle(image, radial, entries)     < 0) goto error_image_unpack;
+    if (_radial_draw_image(radial, image, entries) < 0) {
+        goto error_image_unpack;
     }
 
     return image;
