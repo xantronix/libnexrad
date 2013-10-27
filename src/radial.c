@@ -580,7 +580,7 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
             azimuth = (int)round(polar.azimuth);
             range   = (int)round(NEXRAD_RADIAL_RANGE_FACTOR * polar.range);
 
-            if (range > bins) {
+            if (range >= bins) {
                 continue;
             }
 
@@ -594,9 +594,8 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
 
             entry = entries[values[range]];
 
-            if (entry.r || entry.g || entry.b) {
+            if (entry.a)
                 nexrad_image_draw_pixel(image, entry.r, entry.g, entry.b, x, y);
-            }
         }
     }
 
