@@ -214,8 +214,7 @@ static inline nexrad_radial_ray *_radial_ray_by_index(nexrad_radial *radial, uin
 
 nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, uint8_t **values) {
     nexrad_radial_ray *ray;
-    uint16_t rays, bins, a;
-    uint8_t *data;
+    uint16_t rays, a;
 
     if (radial == NULL) {
         return NULL;
@@ -253,14 +252,8 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, uin
     return NULL;
 
 success:
-    bins = be16toh(ray->size);
-
-    data = (uint8_t *)ray + sizeof(nexrad_radial_ray);
-
-    memcpy(radial->values, data, radial->bins > bins? bins: radial->bins);
-
     if (values)
-        *values = radial->values;
+        *values = (uint8_t *)ray + sizeof(nexrad_radial_ray);
         
     return ray;
 }
