@@ -401,45 +401,12 @@ nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial) {
     return radial->packet;
 }
 
-static int _radial_draw_image(nexrad_radial *radial, nexrad_image *image, nexrad_color_table_entry *entries) {
-    nexrad_radial_ray *ray;
-    uint8_t *data;
-
-    uint16_t bins = radial->bins;
-
-    while ((ray = nexrad_radial_read_ray(radial, &data)) != NULL) {
-        int angle_start_i = (int16_t)be16toh(ray->angle_start);
-        int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
-
-        int angle_start = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * angle_start_i);
-        int angle_end   = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * (angle_start_i + angle_delta_i));
-
-        int radius = be16toh(radial->packet->rangebin_first);
-
-        int b;
-
-        for (b=0; b<bins; b++) {
-            nexrad_color_table_entry entry = entries[data[b]];
-
-            if (entry.a) {
-                nexrad_image_draw_arc_segment(image,
-                    entry.r, entry.g, entry.b,
-                    angle_start, angle_end,
-                    radius, radius+1
-                );
-            }
-
-            radius++;
-        }
-    }
-
-    return 0;
-}
-
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_table *table) {
     nexrad_image *image;
     nexrad_color_table_entry *entries;
+    nexrad_radial_ray *ray;
     size_t width, height, radius;
+    uint8_t *data;
 
     if (radial == NULL || table == NULL) {
         return NULL;
@@ -457,14 +424,33 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_tab
         goto error_image_create;
     }
 
-    if (_radial_draw_image(radial, image, entries) < 0) {
-        goto error_image_unpack;
+    while ((ray = nexrad_radial_read_ray(radial, &data)) != NULL) {
+        int angle_start_i = (int16_t)be16toh(ray->angle_start);
+        int angle_delta_i = (int16_t)be16toh(ray->angle_delta);
+
+        int angle_start = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * angle_start_i);
+        int angle_end   = round(NEXRAD_RADIAL_AZIMUTH_FACTOR * (angle_start_i + angle_delta_i));
+
+        int radius = be16toh(radial->packet->rangebin_first);
+
+        int b;
+
+        for (b=0; b<radial->bins; b++) {
+            nexrad_color_table_entry entry = entries[data[b]];
+
+            if (entry.a) {
+                nexrad_image_draw_arc_segment(image,
+                    entry.r, entry.g, entry.b,
+                    angle_start, angle_end,
+                    radius, radius+1
+                );
+            }
+
+            radius++;
+        }
     }
 
     return image;
-
-error_image_unpack:
-    nexrad_image_destroy(image);
 
 error_image_create:
 error_color_table_get_entries:
