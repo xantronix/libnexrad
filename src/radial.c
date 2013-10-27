@@ -584,13 +584,8 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
                 continue;
             }
 
-            while (azimuth < 0) {
-                azimuth += 360;
-            }
-
-            while (azimuth >= 360) {
-                azimuth -= 360;
-            }
+            while (azimuth <    0) azimuth += 360;
+            while (azimuth >= 360) azimuth -= 360;
 
             values = (uint8_t *)packet
                 + sizeof(nexrad_radial_packet)

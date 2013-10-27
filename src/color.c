@@ -36,7 +36,7 @@ error_malloc:
     return NULL;
 }
 
-void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, uint8_t r, uint8_t g, uint8_t b) {
+void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     nexrad_color_table_entry *entries;
 
     if (table == NULL) {
@@ -48,6 +48,7 @@ void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, ui
     entries[index].r = r;
     entries[index].g = g;
     entries[index].b = b;
+    entries[index].a = a;
 }
 
 nexrad_color_table *nexrad_color_table_load(const char *path) {

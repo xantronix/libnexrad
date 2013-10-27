@@ -14,12 +14,13 @@ typedef struct _nexrad_color_table_entry {
     uint8_t r;
     uint8_t g;
     uint8_t b;
+    uint8_t a;
 } nexrad_color_table_entry;
 
 nexrad_color_table *nexrad_color_table_create(size_t size);
 
 void nexrad_color_table_store_entry(nexrad_color_table *table,
-    uint8_t index, uint8_t r, uint8_t g, uint8_t b
+    uint8_t index, uint8_t r, uint8_t g, uint8_t b, uint8_t a
 );
 
 nexrad_color_table *nexrad_color_table_load(const char *path);
