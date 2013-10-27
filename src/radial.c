@@ -494,7 +494,6 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
     nexrad_color_table_entry *entries;
     nexrad_radial_packet *packet;
     size_t table_size;
-    int packet_needs_freed = 0;
 
     nexrad_geo_cartesian extents[4];
     nexrad_geo_cartesian point;
@@ -503,17 +502,9 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
     if (radial == NULL || radar == NULL || spheroid == NULL) {
         return NULL;
     }
-
-    if (nexrad_radial_get_type(radial) == NEXRAD_RADIAL_RLE) {
-        if ((packet = nexrad_radial_packet_unpack(radial->packet, NULL)) == NULL) {
-            goto error_radial_packet_unpack;
-        }
-
-        packet_needs_freed = 1;
-    } else {
-        if ((packet = nexrad_radial_get_packet(radial)) == NULL) {
-            goto error_radial_get_packet;
-        }
+    
+    if ((packet = nexrad_radial_packet_unpack(radial->packet, NULL)) == NULL) {
+        goto error_radial_packet_unpack;
     }
 
     if (nexrad_radial_get_info(radial, NULL, &bins, NULL, NULL, NULL, NULL) < 0) {
@@ -564,18 +555,15 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         }
     }
 
-    if (packet_needs_freed)
-        free(packet);
+    free(packet);
 
     return image;
 
 error_image_create:
 error_color_table_get_entries:
 error_radial_get_info:
-    if (packet_needs_freed)
-        free(packet);
+    free(packet);
 
 error_radial_packet_unpack:
-error_radial_get_packet:
     return NULL;
 }
