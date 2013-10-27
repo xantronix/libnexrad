@@ -426,16 +426,11 @@ static int _radial_draw_image(nexrad_radial *radial, nexrad_image *image, nexrad
         int b;
 
         for (b=0; b<bins; b++) {
-            uint8_t level = ((uint8_t *)data)[b];
-            uint8_t r, g, b;
+            nexrad_color_table_entry entry = entries[data[b]];
 
-            r = entries[level].r;
-            g = entries[level].g;
-            b = entries[level].b;
-
-            if (r || g || b) {
+            if (entry.a) {
                 nexrad_image_draw_arc_segment(image,
-                    r, g, b,
+                    entry.r, entry.g, entry.b,
                     angle_start, angle_end,
                     radius, radius+1
                 );
