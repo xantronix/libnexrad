@@ -20,6 +20,11 @@ nexrad_color_table *nexrad_color_table_create(size_t size) {
     nexrad_color_table *table;
     size_t table_size = _table_size_total(size);
 
+    if (size > NEXRAD_COLOR_TABLE_MAX_SIZE) {
+        errno = EINVAL;
+        return NULL;
+    }
+
     if ((table = malloc(table_size)) == NULL) {
         goto error_malloc;
     }
@@ -52,17 +57,13 @@ void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, ui
 }
 
 nexrad_color_table *nexrad_color_table_load(const char *path) {
-    nexrad_color_table *table;
+    nexrad_color_table header, *table;
     struct stat st;
     size_t table_size;
     int fd;
 
     if (path == NULL) {
         return NULL;
-    }
-
-    if ((table = malloc(sizeof(*table))) == NULL) {
-        goto error_malloc;
     }
 
     if ((fd = open(path, O_RDONLY)) < 0) {
@@ -77,7 +78,7 @@ nexrad_color_table *nexrad_color_table_load(const char *path) {
         goto error_toosmall;
     }
 
-    if (read(fd, table, sizeof(*table)) < 0) {
+    if (read(fd, &header, sizeof(header)) < 0) {
         goto error_read;
     }
 
@@ -85,27 +86,36 @@ nexrad_color_table *nexrad_color_table_load(const char *path) {
      * Check the magic header of the color lookup table file.  Fail if this is
      * not what we expect.
      */
-    if (strncmp(table->magic, "CLUT", 4) != 0) {
+    if (strncmp(header.magic, "CLUT", 4) != 0) {
         errno = EINVAL;
         goto error_invalid_clut;
+    }
+
+    /*
+     * Ensure the table size recorded in the file does not exceed the maximum
+     * color table size.
+     */
+    if (header.size > NEXRAD_COLOR_TABLE_MAX_SIZE) {
+        errno = EINVAL;
+        goto error_invalid_size;
     }
 
     /*
      * Calculate the expected total size of the file based on the header.  If the
      * actual file size differs, then fail.
      */
-    table_size = _table_size_total(table->size);
+    table_size = _table_size_total(header.size);
 
     if (table_size != st.st_size) {
         goto error_invalid_size;
     }
 
     /*
-     * On the other hand, if everything appears to be fine, then reallocate our
-     * lookup table buffer and read the rest of the file.
+     * On the other hand, if everything looks fine, allocate the whole table and
+     * read the rest of the file.
      */
-    if ((table = realloc(table, table_size)) == NULL) {
-        goto error_realloc;
+    if ((table = malloc(table_size)) == NULL) {
+        goto error_malloc;
     }
 
     if (lseek(fd, 0, SEEK_SET) < 0) {
@@ -122,7 +132,9 @@ nexrad_color_table *nexrad_color_table_load(const char *path) {
 
 error_read_full:
 error_lseek:
-error_realloc:
+    free(table);
+
+error_malloc:
 error_invalid_size:
 error_invalid_clut:
 error_read:
@@ -131,9 +143,6 @@ error_fstat:
     close(fd);
 
 error_open:
-    free(table);
-
-error_malloc:
     return NULL;
 }
 

@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-#define NEXRAD_COLOR_TABLE_MAGIC "CLUT"
+#define NEXRAD_COLOR_TABLE_MAGIC    "CLUT"
+#define NEXRAD_COLOR_TABLE_MAX_SIZE 256
 
 typedef struct _nexrad_color_table {
     char   magic[4]; /* Always "CLUT" */
