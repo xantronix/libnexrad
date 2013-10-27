@@ -18,7 +18,6 @@ static void usage(int argc, char **argv) {
 static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
     nexrad_radial *radial;
     nexrad_radial_ray *ray;
-    uint16_t runs, bins;
 
     if ((radial = nexrad_radial_packet_open(packet)) == NULL) {
         perror("nexrad_radial_packet_open()");
@@ -38,9 +37,9 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
         (int)be16toh(packet->j)
     );
 
-    while ((ray = nexrad_radial_read_ray(radial, NULL, &runs, &bins)) != NULL) {
-        printf("Wee, got a ray with %hu runs and %hu bins, %hu start and %hu delta\n",
-            runs, bins, be16toh(ray->angle_start), be16toh(ray->angle_delta)
+    while ((ray = nexrad_radial_read_ray(radial, NULL)) != NULL) {
+        printf("Wee, got a ray with %hu start and %hu delta\n",
+            be16toh(ray->angle_start), be16toh(ray->angle_delta)
         );
     }
 

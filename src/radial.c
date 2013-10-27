@@ -318,7 +318,7 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, uint8_t **value
             uint16_t i;
 
             for (i=0; i<data[r].length && b<bins; i++, b++) {
-                radial->values[b] = data[r].level;
+                radial->values[b] = NEXRAD_RADIAL_RLE_FACTOR * data[r].level;
             }
         }
 
