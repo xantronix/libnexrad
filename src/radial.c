@@ -334,7 +334,7 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, uint8_t **value
     /*
      * Decrement the number of rays left to read.
      */
-     radial->rays_left--;
+    radial->rays_left--;
 
     if (values)
         *values = radial->values;
