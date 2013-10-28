@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/color.h>
 #include <nexrad/image.h>
 
 #define NEXRAD_RASTER_RLE_FACTOR 16

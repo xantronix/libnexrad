@@ -5,7 +5,6 @@
 #include <sys/types.h>
 
 #include <nexrad/image.h>
-#include <nexrad/geo.h>
 
 #define NEXRAD_RADIAL_RLE_FACTOR     16
 #define NEXRAD_RADIAL_AZIMUTH_FACTOR  0.1
