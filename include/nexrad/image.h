@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/geo.h>
 #include <nexrad/color.h>
 
 typedef struct _nexrad_image_point {
