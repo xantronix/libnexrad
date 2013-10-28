@@ -89,10 +89,10 @@ unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_write_pixel(unsigned char *buf, nexrad_color_table_entry *color, uint16_t x, uint16_t y, uint16_t w) {
+static inline void _buf_write_pixel(unsigned char *buf, nexrad_color color, uint16_t x, uint16_t y, uint16_t w) {
     size_t offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, w);
 
-    memcpy(buf + offset, color, sizeof(color));
+    memcpy(buf + offset, &color, sizeof(color));
 }
 
 static inline void _int_swap(int *a, int *b) {
@@ -108,7 +108,7 @@ static inline void _int_order(int *a, int *b) {
     }
 }
 
-void nexrad_image_draw_pixel(nexrad_image *image, nexrad_color_table_entry *color, uint16_t x, uint16_t y) {
+void nexrad_image_draw_pixel(nexrad_image *image, nexrad_color color, uint16_t x, uint16_t y) {
     if (image == NULL) {
         return;
     }
@@ -120,7 +120,7 @@ void nexrad_image_draw_pixel(nexrad_image *image, nexrad_color_table_entry *colo
     _buf_write_pixel(image->buf, color, x, y, image->width);
 }
 
-void nexrad_image_draw_run(nexrad_image *image, nexrad_color_table_entry *color, uint16_t x, uint16_t y, uint16_t length) {
+void nexrad_image_draw_run(nexrad_image *image, nexrad_color color, uint16_t x, uint16_t y, uint16_t length) {
     unsigned char *buf;
     size_t offset;
     uint16_t i;
@@ -137,13 +137,13 @@ void nexrad_image_draw_run(nexrad_image *image, nexrad_color_table_entry *color,
     offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, image->width);
 
     for (i=0; i<length; i++) {
-        memcpy(buf + offset, color, sizeof(nexrad_color_table_entry));
+        memcpy(buf + offset, &color, sizeof(nexrad_color));
 
-        offset += sizeof(nexrad_color_table_entry);
+        offset += sizeof(nexrad_color);
     }
 }
 
-void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color_table_entry *color, int amin, int amax, int rmin, int rmax) {
+void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int amin, int amax, int rmin, int rmax) {
     int x, xc, y, yc, radius, re, w;
     int xmin, xmax, ymin, ymax;
     unsigned char *buf;

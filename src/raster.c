@@ -176,7 +176,7 @@ int nexrad_raster_get_info(nexrad_raster *raster, uint16_t *widthp, uint16_t *he
     return 0;
 }
 
-static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad_color_table_entry *entries) {
+static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad_color *entries) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
     unsigned char *buf;
@@ -200,10 +200,10 @@ static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad
             uint8_t level  = data[r].level * NEXRAD_RASTER_RLE_FACTOR;
             uint8_t length = data[r].length;
 
-            nexrad_color_table_entry entry = entries[level];
+            nexrad_color color = entries[level];
 
-            if (entry.a)
-                nexrad_image_draw_run(image, &entry, x, y, length);
+            if (color.a)
+                nexrad_image_draw_run(image, color, x, y, length);
 
             x += length;
 
@@ -224,7 +224,7 @@ error_image_get_buf:
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color_table *table) {
     nexrad_image *image;
-    nexrad_color_table_entry *entries;
+    nexrad_color *entries;
     uint16_t width, height;
 
     if (raster == NULL || table == NULL) {

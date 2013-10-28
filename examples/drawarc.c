@@ -27,15 +27,16 @@ int main(int argc, char **argv) {
     int a;
 
     for (a=0; a<360; a+=45) {
-        int color = 0x10;
+        int level = 0x10;
         int r;
 
         for (r=0; r<180; r+=8) {
-            if (color >= 0xf0) color = 0x10;
+            if (level >= 0xf0) level = 0x10;
+            nexrad_color color = { level, level % 0x3f, level % 0x7f, 0xff };
 
-            nexrad_image_draw_arc_segment(image, color, color % 0x3f, color % 0x7f, a, a + 35, r, r+2);
+            nexrad_image_draw_arc_segment(image, color, a, a + 35, r, r+2);
 
-            color += 0x10;
+            level += 0x10;
         }
     }
 

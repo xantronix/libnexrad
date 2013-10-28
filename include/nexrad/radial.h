@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/color.h>
 #include <nexrad/image.h>
 #include <nexrad/geo.h>
 

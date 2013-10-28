@@ -9,7 +9,7 @@
 #include <nexrad/color.h>
 
 static inline size_t _table_size(size_t size) {
-    return size * sizeof(nexrad_color_table_entry);
+    return size * sizeof(nexrad_color);
 }
 
 static inline size_t _table_size_total(size_t size) {
@@ -41,19 +41,16 @@ error_malloc:
     return NULL;
 }
 
-void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    nexrad_color_table_entry *entries;
+void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, nexrad_color color) {
+    nexrad_color *entries;
 
     if (table == NULL) {
         return;
     }
 
-    entries = (nexrad_color_table_entry *)((char *)table + sizeof(nexrad_color_table));
+    entries = (nexrad_color *)((char *)table + sizeof(nexrad_color_table));
 
-    entries[index].r = r;
-    entries[index].g = g;
-    entries[index].b = b;
-    entries[index].a = a;
+    entries[index] = color;
 }
 
 nexrad_color_table *nexrad_color_table_load(const char *path) {
@@ -146,7 +143,7 @@ error_open:
     return NULL;
 }
 
-nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size) {
+nexrad_color *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size) {
     if (table == NULL) {
         return NULL;
     }
@@ -154,7 +151,7 @@ nexrad_color_table_entry *nexrad_color_table_get_entries(nexrad_color_table *tab
     if (size)
         *size = table->size;
 
-    return (nexrad_color_table_entry *)((char *)table + sizeof(nexrad_color_table));
+    return (nexrad_color *)((char *)table + sizeof(nexrad_color_table));
 }
 
 int nexrad_color_table_save(nexrad_color_table *table, const char *path) {

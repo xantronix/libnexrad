@@ -394,7 +394,7 @@ nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial) {
 
 nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_table *table) {
     nexrad_image *image;
-    nexrad_color_table_entry *entries;
+    nexrad_color *entries;
     nexrad_radial_ray *ray;
     size_t width, height, radius;
     uint8_t *data;
@@ -427,11 +427,11 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_tab
         int b;
 
         for (b=0; b<radial->bins; b++) {
-            nexrad_color_table_entry entry = entries[data[b]];
+            nexrad_color color = entries[data[b]];
 
-            if (entry.a)
+            if (color.a)
                 nexrad_image_draw_arc_segment(image,
-                    &entry,
+                    color,
                     angle_start, angle_end,
                     radius, radius+1
                 );
@@ -490,10 +490,8 @@ static void _get_image_dimensions(nexrad_geo_cartesian *extents, double scale, u
 
 nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, double scale) {
     nexrad_image *image;
-    nexrad_color_table_entry *entries;
+    nexrad_color *entries;
     nexrad_radial_packet *packet;
-    size_t table_size;
-
     nexrad_geo_cartesian extents[4];
     nexrad_geo_cartesian point;
     uint16_t x, y, width, height, bins;
@@ -510,7 +508,7 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
         goto error_radial_get_info;
     }
 
-    if ((entries = nexrad_color_table_get_entries(table, &table_size)) == NULL) {
+    if ((entries = nexrad_color_table_get_entries(table, NULL)) == NULL) {
         goto error_color_table_get_entries;
     }
 
@@ -524,7 +522,7 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
     for (y=0, point.lat=extents[0].lat; y<height; y++, point.lat -= scale) {
         for (x=0, point.lon=extents[3].lon; x<width; x++, point.lon += scale) {
             int azimuth, range;
-            nexrad_color_table_entry entry;
+            nexrad_color color;
             uint8_t *values;
 
             nexrad_geo_polar polar;
@@ -547,10 +545,10 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
                 + azimuth * (sizeof(nexrad_radial_ray) + bins)
                 + sizeof(nexrad_radial_ray);
 
-            entry = entries[values[range]];
+            color = entries[values[range]];
 
-            if (entry.a)
-                nexrad_image_draw_pixel(image, &entry, x, y);
+            if (color.a)
+                nexrad_image_draw_pixel(image, color, x, y);
         }
     }
 
