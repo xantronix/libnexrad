@@ -429,13 +429,12 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial, nexrad_color_tab
         for (b=0; b<radial->bins; b++) {
             nexrad_color_table_entry entry = entries[data[b]];
 
-            if (entry.a) {
+            if (entry.a)
                 nexrad_image_draw_arc_segment(image,
-                    entry.r, entry.g, entry.b,
+                    &entry,
                     angle_start, angle_end,
                     radius, radius+1
                 );
-            }
 
             radius++;
         }
@@ -551,7 +550,7 @@ nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexr
             entry = entries[values[range]];
 
             if (entry.a)
-                nexrad_image_draw_pixel(image, entry.r, entry.g, entry.b, x, y);
+                nexrad_image_draw_pixel(image, &entry, x, y);
         }
     }
 

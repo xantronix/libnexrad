@@ -200,14 +200,10 @@ static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad
             uint8_t level  = data[r].level * NEXRAD_RASTER_RLE_FACTOR;
             uint8_t length = data[r].length;
 
-            if (level > 0) {
-                nexrad_image_draw_run(image,
-                    entries[level].r,
-                    entries[level].g,
-                    entries[level].b,
-                    x, y, length
-                );
-            }
+            nexrad_color_table_entry entry = entries[level];
+
+            if (entry.a)
+                nexrad_image_draw_run(image, &entry, x, y, length);
 
             x += length;
 

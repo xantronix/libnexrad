@@ -3,7 +3,7 @@ HEADER_SUBDIR	= nexrad
 
 CC		= $(CROSS)cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 \
-		  -I$(INCLUDE_PATH)
+		  -I$(INCLUDE_PATH) -march=core-avx-i
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 LDFLAGS		= -lbz2 -lz -lm
 

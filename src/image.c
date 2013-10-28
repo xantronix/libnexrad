@@ -89,13 +89,10 @@ unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_write_pixel(unsigned char *buf, uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y, uint16_t w) {
+static inline void _buf_write_pixel(unsigned char *buf, nexrad_color_table_entry *color, uint16_t x, uint16_t y, uint16_t w) {
     size_t offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, w);
 
-    buf[offset]   = r;
-    buf[offset+1] = g;
-    buf[offset+2] = b;
-    buf[offset+3] = 0xff;
+    memcpy(buf + offset, color, sizeof(color));
 }
 
 static inline void _int_swap(int *a, int *b) {
@@ -111,7 +108,7 @@ static inline void _int_order(int *a, int *b) {
     }
 }
 
-void nexrad_image_draw_pixel(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y) {
+void nexrad_image_draw_pixel(nexrad_image *image, nexrad_color_table_entry *color, uint16_t x, uint16_t y) {
     if (image == NULL) {
         return;
     }
@@ -120,10 +117,10 @@ void nexrad_image_draw_pixel(nexrad_image *image, uint8_t r, uint8_t g, uint8_t 
         return;
     }
 
-    _buf_write_pixel(image->buf, r, g, b, x, y, image->width);
+    _buf_write_pixel(image->buf, color, x, y, image->width);
 }
 
-void nexrad_image_draw_run(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y, uint16_t length) {
+void nexrad_image_draw_run(nexrad_image *image, nexrad_color_table_entry *color, uint16_t x, uint16_t y, uint16_t length) {
     unsigned char *buf;
     size_t offset;
     uint16_t i;
@@ -140,14 +137,13 @@ void nexrad_image_draw_run(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b,
     offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, image->width);
 
     for (i=0; i<length; i++) {
-        buf[offset++] = r;
-        buf[offset++] = g;
-        buf[offset++] = b;
-        buf[offset++] = 0xff;
+        memcpy(buf + offset, color, sizeof(nexrad_color_table_entry));
+
+        offset += sizeof(nexrad_color_table_entry);
     }
 }
 
-void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, uint8_t b, int amin, int amax, int rmin, int rmax) {
+void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color_table_entry *color, int amin, int amax, int rmin, int rmax) {
     int x, xc, y, yc, radius, re, w;
     int xmin, xmax, ymin, ymax;
     unsigned char *buf;
@@ -274,14 +270,14 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
              */
             if (draw) {
                 switch (octant) {
-                    case ESE: _buf_write_pixel(buf, r, g, b,  x+xc,  y+yc, w); break;
-                    case SSE: _buf_write_pixel(buf, r, g, b,  y+xc,  x+yc, w); break;
-                    case SSW: _buf_write_pixel(buf, r, g, b, -y+xc,  x+yc, w); break;
-                    case WSW: _buf_write_pixel(buf, r, g, b, -x+xc,  y+yc, w); break;
-                    case WNW: _buf_write_pixel(buf, r, g, b, -x+xc, -y+yc, w); break;
-                    case NNW: _buf_write_pixel(buf, r, g, b, -y+xc, -x+yc, w); break;
-                    case NNE: _buf_write_pixel(buf, r, g, b,  y+xc, -x+yc, w); break;
-                    case ENE: _buf_write_pixel(buf, r, g, b,  x+xc, -y+yc, w); break;
+                    case ESE: _buf_write_pixel(buf, color,  x+xc,  y+yc, w); break;
+                    case SSE: _buf_write_pixel(buf, color,  y+xc,  x+yc, w); break;
+                    case SSW: _buf_write_pixel(buf, color, -y+xc,  x+yc, w); break;
+                    case WSW: _buf_write_pixel(buf, color, -x+xc,  y+yc, w); break;
+                    case WNW: _buf_write_pixel(buf, color, -x+xc, -y+yc, w); break;
+                    case NNW: _buf_write_pixel(buf, color, -y+xc, -x+yc, w); break;
+                    case NNE: _buf_write_pixel(buf, color,  y+xc, -x+yc, w); break;
+                    case ENE: _buf_write_pixel(buf, color,  x+xc, -y+yc, w); break;
 
                     default: {
                         break;
@@ -295,14 +291,14 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, uint8_t r, uint8_t g, ui
                  */
                 if (decrx) {
                     switch (octant) {
-                        case ESE: _buf_write_pixel(buf, r, g, b,  x+xc-1,  y+yc, w); break;
-                        case SSE: _buf_write_pixel(buf, r, g, b,  y+xc+1,  x+yc, w); break;
-                        case SSW: _buf_write_pixel(buf, r, g, b, -y+xc-1,  x+yc, w); break;
-                        case WSW: _buf_write_pixel(buf, r, g, b, -x+xc+1,  y+yc, w); break;
-                        case WNW: _buf_write_pixel(buf, r, g, b, -x+xc+1, -y+yc, w); break;
-                        case NNW: _buf_write_pixel(buf, r, g, b, -y+xc-1, -x+yc, w); break;
-                        case NNE: _buf_write_pixel(buf, r, g, b,  y+xc+1, -x+yc, w); break;
-                        case ENE: _buf_write_pixel(buf, r, g, b,  x+xc-1, -y+yc, w); break;
+                        case ESE: _buf_write_pixel(buf, color,  x+xc-1,  y+yc, w); break;
+                        case SSE: _buf_write_pixel(buf, color,  y+xc+1,  x+yc, w); break;
+                        case SSW: _buf_write_pixel(buf, color, -y+xc-1,  x+yc, w); break;
+                        case WSW: _buf_write_pixel(buf, color, -x+xc+1,  y+yc, w); break;
+                        case WNW: _buf_write_pixel(buf, color, -x+xc+1, -y+yc, w); break;
+                        case NNW: _buf_write_pixel(buf, color, -y+xc-1, -x+yc, w); break;
+                        case NNE: _buf_write_pixel(buf, color,  y+xc+1, -x+yc, w); break;
+                        case ENE: _buf_write_pixel(buf, color,  x+xc-1, -y+yc, w); break;
 
                         default: {
                             break;
