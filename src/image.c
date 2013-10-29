@@ -12,8 +12,8 @@
   ((y * w * NEXRAD_IMAGE_PIXEL_BYTES) + x * NEXRAD_IMAGE_PIXEL_BYTES)
 
 struct _nexrad_image {
-    unsigned char * buf;
-    size_t          size;
+    uint8_t * buf;
+    size_t    size;
 
     uint16_t width;
     uint16_t height;
@@ -29,7 +29,7 @@ static size_t _image_size(uint16_t width, uint16_t height) {
 nexrad_image *nexrad_image_create(uint16_t width, uint16_t height) {
     nexrad_image *image;
     size_t size;
-    unsigned char *buf;
+    uint8_t *buf;
 
     if (width == 0 || height == 0) {
         return NULL;
@@ -78,7 +78,7 @@ int nexrad_image_get_info(nexrad_image *image, uint16_t *width, uint16_t *height
     return 0;
 }
 
-unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size) {
+uint8_t *nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     if (image == NULL) {
         return NULL;
     }
@@ -89,7 +89,7 @@ unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size) {
     return image->buf;
 }
 
-static inline void _buf_write_pixel(unsigned char *buf, nexrad_color color, uint16_t x, uint16_t y, uint16_t w) {
+static inline void _buf_write_pixel(uint8_t *buf, nexrad_color color, uint16_t x, uint16_t y, uint16_t w) {
     size_t offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, w);
 
     memcpy(buf + offset, &color, sizeof(color));
@@ -121,7 +121,7 @@ void nexrad_image_draw_pixel(nexrad_image *image, nexrad_color color, uint16_t x
 }
 
 void nexrad_image_draw_run(nexrad_image *image, nexrad_color color, uint16_t x, uint16_t y, uint16_t length) {
-    unsigned char *buf;
+    uint8_t *buf;
     size_t offset;
     uint16_t i;
 
@@ -143,30 +143,19 @@ void nexrad_image_draw_run(nexrad_image *image, nexrad_color color, uint16_t x, 
     }
 }
 
-void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int amin, int amax, int rmin, int rmax) {
-    int x, xc, y, yc, radius, re, w;
-    int xmin, xmax, ymin, ymax;
-    unsigned char *buf;
-    static double rad = M_PI / 180;
+enum octant {
+    NONE, ESE, SSE, SSW, WSW, WNW, NNW, NNE, ENE
+};
 
-    enum {
-        NONE, ESE, SSE, SSW, WSW, WNW, NNW, NNE, ENE
-    } octant = NONE;
-
-    if (image == NULL || amin > amax || rmin > rmax) {
-        return;
-    }
-
-    if (rmin >= image->radius || rmax >= image->radius) {
-        return;
-    }
+static void _find_arc_octant(int *aminp, int *amaxp, enum octant *octantp) {
+    int amin = *aminp, amax = *amaxp;
+    enum octant octant = *octantp;
 
     /*
-     * Ensure the angle and radius minimum and maximum arguments are well
-     * ordered and fall within a single rotation of a circle.
+     * Ensure the angle minimum and maximums fall within a single rotation of
+     * a circle.
      */
     _int_order(&amin, &amax);
-    _int_order(&rmin, &rmax);
 
     amin = amin % 360;
 
@@ -187,14 +176,6 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int 
     if (amin >=  45 && amin <=  90 && amax >=  45 && amax <=  90) octant = ENE;
 
     /*
-     * Draw nothing if the angle minimum and maximum do not span a single
-     * octant.
-     */
-    if (!octant) {
-        return;
-    }
-
-    /*
      * Scale down the angle minimum and maximum to a 45 degree range within the
      * current octant.
      */
@@ -203,15 +184,6 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int 
     if (amax && (amax = amax % 45) == 0) {
         amax = 45;
     }
-
-    /*
-     * Set up a bit more state for the eventual pixel writing operations.
-     */
-    buf = image->buf;
-    w   = image->width;
-
-    xc = image->x_center;
-    yc = image->y_center;
 
     /*
      * Using a modified Bresenham's midpoint circle algorithm, every second
@@ -232,6 +204,83 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int 
         }
 
         default: break;
+    }
+
+    *aminp   = amin;
+    *amaxp   = amax;
+    *octantp = octant;
+}
+
+static inline void _draw_arc_points(nexrad_image *image, nexrad_color color, int x, int y, enum octant octant) {
+    uint8_t *buf = image->buf;
+
+    int xc = image->x_center;
+    int yc = image->y_center;
+    int w  = image->width;
+
+    switch (octant) {
+        case ESE: _buf_write_pixel(buf, color,  x+xc,  y+yc, w); break;
+        case SSE: _buf_write_pixel(buf, color,  y+xc,  x+yc, w); break;
+        case SSW: _buf_write_pixel(buf, color, -y+xc,  x+yc, w); break;
+        case WSW: _buf_write_pixel(buf, color, -x+xc,  y+yc, w); break;
+        case WNW: _buf_write_pixel(buf, color, -x+xc, -y+yc, w); break;
+        case NNW: _buf_write_pixel(buf, color, -y+xc, -x+yc, w); break;
+        case NNE: _buf_write_pixel(buf, color,  y+xc, -x+yc, w); break;
+        case ENE: _buf_write_pixel(buf, color,  x+xc, -y+yc, w); break;
+
+        default: {
+            break;
+        }
+    }
+}
+
+static inline void _draw_arc_complement_points(nexrad_image *image, nexrad_color color, int x, int y, enum octant octant) {
+    uint8_t *buf = image->buf;
+
+    int xc = image->x_center;
+    int yc = image->y_center;
+    int w  = image->width;
+
+    switch (octant) {
+        case ESE: _buf_write_pixel(buf, color,  x+xc-1,  y+yc, w); break;
+        case SSE: _buf_write_pixel(buf, color,  y+xc+1,  x+yc, w); break;
+        case SSW: _buf_write_pixel(buf, color, -y+xc-1,  x+yc, w); break;
+        case WSW: _buf_write_pixel(buf, color, -x+xc+1,  y+yc, w); break;
+        case WNW: _buf_write_pixel(buf, color, -x+xc+1, -y+yc, w); break;
+        case NNW: _buf_write_pixel(buf, color, -y+xc-1, -x+yc, w); break;
+        case NNE: _buf_write_pixel(buf, color,  y+xc+1, -x+yc, w); break;
+        case ENE: _buf_write_pixel(buf, color,  x+xc-1, -y+yc, w); break;
+
+        default: {
+            break;
+        }
+    }
+}
+
+void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int amin, int amax, int rmin, int rmax) {
+    int x, y, radius, re;
+    int xmin, xmax, ymin, ymax;
+    static const double rad = M_PI / 180;
+
+    enum octant octant = NONE;
+
+    if (image == NULL || amin > amax || rmin > rmax) {
+        return;
+    }
+
+    if (rmin >= image->radius || rmax >= image->radius) {
+        return;
+    }
+
+    _int_order(&rmin, &rmax);
+    _find_arc_octant(&amin, &amax, &octant);
+
+    /*
+     * Draw nothing if the angle minimum and maximum do not span a single
+     * octant.
+     */
+    if (octant == NONE) {
+        return;
     }
 
     /*
@@ -269,20 +318,7 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int 
              * plot a point under the correct octant as needed.
              */
             if (draw) {
-                switch (octant) {
-                    case ESE: _buf_write_pixel(buf, color,  x+xc,  y+yc, w); break;
-                    case SSE: _buf_write_pixel(buf, color,  y+xc,  x+yc, w); break;
-                    case SSW: _buf_write_pixel(buf, color, -y+xc,  x+yc, w); break;
-                    case WSW: _buf_write_pixel(buf, color, -x+xc,  y+yc, w); break;
-                    case WNW: _buf_write_pixel(buf, color, -x+xc, -y+yc, w); break;
-                    case NNW: _buf_write_pixel(buf, color, -y+xc, -x+yc, w); break;
-                    case NNE: _buf_write_pixel(buf, color,  y+xc, -x+yc, w); break;
-                    case ENE: _buf_write_pixel(buf, color,  x+xc, -y+yc, w); break;
-
-                    default: {
-                        break;
-                    }
-                }
+                _draw_arc_points(image, color, x, y, octant);
 
                 /*
                  * If X will be decremented soon, then we will need to fill in the
@@ -290,20 +326,7 @@ void nexrad_image_draw_arc_segment(nexrad_image *image, nexrad_color color, int 
                  * in any filled arcs.
                  */
                 if (decrx) {
-                    switch (octant) {
-                        case ESE: _buf_write_pixel(buf, color,  x+xc-1,  y+yc, w); break;
-                        case SSE: _buf_write_pixel(buf, color,  y+xc+1,  x+yc, w); break;
-                        case SSW: _buf_write_pixel(buf, color, -y+xc-1,  x+yc, w); break;
-                        case WSW: _buf_write_pixel(buf, color, -x+xc+1,  y+yc, w); break;
-                        case WNW: _buf_write_pixel(buf, color, -x+xc+1, -y+yc, w); break;
-                        case NNW: _buf_write_pixel(buf, color, -y+xc-1, -x+yc, w); break;
-                        case NNE: _buf_write_pixel(buf, color,  y+xc+1, -x+yc, w); break;
-                        case ENE: _buf_write_pixel(buf, color,  x+xc-1, -y+yc, w); break;
-
-                        default: {
-                            break;
-                        }
-                    }
+                    _draw_arc_complement_points(image, color, x, y, octant);
                 }
             }
 

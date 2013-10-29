@@ -22,7 +22,7 @@ int nexrad_image_get_info(nexrad_image *image,
     uint16_t *height
 );
 
-unsigned char *nexrad_image_get_buf(nexrad_image *image, size_t *size);
+uint8_t *nexrad_image_get_buf(nexrad_image *image, size_t *size);
 
 void nexrad_image_draw_pixel(nexrad_image *image,
     nexrad_color color,
