@@ -144,7 +144,7 @@ void nexrad_image_draw_run(nexrad_image *image, nexrad_color color, uint16_t x, 
 }
 
 enum octant {
-    NONE, ESE, SSE, SSW, WSW, WNW, NNW, NNE, ENE
+    NONE, NNE, ENE, ESE, SSE, SSW, WSW, WNW, NNW
 };
 
 static void _find_arc_octant(int *aminp, int *amaxp, enum octant *octantp) {
