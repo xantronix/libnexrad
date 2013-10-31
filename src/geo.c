@@ -141,6 +141,12 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
         goto error_malloc_map;
     }
 
+    nexrad_geo_radial_map_find_extents(
+        spheroid, radar, rangebins, rangebin_meters, extents
+    );
+
+    nexrad_geo_radial_map_get_dimensions(extents, scale, &width, &height);
+
     map->size = sizeof(nexrad_geo_radial_map_header)
         + sizeof(nexrad_geo_radial_map_point) * width * height;
 
@@ -157,12 +163,6 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
 
     map->points = (nexrad_geo_radial_map_point *)map->header +
         sizeof(nexrad_geo_radial_map_header);
-
-    nexrad_geo_radial_map_find_extents(
-        spheroid, radar, rangebins, rangebin_meters, extents
-    );
-
-    nexrad_geo_radial_map_get_dimensions(extents, scale, &width, &height);
 
     memcpy(map->header->magic, NEXRAD_GEO_RADIAL_MAP_MAGIC, 4);
 
