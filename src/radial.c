@@ -459,30 +459,6 @@ static void _find_cartesian_image_extents(nexrad_geo_spheroid *spheroid, nexrad_
     }
 }
 
-static void _find_cartesian_rangebin_extents(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, int azimuth, int range, nexrad_geo_cartesian *extents) {
-    nexrad_geo_polar polar;
-
-    polar.azimuth = azimuth;
-    polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
-
-    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents[0], &polar);
-
-    polar.azimuth = azimuth + 1;
-    polar.range   = range / NEXRAD_RADIAL_RANGE_FACTOR;
-
-    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents[1], &polar);
-
-    polar.azimuth = azimuth + 1;
-    polar.range   = (range + 1) / NEXRAD_RADIAL_RANGE_FACTOR;
-
-    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents[2], &polar);
-
-    polar.azimuth = azimuth;
-    polar.range   = (range + 1) / NEXRAD_RADIAL_RANGE_FACTOR;
-
-    nexrad_geo_find_cartesian_dest(spheroid, radar, &extents[3], &polar);
-}
-
 static void _get_image_dimensions(nexrad_geo_cartesian *extents, double scale, uint16_t *width, uint16_t *height) {
     *width  = (uint16_t)round((extents[1].lon - extents[3].lon) / scale);
     *height = (uint16_t)round((extents[0].lat - extents[2].lat) / scale);
