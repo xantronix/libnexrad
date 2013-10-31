@@ -325,6 +325,21 @@ int nexrad_geo_radial_map_read_station_location(nexrad_geo_radial_map *map, nexr
     return 0;
 }
 
+int nexrad_geo_radial_map_find_polar_point(nexrad_geo_radial_map *map, uint16_t x, uint16_t y, nexrad_geo_polar *polar) {
+    if (map == NULL || x > be16toh(map->header->width) || y > be16toh(map->header->height)) {
+        return -1;
+    }
+
+    if (polar) {
+        nexrad_geo_radial_map_point *point = &map->points[x*y];
+
+        polar->azimuth = NEXRAD_GEO_AZIMUTH_FACTOR * be16toh(point->azimuth);
+        polar->range   = be16toh(map->header->rangebin_meters) * be16toh(point->range);
+    }
+
+    return 0;
+}
+
 int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map) {
     if (map == NULL) {
         return -1;

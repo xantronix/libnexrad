@@ -128,6 +128,12 @@ int nexrad_geo_radial_map_read_station_location(
     nexrad_geo_cartesian *radar
 );
 
+int nexrad_geo_radial_map_find_polar_point(nexrad_geo_radial_map *map,
+    uint16_t x,
+    uint16_t y,
+    nexrad_geo_polar *polar
+);
+
 int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map);
 
 void nexrad_geo_radial_map_close(nexrad_geo_radial_map *map);

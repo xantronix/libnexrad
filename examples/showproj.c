@@ -7,6 +7,7 @@
 int main(int argc, char **argv) {
     nexrad_geo_radial_map *map;
     nexrad_geo_cartesian radar;
+    nexrad_geo_polar polar;
 
     if ((map = nexrad_geo_radial_map_open("foo.proj")) == NULL) {
         perror("nexrad_geo_radial_map_open()");
@@ -16,7 +17,15 @@ int main(int argc, char **argv) {
         perror("nexrad_geo_radial_map_read_station_location()");
     }
 
+    if (nexrad_geo_radial_map_find_polar_point(map, 255, 255, &polar) < 0) {
+        perror("nexrad_geo_radial_map_read_polar_point()");
+    }
+
     fprintf(stderr, "Station: %.3f, %.3f\n", radar.lat, radar.lon);
+
+    fprintf(stderr, "Azimuth, range at 255, 255: %.3f, %.3f\n",
+        polar.azimuth, polar.range
+    );
 
     nexrad_geo_radial_map_close(map);
 
