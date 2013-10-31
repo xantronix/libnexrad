@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 
     spheroid = nexrad_geo_spheroid_create();
 
-    if ((map = nexrad_geo_radial_map_create("foo.proj", spheroid, &radar, 346, 1000, 0.00815)) == NULL) {
+    if ((map = nexrad_geo_radial_map_create("foo.proj", spheroid, &radar, 346, 1000, 0.000815)) == NULL) {
         perror("nexrad_geo_radial_map_create()");
         exit(1);
     }

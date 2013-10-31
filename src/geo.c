@@ -211,15 +211,20 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
     for (y=0, point.lat=extents[0].lat; y<height; y++, point.lat -= scale) {
         for (x=0, point.lon=extents[3].lon; x<width; x++, point.lon += scale) {
             nexrad_geo_polar polar;
-            nexrad_geo_radial_map_point *output = &map->points[x*y];
+            nexrad_geo_radial_map_point *output = &map->points[y*width+x];
+
+            int azimuth, range;
 
             nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
 
-            while (polar.azimuth > 360.0) polar.azimuth -= 360.0;
-            while (polar.azimuth <   0.0) polar.azimuth += 360.0;
+            azimuth = (int)round(polar.azimuth);
+            range   = (int)round(polar.range / rangebin_meters);
 
-            output->azimuth = htobe16((uint16_t)round(polar.azimuth / NEXRAD_GEO_AZIMUTH_FACTOR));
-            output->range   = htobe16((uint16_t)round(polar.range   / rangebin_meters));
+            while (azimuth >= 360) azimuth -= 360;
+            while (azimuth <    0) azimuth += 360;
+
+            output->azimuth = htobe16((uint16_t)azimuth);
+            output->range   = htobe16((uint16_t)range);
         }
     }
 
@@ -333,11 +338,19 @@ int nexrad_geo_radial_map_find_polar_point(nexrad_geo_radial_map *map, uint16_t 
     if (polar) {
         nexrad_geo_radial_map_point *point = &map->points[x*y];
 
-        polar->azimuth = NEXRAD_GEO_AZIMUTH_FACTOR * be16toh(point->azimuth);
+        polar->azimuth = be16toh(point->azimuth);
         polar->range   = be16toh(map->header->rangebin_meters) * be16toh(point->range);
     }
 
     return 0;
+}
+
+nexrad_geo_radial_map_point *nexrad_geo_radial_map_get_points(nexrad_geo_radial_map *map) {
+    if (map == NULL) {
+        return NULL;
+    }
+
+    return map->points;
 }
 
 int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map) {

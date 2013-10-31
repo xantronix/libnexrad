@@ -464,6 +464,82 @@ static void _get_image_dimensions(nexrad_geo_cartesian *extents, double scale, u
     *height = (uint16_t)round((extents[0].lat - extents[2].lat) / scale);
 }
 
+nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_radial_map *map) {
+    nexrad_image *image;
+    nexrad_color *entries;
+    nexrad_radial_packet *packet;
+    nexrad_geo_radial_map_point *points;
+    uint16_t x, y, width, height, bins;
+
+    if (radial == NULL || table == NULL || map == NULL) {
+        return NULL;
+    }
+    
+    if ((packet = nexrad_radial_packet_unpack(radial->packet, NULL)) == NULL) {
+        goto error_radial_packet_unpack;
+    }
+
+    if (nexrad_radial_get_info(radial, NULL, &bins, NULL, NULL, NULL, NULL) < 0) {
+        goto error_radial_get_info;
+    }
+
+    if ((entries = nexrad_color_table_get_entries(table, NULL)) == NULL) {
+        goto error_color_table_get_entries;
+    }
+
+    if (nexrad_geo_radial_map_read_dimensions(map, &width, &height) < 0) {
+        goto error_geo_radial_map_read_dimensions;
+    }
+
+    if ((points = nexrad_geo_radial_map_get_points(map)) == NULL) {
+        goto error_geo_radial_map_get_points;
+    }
+
+    if ((image = nexrad_image_create(width, height)) == NULL) {
+        goto error_image_create;
+    }
+
+    for (y=0; y<height; y++) {
+        for (x=0; x<width; x++) {
+            nexrad_color color;
+            int azimuth, range;
+            uint8_t *values;
+
+            nexrad_geo_radial_map_point *point = &points[y*width+x];
+
+            azimuth = (int)be16toh(point->azimuth);
+            range   = (int)be16toh(point->range);
+
+            if (range >= bins) {
+                continue;
+            }
+
+            values = (uint8_t *)packet
+                + sizeof(nexrad_radial_packet)
+                + azimuth * (sizeof(nexrad_radial_ray) + bins)
+                + sizeof(nexrad_radial_ray);
+
+            color = entries[values[range]];
+
+            if (color.a)
+                nexrad_image_draw_pixel(image, color, x, y);
+        }
+    }
+
+    free(packet);
+
+    return image;
+
+error_image_create:
+error_geo_radial_map_get_points:
+error_geo_radial_map_read_dimensions:
+error_color_table_get_entries:
+error_radial_get_info:
+    free(packet);
+
+error_radial_packet_unpack:
+    return NULL;
+}
 nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, double scale) {
     nexrad_image *image;
     nexrad_color *entries;
