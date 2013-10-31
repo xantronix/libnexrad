@@ -211,11 +211,15 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
     for (y=0, point.lat=extents[0].lat; y<height; y++, point.lat -= scale) {
         for (x=0, point.lon=extents[3].lon; x<width; x++, point.lon += scale) {
             nexrad_geo_polar polar;
+            nexrad_geo_radial_map_point *output = &map->points[x*y];
 
             nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
 
-            map->points[x*y].azimuth = htobe16((uint16_t)round(polar.azimuth));
-            map->points[x*y].range   = htobe16((uint16_t)round(polar.range / rangebin_meters));
+            while (polar.azimuth > 360.0) polar.azimuth -= 360.0;
+            while (polar.azimuth <   0.0) polar.azimuth += 360.0;
+
+            output->azimuth = htobe16((uint16_t)round(polar.azimuth / NEXRAD_GEO_AZIMUTH_FACTOR));
+            output->range   = htobe16((uint16_t)round(polar.range   / rangebin_meters));
         }
     }
 
