@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdint.h>
+#include <sys/types.h>
 #include <math.h>
 #include "geodesic.h"
 #include <errno.h>
@@ -10,6 +12,20 @@ struct _nexrad_geo_spheroid {
 
     double circumference;
     double flattening;
+};
+
+struct _nexrad_geo_projection {
+    size_t size;
+    size_t page_size;
+    size_t mapped_size;
+    int    fd;
+
+    nexrad_geo_projection_header * header;
+
+    struct {
+        uint16_t azimuth;
+        uint16_t range;
+    } * mappings;
 };
 
 nexrad_geo_spheroid *nexrad_geo_spheroid_create() {
