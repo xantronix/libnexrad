@@ -314,8 +314,8 @@ int nexrad_geo_radial_map_read_station_location(nexrad_geo_radial_map *map, nexr
     }
 
     if (radar) {
-        radar->lat = (int32_t)be32toh(map->header->station_lat) / NEXRAD_GEO_COORD_MAGNITUDE;
-        radar->lon = (int32_t)be32toh(map->header->station_lon) / NEXRAD_GEO_COORD_MAGNITUDE;
+        radar->lat = NEXRAD_GEO_COORD_MAGNITUDE * (int32_t)be32toh(map->header->station_lat);
+        radar->lon = NEXRAD_GEO_COORD_MAGNITUDE * (int32_t)be32toh(map->header->station_lon);
     }
 
     return 0;
