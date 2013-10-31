@@ -160,7 +160,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
         goto error_open;
     }
 
-    if (lseek(map->fd, map->size, SEEK_SET) < 0) {
+    if (lseek(map->fd, map->size - 1, SEEK_SET) < 0) {
         goto error_lseek;
     }
 
@@ -168,7 +168,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
         goto error_write;
     }
 
-    if ((map->header = mmap(NULL, map->mapped_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, map->fd, 0)) == NULL) {
+    if ((map->header = mmap(NULL, map->mapped_size, PROT_READ | PROT_WRITE, MAP_SHARED, map->fd, 0)) == NULL) {
         goto error_mmap;
     }
 
