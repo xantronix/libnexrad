@@ -68,8 +68,8 @@ double nexrad_geo_spheroid_get_flattening(nexrad_geo_spheroid *spheroid);
 
 void nexrad_geo_find_polar_dest(nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian * origin,
-    nexrad_geo_cartesian * dest,
-    nexrad_geo_polar *     polar
+    nexrad_geo_cartesian * cart,
+    nexrad_geo_polar *     dest
 );
 
 void nexrad_geo_find_cartesian_dest(nexrad_geo_spheroid *spheroid,
