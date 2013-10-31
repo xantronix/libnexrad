@@ -106,6 +106,27 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(
 
 nexrad_geo_radial_map *nexrad_geo_radial_map_open(const char *path);
 
+enum nexrad_geo_radial_map_type nexrad_geo_radial_map_get_type(
+    nexrad_geo_radial_map *map
+);
+
+int nexrad_geo_radial_map_read_dimensions(
+    nexrad_geo_radial_map *map,
+    uint16_t *width,
+    uint16_t *height
+);
+
+int nexrad_geo_radial_map_read_range(
+    nexrad_geo_radial_map *map,
+    uint16_t *rangebins,
+    uint16_t *rangebin_meters
+);
+
+int nexrad_geo_radial_map_read_station_location(
+    nexrad_geo_radial_map *map,
+    nexrad_geo_cartesian *radar
+);
+
 int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map);
 
 void nexrad_geo_radial_map_close(nexrad_geo_radial_map *map);

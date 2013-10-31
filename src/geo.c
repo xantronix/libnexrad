@@ -272,6 +272,55 @@ error_stat:
     return NULL;
 }
 
+enum nexrad_geo_radial_map_type nexrad_geo_radial_map_get_type(nexrad_geo_radial_map *map) {
+    if (map == NULL) {
+        return -1;
+    }
+
+    return be16toh(map->header->type);
+}
+
+int nexrad_geo_radial_map_read_dimensions(nexrad_geo_radial_map *map, uint16_t *width, uint16_t *height) {
+    if (map == NULL) {
+        return -1;
+    }
+
+    if (width)
+        *width = be16toh(map->header->width);
+
+    if (height)
+        *height = be16toh(map->header->height);
+
+    return 0;
+}
+
+int nexrad_geo_radial_map_read_range(nexrad_geo_radial_map *map, uint16_t *rangebins, uint16_t *rangebin_meters) {
+    if (map == NULL) {
+        return -1;
+    }
+
+    if (rangebins)
+        *rangebins = be16toh(map->header->rangebins);
+
+    if (rangebin_meters)
+        *rangebin_meters = be16toh(map->header->rangebin_meters);
+
+    return 0;
+}
+
+int nexrad_geo_radial_map_read_station_location(nexrad_geo_radial_map *map, nexrad_geo_cartesian *radar) {
+    if (map == NULL) {
+        return -1;
+    }
+
+    if (radar) {
+        radar->lat = (int32_t)be32toh(map->header->station_lat) / NEXRAD_GEO_COORD_MAGNITUDE;
+        radar->lon = (int32_t)be32toh(map->header->station_lon) / NEXRAD_GEO_COORD_MAGNITUDE;
+    }
+
+    return 0;
+}
+
 int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map) {
     if (map == NULL) {
         return -1;
