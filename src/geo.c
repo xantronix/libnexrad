@@ -331,12 +331,16 @@ int nexrad_geo_radial_map_read_station_location(nexrad_geo_radial_map *map, nexr
 }
 
 int nexrad_geo_radial_map_find_polar_point(nexrad_geo_radial_map *map, uint16_t x, uint16_t y, nexrad_geo_polar *polar) {
+    uint16_t width;
+
     if (map == NULL || x > be16toh(map->header->width) || y > be16toh(map->header->height)) {
         return -1;
     }
 
+    width = be16toh(map->header->width);
+
     if (polar) {
-        nexrad_geo_radial_map_point *point = &map->points[x*y];
+        nexrad_geo_radial_map_point *point = &map->points[y*width+x];
 
         polar->azimuth = be16toh(point->azimuth);
         polar->range   = be16toh(map->header->rangebin_meters) * be16toh(point->range);

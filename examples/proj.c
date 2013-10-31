@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     nexrad_geo_radial_map *map;
 
     nexrad_geo_cartesian radar = {
-        64.1333, -21.9333
+        35.333, -97.278
     };
 
     spheroid = nexrad_geo_spheroid_create();
