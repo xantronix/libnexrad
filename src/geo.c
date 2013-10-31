@@ -130,8 +130,11 @@ static inline int _mapped_size(size_t size, size_t page_size) {
 
 nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, uint16_t rangebins, uint16_t rangebin_meters, double scale) {
     nexrad_geo_radial_map *map;
-    nexrad_geo_cartesian extents[4];
-    uint16_t width, height;
+
+    nexrad_geo_cartesian extents[4],
+        point;
+
+    uint16_t width, height, x, y;
 
     if (path == NULL || spheroid == NULL || radar == NULL) {
         return NULL;
@@ -157,6 +160,14 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
         goto error_open;
     }
 
+    if (lseek(map->fd, map->size, SEEK_SET) < 0) {
+        goto error_lseek;
+    }
+
+    if (write(map->fd, "\0", 1) < 0) {
+        goto error_write;
+    }
+
     if ((map->header = mmap(NULL, map->mapped_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, map->fd, 0)) == NULL) {
         goto error_mmap;
     }
@@ -176,9 +187,22 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
     map->header->station_lat     = htobe32(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE);
     map->header->station_lon     = htobe32(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE);
 
-    memset(map->points, '\0', sizeof(nexrad_geo_radial_map_point) * width * height);
+    for (y=0, point.lat=extents[0].lat; y<height; y++, point.lat -= scale) {
+        for (x=0, point.lon=extents[3].lon; x<width; x++, point.lon += scale) {
+            nexrad_geo_polar polar;
+
+            nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
+
+            map->points[x*y].azimuth = htobe16((uint16_t)round(polar.azimuth));
+            map->points[x*y].range   = htobe16((uint16_t)round(polar.range / rangebin_meters));
+        }
+    }
 
     return map;
+
+error_lseek:
+error_write:
+    munmap(map->header, map->mapped_size);
 
 error_mmap:
     close(map->fd);
