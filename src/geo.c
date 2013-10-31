@@ -128,44 +128,19 @@ static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }
 
-nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, uint16_t rangebins, uint16_t rangebin_meters, double scale) {
+static nexrad_geo_radial_map *_radial_map_open(const char *path, size_t size) {
     nexrad_geo_radial_map *map;
 
-    nexrad_geo_cartesian extents[4],
-        point;
-
-    uint16_t width, height, x, y;
-
-    if (path == NULL || spheroid == NULL || radar == NULL) {
-        return NULL;
-    }
-
     if ((map = malloc(sizeof(*map))) == NULL) {
-        goto error_malloc_map;
+        goto error_malloc;
     }
 
-    nexrad_geo_radial_map_find_extents(
-        spheroid, radar, rangebins, rangebin_meters, extents
-    );
-
-    nexrad_geo_radial_map_get_dimensions(extents, scale, &width, &height);
-
-    map->size = sizeof(nexrad_geo_radial_map_header)
-        + sizeof(nexrad_geo_radial_map_point) * width * height;
-
+    map->size        = size;
     map->page_size   = (size_t)sysconf(_SC_PAGESIZE);
-    map->mapped_size = _mapped_size(map->size, map->page_size);
+    map->mapped_size = _mapped_size(size, map->page_size);
 
     if ((map->fd = open(path, O_CREAT | O_RDWR, 0644)) < 0) {
         goto error_open;
-    }
-
-    if (lseek(map->fd, map->size - 1, SEEK_SET) < 0) {
-        goto error_lseek;
-    }
-
-    if (write(map->fd, "\0", 1) < 0) {
-        goto error_write;
     }
 
     if ((map->header = mmap(NULL, map->mapped_size, PROT_READ | PROT_WRITE, MAP_SHARED, map->fd, 0)) == NULL) {
@@ -174,6 +149,52 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
 
     map->points = (nexrad_geo_radial_map_point *)((char *)map->header +
         sizeof(nexrad_geo_radial_map_header));
+
+    return map;
+
+error_mmap:
+    close(map->fd);
+
+error_open:
+    free(map);
+
+error_malloc:
+    return NULL;
+}
+
+nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, uint16_t rangebins, uint16_t rangebin_meters, double scale) {
+    nexrad_geo_radial_map *map;
+
+    nexrad_geo_cartesian extents[4],
+        point;
+
+    uint16_t width, height, x, y;
+    size_t size;
+
+    if (path == NULL || spheroid == NULL || radar == NULL) {
+        return NULL;
+    }
+
+    nexrad_geo_radial_map_find_extents(
+        spheroid, radar, rangebins, rangebin_meters, extents
+    );
+
+    nexrad_geo_radial_map_get_dimensions(extents, scale, &width, &height);
+
+    size = sizeof(nexrad_geo_radial_map_header)
+        + sizeof(nexrad_geo_radial_map_point) * width * height;
+
+    if ((map = _radial_map_open(path, size)) == NULL) {
+        goto error_radial_map_open;
+    }
+
+    if (lseek(map->fd, size - 1, SEEK_SET) < 0) {
+        goto error_lseek;
+    }
+
+    if (write(map->fd, "\0", 1) < 0) {
+        goto error_write;
+    }
 
     memcpy(map->header->magic, NEXRAD_GEO_RADIAL_MAP_MAGIC, 4);
 
@@ -202,15 +223,52 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
 
 error_lseek:
 error_write:
-    munmap(map->header, map->mapped_size);
+    nexrad_geo_radial_map_close(map);
 
-error_mmap:
-    close(map->fd);
+error_radial_map_open:
+    return NULL;
+}
 
-error_open:
-    free(map);
+static int _is_valid_radial_map_header(nexrad_geo_radial_map_header *header) {
+    if (strncmp(header->magic, NEXRAD_GEO_RADIAL_MAP_MAGIC, 4) != 0)
+        return 0;
 
-error_malloc_map:
+    if (be16toh(header->version) != NEXRAD_GEO_RADIAL_MAP_VERSION)
+        return 0;
+
+    if (be16toh(header->type) != NEXRAD_GEO_RADIAL_MAP_EQUIRECT)
+        return 0;
+
+    return 1;
+}
+
+nexrad_geo_radial_map *nexrad_geo_radial_map_open(const char *path) {
+    nexrad_geo_radial_map *map;
+    struct stat st;
+
+    if (path == NULL) {
+        return NULL;
+    }
+
+    if (stat(path, &st) < 0) {
+        goto error_stat;
+    }
+
+    if ((map = _radial_map_open(path, st.st_size)) == NULL) {
+        goto error_radial_map_open;
+    }
+
+    if (!_is_valid_radial_map_header(map->header)) {
+        goto error_invalid_radial_map_header;
+    }
+
+    return map;
+
+error_invalid_radial_map_header:
+    nexrad_geo_radial_map_close(map);
+
+error_radial_map_open:
+error_stat:
     return NULL;
 }
 

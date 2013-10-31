@@ -104,6 +104,8 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(
     double scale
 );
 
+nexrad_geo_radial_map *nexrad_geo_radial_map_open(const char *path);
+
 int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map);
 
 void nexrad_geo_radial_map_close(nexrad_geo_radial_map *map);
