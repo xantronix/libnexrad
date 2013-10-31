@@ -172,8 +172,8 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
         goto error_mmap;
     }
 
-    map->points = (nexrad_geo_radial_map_point *)map->header +
-        sizeof(nexrad_geo_radial_map_header);
+    map->points = (nexrad_geo_radial_map_point *)((char *)map->header +
+        sizeof(nexrad_geo_radial_map_header));
 
     memcpy(map->header->magic, NEXRAD_GEO_RADIAL_MAP_MAGIC, 4);
 
@@ -212,6 +212,14 @@ error_open:
 
 error_malloc_map:
     return NULL;
+}
+
+int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map) {
+    if (map == NULL) {
+        return -1;
+    }
+
+    return msync(map->header, map->size, MS_SYNC);
 }
 
 void nexrad_geo_radial_map_close(nexrad_geo_radial_map *map) {
