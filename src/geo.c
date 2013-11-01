@@ -128,8 +128,22 @@ static inline int _mapped_size(size_t size, size_t page_size) {
     return size + (page_size - (size % page_size));
 }
 
-static nexrad_geo_radial_map *_radial_map_open(const char *path, size_t size) {
+static nexrad_geo_radial_map *_radial_map_open(const char *path, size_t size, int new) {
     nexrad_geo_radial_map *map;
+
+    int open_flags = 0;
+    int mmap_prot  = 0;
+    int mmap_flags = 0;
+
+    if (new) {
+        open_flags |= O_CREAT | O_TRUNC | O_RDWR;
+        mmap_prot  |= PROT_READ | PROT_WRITE;
+        mmap_flags |= MAP_SHARED;
+    } else {
+        open_flags |= O_RDONLY;
+        mmap_prot  |= PROT_READ;
+        mmap_flags |= MAP_PRIVATE;
+    }
 
     if ((map = malloc(sizeof(*map))) == NULL) {
         goto error_malloc;
@@ -139,11 +153,11 @@ static nexrad_geo_radial_map *_radial_map_open(const char *path, size_t size) {
     map->page_size   = (size_t)sysconf(_SC_PAGESIZE);
     map->mapped_size = _mapped_size(size, map->page_size);
 
-    if ((map->fd = open(path, O_CREAT | O_RDWR, 0644)) < 0) {
+    if ((map->fd = open(path, open_flags, 0644)) < 0) {
         goto error_open;
     }
 
-    if ((map->header = mmap(NULL, map->mapped_size, PROT_READ | PROT_WRITE, MAP_SHARED, map->fd, 0)) == NULL) {
+    if ((map->header = mmap(NULL, map->mapped_size, mmap_prot, mmap_flags, map->fd, 0)) == NULL) {
         goto error_mmap;
     }
 
@@ -184,7 +198,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create(const char *path, nexrad_geo
     size = sizeof(nexrad_geo_radial_map_header)
         + sizeof(nexrad_geo_radial_map_point) * width * height;
 
-    if ((map = _radial_map_open(path, size)) == NULL) {
+    if ((map = _radial_map_open(path, size, 1)) == NULL) {
         goto error_radial_map_open;
     }
 
@@ -263,7 +277,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_open(const char *path) {
         goto error_stat;
     }
 
-    if ((map = _radial_map_open(path, st.st_size)) == NULL) {
+    if ((map = _radial_map_open(path, st.st_size, 0)) == NULL) {
         goto error_radial_map_open;
     }
 
