@@ -170,15 +170,15 @@ error_malloc_radial:
 }
 
 size_t nexrad_radial_bytes_read(nexrad_radial *radial) {
-    if (radial == NULL) {
+    if (radial == NULL)
         return 0;
-    }
 
     return radial->bytes_read;
 }
 
 void nexrad_radial_reset(nexrad_radial *radial) {
-    if (radial == NULL) return;
+    if (radial == NULL)
+        return;
 
     radial->bytes_read = 0;
     radial->rays_left  = be16toh(radial->packet->rays);
@@ -186,10 +186,26 @@ void nexrad_radial_reset(nexrad_radial *radial) {
 }
 
 void nexrad_radial_close(nexrad_radial *radial) {
-    if (radial == NULL) return;
+    if (radial == NULL)
+        return;
 
     if (radial->values)
         free(radial->values);
+
+    memset(radial, '\0', sizeof(*radial));
+
+    free(radial);
+}
+
+void nexrad_radial_destroy(nexrad_radial *radial) {
+    if (radial == NULL)
+        return;
+
+    if (radial->values)
+        free(radial->values);
+
+    if (radial->packet)
+        free(radial->packet);
 
     memset(radial, '\0', sizeof(*radial));
 

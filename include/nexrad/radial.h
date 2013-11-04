@@ -56,6 +56,8 @@ void nexrad_radial_reset(nexrad_radial *radial);
 
 void nexrad_radial_close(nexrad_radial *radial);
 
+void nexrad_radial_destroy(nexrad_radial *radial);
+
 nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial,
     int azimuth,
     uint8_t **values
