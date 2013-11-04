@@ -245,20 +245,20 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, uin
     ray = _radial_ray_by_index(radial, azimuth);
 
     if (azimuth == (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start))) {
-        goto success;
+        goto found;
     }
 
     for (a=0; a<rays; a++) {
         ray = _radial_ray_by_index(radial, a);
 
         if (azimuth == (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start))) {
-            goto success;
+            goto found;
         }
     }
 
     return NULL;
 
-success:
+found:
     if (values)
         *values = (uint8_t *)ray + sizeof(nexrad_radial_ray);
         
