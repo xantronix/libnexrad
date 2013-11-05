@@ -93,7 +93,9 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, 
 
         while (azimuth >= 360) azimuth -= 360;
 
-        unpacked_ray = (nexrad_radial_ray *)((char *)unpacked + sizeof(nexrad_radial_packet) + azimuth * ray_size);
+        unpacked_ray = (nexrad_radial_ray *)((char *)unpacked
+            + sizeof(nexrad_radial_packet)
+            + azimuth * ray_size);
 
         data = (uint8_t *)unpacked_ray + sizeof(nexrad_radial_ray);
 
@@ -326,7 +328,6 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, uint8_t **value
         size = sizeof(nexrad_radial_ray) + runs;
     } else if (radial->type == NEXRAD_RADIAL_DIGITAL) {
         uint16_t bins = be16toh(ray->size);
-
         uint8_t *data = (uint8_t *)ray + sizeof(nexrad_radial_ray);
 
         memcpy(radial->values, data, radial->bins > bins? bins: radial->bins);
@@ -557,6 +558,7 @@ error_radial_get_info:
 error_radial_packet_unpack:
     return NULL;
 }
+
 nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, double scale) {
     nexrad_image *image;
     nexrad_color *entries;
