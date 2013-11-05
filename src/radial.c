@@ -91,7 +91,7 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, 
         uint8_t *data;
         uint16_t azimuth = (uint16_t)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(packet_ray->angle_start));
 
-        while (azimuth > 360) azimuth -= 360;
+        while (azimuth >= 360) azimuth -= 360;
 
         unpacked_ray = (nexrad_radial_ray *)((char *)unpacked + sizeof(nexrad_radial_packet) + azimuth * ray_size);
 
@@ -214,9 +214,10 @@ void nexrad_radial_destroy(nexrad_radial *radial) {
 
 static inline nexrad_radial_ray *_radial_ray_by_index(nexrad_radial *radial, uint16_t azimuth) {
     uint16_t bins = be16toh(radial->packet->rangebin_count);
-    size_t offset = sizeof(nexrad_radial_packet) + azimuth * (sizeof(nexrad_radial_ray) + bins);
 
-    return (nexrad_radial_ray *)((char *)radial->packet + offset);
+    return (nexrad_radial_ray *)((char *)radial->packet
+        + sizeof(nexrad_radial_packet)
+        + azimuth * (sizeof(nexrad_radial_ray) + bins));
 }
 
 nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, uint8_t **values) {
