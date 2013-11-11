@@ -192,9 +192,9 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(const char *path, n
 
     nexrad_geo_cartesian extents[4];
 
-    uint16_t earth_width, earth_height,
-        earth_offset_x,
-        earth_offset_y;
+    uint16_t world_width, world_height,
+        world_offset_x,
+        world_offset_y;
 
     uint16_t width, height, x, y;
     size_t size;
@@ -203,18 +203,18 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(const char *path, n
         return NULL;
     }
 
-    earth_height = (uint16_t)round(180.0 / scale);
-    earth_width  = earth_height * 2;
+    world_height = (uint16_t)round(180.0 / scale);
+    world_width  = world_height * 2;
 
     nexrad_geo_radial_map_find_extents(
         spheroid, radar, rangebins, rangebin_meters, extents
     );
 
-    earth_offset_x = (uint16_t)_equirect_find_x(extents[3].lon, earth_width);
-    earth_offset_y = (uint16_t)_equirect_find_y(extents[0].lat, earth_height);
+    world_offset_x = (uint16_t)_equirect_find_x(extents[3].lon, world_width);
+    world_offset_y = (uint16_t)_equirect_find_y(extents[0].lat, world_height);
 
-    width  = (uint16_t)_equirect_find_x(extents[1].lon, earth_width)  - earth_offset_x;
-    height = (uint16_t)_equirect_find_y(extents[2].lat, earth_height) - earth_offset_y;
+    width  = (uint16_t)_equirect_find_x(extents[1].lon, world_width)  - world_offset_x;
+    height = (uint16_t)_equirect_find_y(extents[2].lat, world_height) - world_offset_y;
 
     size = sizeof(nexrad_geo_radial_map_header)
         + sizeof(nexrad_geo_radial_map_point) * width * height;
@@ -259,8 +259,8 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(const char *path, n
             int azimuth, range;
 
             nexrad_geo_cartesian point = {
-                .lat = _equirect_find_lat(y + earth_offset_y, earth_height),
-                .lon = _equirect_find_lon(x + earth_offset_x, earth_width)
+                .lat = _equirect_find_lat(y + world_offset_y, world_height),
+                .lon = _equirect_find_lon(x + world_offset_x, world_width)
             };
 
             nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
@@ -315,14 +315,14 @@ static int _mercator_find_y(double lat, int height) {
     return cy - (int)round(height * (yrad / (2 * M_PI)));
 }
 
-nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(const char *path, nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, uint16_t rangebins, uint16_t rangebin_meters, double scale) {
+nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(const char *path, nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, uint16_t rangebins, uint16_t rangebin_meters, int zoom) {
     nexrad_geo_radial_map *map;
 
     nexrad_geo_cartesian extents[4];
 
-    uint16_t earth_size,
-        earth_offset_x,
-        earth_offset_y;
+    size_t world_size,
+        world_offset_x,
+        world_offset_y;
 
     uint16_t width, height, x, y;
     size_t size;
@@ -331,17 +331,21 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(const char *path, n
         return NULL;
     }
 
+    if (zoom < NEXRAD_GEO_MERCATOR_MIN_ZOOM || zoom > NEXRAD_GEO_MERCATOR_MAX_ZOOM) {
+        return NULL;
+    }
+
     nexrad_geo_radial_map_find_extents(
         spheroid, radar, rangebins, rangebin_meters, extents
     );
 
-    earth_size = (uint16_t)round(360 / scale);
+    world_size = NEXRAD_GEO_MERCATOR_TILE_SIZE * pow(2, zoom);
 
-    earth_offset_x = _mercator_find_x(extents[3].lon, earth_size);
-    earth_offset_y = _mercator_find_y(extents[0].lat, earth_size);
+    world_offset_x = _mercator_find_x(extents[3].lon, world_size);
+    world_offset_y = _mercator_find_y(extents[0].lat, world_size);
 
-    width  = _mercator_find_x(extents[1].lon, earth_size) - earth_offset_x;
-    height = _mercator_find_y(extents[2].lat, earth_size) - earth_offset_y;
+    width  = _mercator_find_x(extents[1].lon, world_size) - world_offset_x;
+    height = _mercator_find_y(extents[2].lat, world_size) - world_offset_y;
 
     size = sizeof(nexrad_geo_radial_map_header)
         + sizeof(nexrad_geo_radial_map_point) * width * height;
@@ -376,11 +380,12 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(const char *path, n
     }
 
     memset(&map->header->opts, '\0', sizeof(map->header->opts));
-    map->header->opts.mercator.scale = htobe32(scale / NEXRAD_GEO_COORD_MAGNITUDE);
+    map->header->opts.mercator.zoom  = htobe16(zoom);
+    map->header->opts.mercator.scale = htobe32((360 / world_size) / NEXRAD_GEO_COORD_MAGNITUDE);
 
     for (y=0; y<height; y++) {
         nexrad_geo_cartesian point = {
-            .lat = _mercator_find_lat(y + earth_offset_y, earth_size),
+            .lat = _mercator_find_lat(y + world_offset_y, world_size),
             .lon = 0.0
         };
 
@@ -390,7 +395,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(const char *path, n
 
             int azimuth, range;
 
-            point.lon = _mercator_find_lon(x + earth_offset_x, earth_size);
+            point.lon = _mercator_find_lon(x + world_offset_x, world_size);
 
             nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
 

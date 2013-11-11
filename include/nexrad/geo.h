@@ -11,7 +11,10 @@
 #define NEXRAD_GEO_RADIAL_MAP_MAGIC   "PROJ"
 #define NEXRAD_GEO_RADIAL_MAP_VERSION 0x01
 
-#define NEXRAD_GEO_MERCATOR_MAX_LAT  85.05112878
+#define NEXRAD_GEO_MERCATOR_MAX_LAT    85.05112878
+#define NEXRAD_GEO_MERCATOR_TILE_SIZE 256
+#define NEXRAD_GEO_MERCATOR_MIN_ZOOM    4
+#define NEXRAD_GEO_MERCATOR_MAX_ZOOM   10
 
 #include <stdint.h>
 
@@ -31,6 +34,9 @@ typedef struct _nexrad_geo_cartesian {
     double lat;
     double lon;
 } nexrad_geo_cartesian;
+
+#pragma pack(1)
+#pragma pack(push)
 
 typedef struct _nexrad_geo_radial_map_header {
     char     magic[4];
@@ -57,7 +63,8 @@ typedef struct _nexrad_geo_radial_map_header {
 
         struct {
             uint32_t scale;
-            char unused[28];
+            uint16_t zoom;
+            char unused[26];
         } mercator;
     } opts;
 
@@ -72,6 +79,8 @@ typedef struct _nexrad_geo_radial_map_point {
     uint16_t azimuth;
     uint16_t range;
 } nexrad_geo_radial_map_point;
+
+#pragma pack(pop)
 
 typedef struct _nexrad_geo_spheroid   nexrad_geo_spheroid;
 typedef struct _nexrad_geo_radial_map nexrad_geo_radial_map;
@@ -119,7 +128,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(
     nexrad_geo_cartesian *radar,
     uint16_t rangebin,
     uint16_t rangebin_meters,
-    double scale
+    int zoom
 );
 
 nexrad_geo_radial_map *nexrad_geo_radial_map_open(const char *path);

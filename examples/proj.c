@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 
     nexrad_geo_radial_map_close(map);
 
-    if ((map = nexrad_geo_radial_map_create_mercator("mercator.proj", spheroid, &radar, 346, 1000, 0.00815)) == NULL) {
+    if ((map = nexrad_geo_radial_map_create_mercator("mercator.proj", spheroid, &radar, 346, 1000, 8)) == NULL) {
         perror("nexrad_geo_radial_map_create_mercator()");
         exit(1);
     }
