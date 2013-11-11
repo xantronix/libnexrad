@@ -465,23 +465,6 @@ error_color_table_get_entries:
     return NULL;
 }
 
-static void _find_cartesian_image_extents(nexrad_geo_spheroid *spheroid, nexrad_geo_cartesian *radar, uint16_t bins, nexrad_geo_cartesian *extents) {
-    double range = bins / NEXRAD_RADIAL_RANGE_FACTOR;
-
-    uint16_t a, i;
-
-    for (i=0, a=0; i<4; i++, a+=90) {
-        nexrad_geo_polar polar = { a, range };
-
-        nexrad_geo_find_cartesian_dest(spheroid, radar, &extents[i], &polar);
-    }
-}
-
-static void _get_image_dimensions(nexrad_geo_cartesian *extents, double scale, uint16_t *width, uint16_t *height) {
-    *width  = (uint16_t)round((extents[1].lon - extents[3].lon) / scale);
-    *height = (uint16_t)round((extents[0].lat - extents[2].lat) / scale);
-}
-
 nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_projection *proj) {
     nexrad_image *image;
     nexrad_color *entries;
@@ -551,83 +534,6 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
 error_image_create:
 error_geo_projection_get_points:
 error_geo_projection_read_dimensions:
-error_color_table_get_entries:
-error_radial_get_info:
-    free(packet);
-
-error_radial_packet_unpack:
-    return NULL;
-}
-
-nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, double scale) {
-    nexrad_image *image;
-    nexrad_color *entries;
-    nexrad_radial_packet *packet;
-    nexrad_geo_cartesian extents[4];
-    nexrad_geo_cartesian point;
-    uint16_t x, y, width, height, bins;
-
-    if (radial == NULL || radar == NULL || spheroid == NULL) {
-        return NULL;
-    }
-    
-    if ((packet = nexrad_radial_packet_unpack(radial->packet, NULL)) == NULL) {
-        goto error_radial_packet_unpack;
-    }
-
-    if (nexrad_radial_get_info(radial, NULL, &bins, NULL, NULL, NULL, NULL) < 0) {
-        goto error_radial_get_info;
-    }
-
-    if ((entries = nexrad_color_table_get_entries(table, NULL)) == NULL) {
-        goto error_color_table_get_entries;
-    }
-
-    _find_cartesian_image_extents(spheroid, radar, bins, extents);
-    _get_image_dimensions(extents, scale, &width, &height);
-
-    if ((image = nexrad_image_create(width, height)) == NULL) {
-        goto error_image_create;
-    }
-
-    for (y=0, point.lat=extents[0].lat; y<height; y++, point.lat -= scale) {
-        for (x=0, point.lon=extents[3].lon; x<width; x++, point.lon += scale) {
-            int azimuth, range;
-            nexrad_color color;
-            uint8_t *values;
-
-            nexrad_geo_polar polar;
-            nexrad_geo_cartesian cart = point;
-
-            nexrad_geo_find_polar_dest(spheroid, radar, &cart, &polar);
-
-            azimuth = (int)round(polar.azimuth);
-            range   = (int)round(NEXRAD_RADIAL_RANGE_FACTOR * polar.range);
-
-            if (range >= bins) {
-                continue;
-            }
-
-            while (azimuth <    0) azimuth += 360;
-            while (azimuth >= 360) azimuth -= 360;
-
-            values = (uint8_t *)packet
-                + sizeof(nexrad_radial_packet)
-                + azimuth * (sizeof(nexrad_radial_ray) + bins)
-                + sizeof(nexrad_radial_ray);
-
-            color = entries[values[range]];
-
-            if (color.a)
-                nexrad_image_draw_pixel(image, color, x, y);
-        }
-    }
-
-    free(packet);
-
-    return image;
-
-error_image_create:
 error_color_table_get_entries:
 error_radial_get_info:
     free(packet);
