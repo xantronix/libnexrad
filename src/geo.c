@@ -381,7 +381,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(const char *path, n
 
     memset(&map->header->opts, '\0', sizeof(map->header->opts));
     map->header->opts.mercator.zoom  = htobe16(zoom);
-    map->header->opts.mercator.scale = htobe32((360 / world_size) / NEXRAD_GEO_COORD_MAGNITUDE);
+    map->header->opts.mercator.scale = htobe32((uint32_t)round(360.0 / (double)world_size / NEXRAD_GEO_COORD_MAGNITUDE));
 
     for (y=0; y<height; y++) {
         nexrad_geo_cartesian point = {
