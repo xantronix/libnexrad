@@ -520,6 +520,21 @@ int nexrad_geo_projection_read_station_location(nexrad_geo_projection *proj, nex
     return 0;
 }
 
+int nexrad_geo_projection_read_extents(nexrad_geo_projection *proj, nexrad_geo_cartesian *extents) {
+    int i;
+
+    if (proj == NULL || extents == NULL) {
+        return -1;
+    }
+
+    for (i=0; i<4; i++) {
+        extents[i].lat = NEXRAD_GEO_COORD_MAGNITUDE * (int32_t)be32toh(proj->header->extents[i].lat);
+        extents[i].lon = NEXRAD_GEO_COORD_MAGNITUDE * (int32_t)be32toh(proj->header->extents[i].lon);
+    }
+
+    return 0;
+}
+
 int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj, uint16_t x, uint16_t y, nexrad_geo_polar *polar) {
     uint16_t width;
 

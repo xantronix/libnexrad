@@ -154,6 +154,11 @@ int nexrad_geo_projection_read_station_location(
     nexrad_geo_cartesian *radar
 );
 
+int nexrad_geo_projection_read_extents(
+    nexrad_geo_projection *proj,
+    nexrad_geo_cartesian *extents
+);
+
 int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj,
     uint16_t x,
     uint16_t y,
