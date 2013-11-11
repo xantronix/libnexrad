@@ -235,7 +235,7 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, uin
     /*
      * Do not allow this operation on RLE-encoded radials.
      */
-    if (nexrad_radial_get_type(radial) != NEXRAD_RADIAL_DIGITAL || azimuth > rays) {
+    if (nexrad_radial_get_type(radial) != NEXRAD_RADIAL_DIGITAL || azimuth >= rays) {
         errno = EINVAL;
         return NULL;
     }

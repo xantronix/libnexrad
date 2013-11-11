@@ -11,6 +11,8 @@
 #define NEXRAD_GEO_RADIAL_MAP_MAGIC   "PROJ"
 #define NEXRAD_GEO_RADIAL_MAP_VERSION 0x01
 
+#define NEXRAD_GEO_MERCATOR_MAX_LAT  85.05112878
+
 #include <stdint.h>
 
 enum nexrad_geo_radial_map_type {
@@ -38,13 +40,26 @@ typedef struct _nexrad_geo_radial_map_header {
     uint16_t height;
     uint16_t rangebins;
     uint16_t rangebin_meters;
+    uint16_t angle; /* Scan elevation angle */
 
-    /*
-     * Type-dependent values:
-     *
-     * NEXRAD_GEO_PROJECTION_EQUIRECT: Scale of pixels in units of 0.001 degrees
-     */
-    uint32_t misc; /* Type-dependent value */
+    struct {
+        int32_t lat;
+        int32_t lon;
+    } extents[4];
+
+    union {
+        char unknown[32];
+
+        struct {
+            uint32_t scale;
+            char unused[28];
+        } equirect;
+
+        struct {
+            uint32_t scale;
+            char unused[28];
+        } mercator;
+    } opts;
 
     /*
      * Information pertaining to radar at center of map
@@ -89,18 +104,20 @@ void nexrad_geo_radial_map_find_extents(
     nexrad_geo_cartesian *extents
 );
 
-void nexrad_geo_radial_map_get_dimensions(
-    nexrad_geo_cartesian *extents,
-    double scale,
-    uint16_t *width,
-    uint16_t *height
-);
-
-nexrad_geo_radial_map *nexrad_geo_radial_map_create(
+nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(
     const char *path,
     nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian *radar,
     uint16_t rangebins,
+    uint16_t rangebin_meters,
+    double scale
+);
+
+nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(
+    const char *path,
+    nexrad_geo_spheroid *spheroid,
+    nexrad_geo_cartesian *radar,
+    uint16_t rangebin,
     uint16_t rangebin_meters,
     double scale
 );
