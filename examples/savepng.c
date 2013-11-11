@@ -7,11 +7,11 @@
 #include <nexrad/radial.h>
 
 static void usage(int argc, char **argv) {
-    fprintf(stderr, "usage: %s colors.clut input.l3 map.proj output.png\n", argv[0]);
+    fprintf(stderr, "usage: %s colors.clut input.l3 file.proj output.png\n", argv[0]);
     exit(1);
 }
 
-static nexrad_image *get_product_image(const char *file, nexrad_color_table *table, nexrad_geo_radial_map *map) {
+static nexrad_image *get_product_image(const char *file, nexrad_color_table *table, nexrad_geo_projection *proj) {
     nexrad_message *message;
     nexrad_symbology_block *symbology;
     nexrad_chunk *block, *layer;
@@ -39,7 +39,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *tab
                 case NEXRAD_PACKET_RADIAL: {
                     nexrad_radial *radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet);
 
-                    nexrad_image *image = nexrad_radial_create_projected_image(radial, table, map);
+                    nexrad_image *image = nexrad_radial_create_projected_image(radial, table, proj);
 
                     return image;
                 }
@@ -47,7 +47,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *tab
                 case NEXRAD_PACKET_RADIAL_AF1F: {
                     nexrad_radial *radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet);
 
-                    nexrad_image *image = nexrad_radial_create_projected_image(radial, table, map);
+                    nexrad_image *image = nexrad_radial_create_projected_image(radial, table, proj);
 
                     return image;
                 }
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
     char *clut, *infile, *projfile, *outfile;
     nexrad_image *image;
     nexrad_color_table *table;
-    nexrad_geo_radial_map *map;
+    nexrad_geo_projection *proj;
 
     if (argc != 5) {
         usage(argc, argv);
@@ -102,12 +102,12 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    if ((map = nexrad_geo_radial_map_open(projfile)) == NULL) {
-        perror("nexrad_geo_radial_map_open()");
+    if ((proj = nexrad_geo_projection_open(projfile)) == NULL) {
+        perror("nexrad_geo_projection_open()");
         exit(1);
     }
 
-    if ((image = get_product_image(infile, table, map)) == NULL) {
+    if ((image = get_product_image(infile, table, proj)) == NULL) {
         perror("get_produt_image()");
         exit(1);
     }

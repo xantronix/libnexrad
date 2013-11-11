@@ -482,14 +482,14 @@ static void _get_image_dimensions(nexrad_geo_cartesian *extents, double scale, u
     *height = (uint16_t)round((extents[0].lat - extents[2].lat) / scale);
 }
 
-nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_radial_map *map) {
+nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_projection *proj) {
     nexrad_image *image;
     nexrad_color *entries;
     nexrad_radial_packet *packet;
-    nexrad_geo_radial_map_point *points;
+    nexrad_geo_projection_point *points;
     uint16_t x, y, width, height, bins;
 
-    if (radial == NULL || table == NULL || map == NULL) {
+    if (radial == NULL || table == NULL || proj == NULL) {
         return NULL;
     }
     
@@ -505,12 +505,12 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
         goto error_color_table_get_entries;
     }
 
-    if (nexrad_geo_radial_map_read_dimensions(map, &width, &height) < 0) {
-        goto error_geo_radial_map_read_dimensions;
+    if (nexrad_geo_projection_read_dimensions(proj, &width, &height) < 0) {
+        goto error_geo_projection_read_dimensions;
     }
 
-    if ((points = nexrad_geo_radial_map_get_points(map)) == NULL) {
-        goto error_geo_radial_map_get_points;
+    if ((points = nexrad_geo_projection_get_points(proj)) == NULL) {
+        goto error_geo_projection_get_points;
     }
 
     if ((image = nexrad_image_create(width, height)) == NULL) {
@@ -523,7 +523,7 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
             int azimuth, range;
             uint8_t *values;
 
-            nexrad_geo_radial_map_point *point = &points[y*width+x];
+            nexrad_geo_projection_point *point = &points[y*width+x];
 
             azimuth = (int)be16toh(point->azimuth);
             range   = (int)be16toh(point->range);
@@ -549,8 +549,8 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
     return image;
 
 error_image_create:
-error_geo_radial_map_get_points:
-error_geo_radial_map_read_dimensions:
+error_geo_projection_get_points:
+error_geo_projection_read_dimensions:
 error_color_table_get_entries:
 error_radial_get_info:
     free(packet);

@@ -8,8 +8,8 @@
 #define NEXRAD_GEO_COORD_MAGNITUDE    0.001
 #define NEXRAD_GEO_AZIMUTH_FACTOR     0.1
 
-#define NEXRAD_GEO_RADIAL_MAP_MAGIC   "PROJ"
-#define NEXRAD_GEO_RADIAL_MAP_VERSION 0x01
+#define NEXRAD_GEO_PROJECTION_MAGIC   "PROJ"
+#define NEXRAD_GEO_PROJECTION_VERSION 0x01
 
 #define NEXRAD_GEO_MERCATOR_MAX_LAT    85.05112878
 #define NEXRAD_GEO_MERCATOR_TILE_SIZE 256
@@ -18,11 +18,11 @@
 
 #include <stdint.h>
 
-enum nexrad_geo_radial_map_type {
-    NEXRAD_GEO_RADIAL_MAP_NONE,
-    NEXRAD_GEO_RADIAL_MAP_SPHEROID,
-    NEXRAD_GEO_RADIAL_MAP_EQUIRECT,
-    NEXRAD_GEO_RADIAL_MAP_MERCATOR
+enum nexrad_geo_projection_type {
+    NEXRAD_GEO_PROJECTION_NONE,
+    NEXRAD_GEO_PROJECTION_SPHEROID,
+    NEXRAD_GEO_PROJECTION_EQUIRECT,
+    NEXRAD_GEO_PROJECTION_MERCATOR
 };
 
 typedef struct _nexrad_geo_polar {
@@ -38,7 +38,7 @@ typedef struct _nexrad_geo_cartesian {
 #pragma pack(1)
 #pragma pack(push)
 
-typedef struct _nexrad_geo_radial_map_header {
+typedef struct _nexrad_geo_projection_header {
     char     magic[4];
     uint16_t version;
     uint16_t type;
@@ -69,21 +69,21 @@ typedef struct _nexrad_geo_radial_map_header {
     } opts;
 
     /*
-     * Information pertaining to radar at center of map
+     * Information pertaining to radar at center of projection
      */
      int32_t station_lat;
      int32_t station_lon;
-} nexrad_geo_radial_map_header;
+} nexrad_geo_projection_header;
 
-typedef struct _nexrad_geo_radial_map_point {
+typedef struct _nexrad_geo_projection_point {
     uint16_t azimuth;
     uint16_t range;
-} nexrad_geo_radial_map_point;
+} nexrad_geo_projection_point;
 
 #pragma pack(pop)
 
 typedef struct _nexrad_geo_spheroid   nexrad_geo_spheroid;
-typedef struct _nexrad_geo_radial_map nexrad_geo_radial_map;
+typedef struct _nexrad_geo_projection nexrad_geo_projection;
 
 nexrad_geo_spheroid *nexrad_geo_spheroid_create();
 
@@ -105,7 +105,7 @@ void nexrad_geo_find_cartesian_dest(nexrad_geo_spheroid *spheroid,
 
 void nexrad_geo_spheroid_destroy(nexrad_geo_spheroid *spheroid);
 
-void nexrad_geo_radial_map_find_extents(
+void nexrad_geo_projection_find_extents(
     nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian *radar,
     uint16_t rangebins,
@@ -113,7 +113,7 @@ void nexrad_geo_radial_map_find_extents(
     nexrad_geo_cartesian *extents
 );
 
-nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(
+nexrad_geo_projection *nexrad_geo_projection_create_equirect(
     const char *path,
     nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian *radar,
@@ -122,7 +122,7 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(
     double scale
 );
 
-nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(
+nexrad_geo_projection *nexrad_geo_projection_create_mercator(
     const char *path,
     nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian *radar,
@@ -131,39 +131,39 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_mercator(
     int zoom
 );
 
-nexrad_geo_radial_map *nexrad_geo_radial_map_open(const char *path);
+nexrad_geo_projection *nexrad_geo_projection_open(const char *path);
 
-enum nexrad_geo_radial_map_type nexrad_geo_radial_map_get_type(
-    nexrad_geo_radial_map *map
+enum nexrad_geo_projection_type nexrad_geo_projection_get_type(
+    nexrad_geo_projection *proj
 );
 
-int nexrad_geo_radial_map_read_dimensions(
-    nexrad_geo_radial_map *map,
+int nexrad_geo_projection_read_dimensions(
+    nexrad_geo_projection *proj,
     uint16_t *width,
     uint16_t *height
 );
 
-int nexrad_geo_radial_map_read_range(
-    nexrad_geo_radial_map *map,
+int nexrad_geo_projection_read_range(
+    nexrad_geo_projection *proj,
     uint16_t *rangebins,
     uint16_t *rangebin_meters
 );
 
-int nexrad_geo_radial_map_read_station_location(
-    nexrad_geo_radial_map *map,
+int nexrad_geo_projection_read_station_location(
+    nexrad_geo_projection *proj,
     nexrad_geo_cartesian *radar
 );
 
-int nexrad_geo_radial_map_find_polar_point(nexrad_geo_radial_map *map,
+int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj,
     uint16_t x,
     uint16_t y,
     nexrad_geo_polar *polar
 );
 
-nexrad_geo_radial_map_point *nexrad_geo_radial_map_get_points(nexrad_geo_radial_map *map);
+nexrad_geo_projection_point *nexrad_geo_projection_get_points(nexrad_geo_projection *proj);
 
-int nexrad_geo_radial_map_save(nexrad_geo_radial_map *map);
+int nexrad_geo_projection_save(nexrad_geo_projection *proj);
 
-void nexrad_geo_radial_map_close(nexrad_geo_radial_map *map);
+void nexrad_geo_projection_close(nexrad_geo_projection *proj);
 
 #endif /* _NEXRAD_GEO_POINT_H */

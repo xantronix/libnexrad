@@ -95,14 +95,7 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial,
 
 nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial,
     nexrad_color_table *table,
-    nexrad_geo_radial_map *map
-);
-
-nexrad_image *nexrad_radial_create_unprojected_image(nexrad_radial *radial,
-    nexrad_color_table *   table,
-    nexrad_geo_cartesian * radar,
-    nexrad_geo_spheroid *  spheroid,
-    double scale
+    nexrad_geo_projection *proj
 );
 
 #endif /* _NEXRAD_RADIAL_H */
