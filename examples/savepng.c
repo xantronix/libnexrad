@@ -93,8 +93,8 @@ int main(int argc, char **argv) {
     }
 
        clut  = argv[1];
-    projfile = argv[2];
-     infile  = argv[3];
+     infile  = argv[2];
+    projfile = argv[3];
     outfile  = argv[4];
 
     if ((table = nexrad_color_table_load(clut)) == NULL) {
