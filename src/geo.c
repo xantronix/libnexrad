@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -214,16 +213,8 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(const char *path, n
     earth_offset_x = (uint16_t)_equirect_find_x(extents[3].lon, earth_width);
     earth_offset_y = (uint16_t)_equirect_find_y(extents[0].lat, earth_height);
 
-    fprintf(stderr, "Thing 1: %d\n", _equirect_find_x(extents[3].lon, earth_width));
-    fprintf(stderr, "Thing 2: %d\n", _equirect_find_x(extents[1].lon, earth_width));
-
     width  = (uint16_t)_equirect_find_x(extents[1].lon, earth_width)  - earth_offset_x;
     height = (uint16_t)_equirect_find_y(extents[2].lat, earth_height) - earth_offset_y;
-
-    fprintf(stderr, "Scale: %f degrees lon/x\n", scale);
-    fprintf(stderr, "Earth dimensions: %dx%d\n", earth_width, earth_height);
-    fprintf(stderr, "Earth offset: %d, %d\n", earth_offset_x, earth_offset_y);
-    fprintf(stderr, "Dimensions: %dx%d\n", width, height);
 
     size = sizeof(nexrad_geo_radial_map_header)
         + sizeof(nexrad_geo_radial_map_point) * width * height;
@@ -271,14 +262,6 @@ nexrad_geo_radial_map *nexrad_geo_radial_map_create_equirect(const char *path, n
                 .lat = _equirect_find_lat(y + earth_offset_y, earth_height),
                 .lon = _equirect_find_lon(x + earth_offset_x, earth_width)
             };
-
-            if (x == 255 && y == 255) {
-                fprintf(stderr, "Found point %.3f, %.3f at point %d, %d\n",
-                    point.lat, point.lon,
-                    x + earth_offset_x,
-                    y + earth_offset_y
-                );
-            }
 
             nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
 
