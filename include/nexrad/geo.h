@@ -126,7 +126,7 @@ nexrad_geo_projection *nexrad_geo_projection_create_mercator(
     const char *path,
     nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian *radar,
-    uint16_t rangebin,
+    uint16_t rangebins,
     uint16_t rangebin_meters,
     int zoom
 );
