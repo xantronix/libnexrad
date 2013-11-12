@@ -8,6 +8,7 @@
 #include <math.h>
 #include <errno.h>
 #include "geodesic.h"
+#include "util.h"
 
 #include <nexrad/geo.h>
 
@@ -239,17 +240,17 @@ nexrad_geo_projection *nexrad_geo_projection_create_equirect(const char *path, n
     proj->header->height          = htobe16(height);
     proj->header->rangebins       = htobe16(rangebins);
     proj->header->rangebin_meters = htobe16(rangebin_meters);
-    proj->header->station_lat     = (int32_t)htobe32(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE);
-    proj->header->station_lon     = (int32_t)htobe32(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE);
+    proj->header->station_lat     = (int32_t)htobe32((int32_t)round(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE));
+    proj->header->station_lon     = (int32_t)htobe32((int32_t)round(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->angle           = 0;
 
     for (x=0; x<4; x++) {
-        proj->header->extents[x].lat = (int32_t)htobe32(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE);
-        proj->header->extents[x].lon = (int32_t)htobe32(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE);
+        proj->header->extents[x].lat = (int32_t)htobe32((int32_t)round(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE));
+        proj->header->extents[x].lon = (int32_t)htobe32((int32_t)round(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE));
     }
 
     memset(&proj->header->opts, '\0', sizeof(proj->header->opts));
-    proj->header->opts.equirect.scale = htobe32(scale / NEXRAD_GEO_COORD_MAGNITUDE);
+    proj->header->opts.equirect.scale = htobe32((int32_t)round(scale / NEXRAD_GEO_COORD_MAGNITUDE));
 
     for (y=0; y<height; y++) {
         for (x=0; x<width; x++) {
@@ -370,13 +371,13 @@ nexrad_geo_projection *nexrad_geo_projection_create_mercator(const char *path, n
     proj->header->height          = htobe16(height);
     proj->header->rangebins       = htobe16(rangebins);
     proj->header->rangebin_meters = htobe16(rangebin_meters);
-    proj->header->station_lat     = htobe32(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE);
-    proj->header->station_lon     = htobe32(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE);
+    proj->header->station_lat     = htobe32((int32_t)round(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE));
+    proj->header->station_lon     = htobe32((int32_t)round(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->angle           = 0;
 
     for (x=0; x<4; x++) {
-        proj->header->extents[x].lat = htobe32(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE);
-        proj->header->extents[x].lon = htobe32(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE);
+        proj->header->extents[x].lat = htobe32((int32_t)round(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE));
+        proj->header->extents[x].lon = htobe32((int32_t)round(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE));
     }
 
     memset(&proj->header->opts, '\0', sizeof(proj->header->opts));
