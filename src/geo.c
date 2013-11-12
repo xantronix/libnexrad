@@ -240,6 +240,10 @@ nexrad_geo_projection *nexrad_geo_projection_create_equirect(const char *path, n
     proj->header->height          = htobe16(height);
     proj->header->rangebins       = htobe16(rangebins);
     proj->header->rangebin_meters = htobe16(rangebin_meters);
+    proj->header->world_width     = htobe32(world_width);
+    proj->header->world_height    = htobe32(world_height);
+    proj->header->world_offset_x  = htobe32(world_offset_x);
+    proj->header->world_offset_y  = htobe32(world_offset_y);
     proj->header->station_lat     = (int32_t)htobe32((int32_t)round(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->station_lon     = (int32_t)htobe32((int32_t)round(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->angle           = 0;
@@ -371,6 +375,10 @@ nexrad_geo_projection *nexrad_geo_projection_create_mercator(const char *path, n
     proj->header->height          = htobe16(height);
     proj->header->rangebins       = htobe16(rangebins);
     proj->header->rangebin_meters = htobe16(rangebin_meters);
+    proj->header->world_width     = htobe32(world_size);
+    proj->header->world_height    = htobe32(world_size);
+    proj->header->world_offset_x  = htobe32(world_offset_x);
+    proj->header->world_offset_y  = htobe32(world_offset_y);
     proj->header->station_lat     = htobe32((int32_t)round(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->station_lon     = htobe32((int32_t)round(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->angle           = 0;
@@ -556,17 +564,21 @@ int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj, uint16_t
 }
 
 int nexrad_geo_projection_find_cartesian_point(nexrad_geo_projection *proj, uint16_t x, uint16_t y, nexrad_geo_cartesian *cartesian) {
-    uint16_t width, height, type;
+    uint16_t type;
+    uint32_t world_width, world_height,
+        world_offset_x, world_offset_y;
 
     double (*find_lat)(int, int), (*find_lon)(int, int);
 
-    if (proj == NULL || cartesian == NULL) {
+    if (proj == NULL || cartesian == NULL || x < be16toh(proj->header->width) || y > be16toh(proj->header->height)) {
         return -1;
     }
 
-    type   = be16toh(proj->header->type);
-    width  = be16toh(proj->header->width);
-    height = be16toh(proj->header->height);
+    type           = be16toh(proj->header->type);
+    world_width    = be32toh(proj->header->world_width);
+    world_height   = be32toh(proj->header->world_height);
+    world_offset_x = be32toh(proj->header->world_offset_x);
+    world_offset_y = be32toh(proj->header->world_offset_y);
 
     if (type == NEXRAD_GEO_PROJECTION_EQUIRECT) {
         find_lat = _equirect_find_lat;
@@ -579,8 +591,8 @@ int nexrad_geo_projection_find_cartesian_point(nexrad_geo_projection *proj, uint
     }
 
     if (cartesian) {
-        cartesian->lat = find_lat(y, height);
-        cartesian->lon = find_lon(x, width);
+        cartesian->lat = find_lat(y + world_offset_y, world_height);
+        cartesian->lon = find_lon(x + world_offset_x, world_width);
     }
 
     return 0;
