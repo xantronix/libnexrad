@@ -11,4 +11,17 @@ case $OS in
 #endif /* _CONFIG_H */
 EOF
     ;;
+
+    Darwin)
+        cat <<EOF > src/config.h
+#ifndef _CONFIG_H
+#define _CONFIG_H
+#include <architecture/byte_order.h>
+
+#ifdef __LITTLE_ENDIAN__
+#define __DO_SWAP_BYTES
+#endif /* _DO_SWAP_BYTES */
+#endif /* _CONFIG_H */
+EOF
+    ;;
 esac
