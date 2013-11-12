@@ -555,6 +555,37 @@ int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj, uint16_t
     return 0;
 }
 
+int nexrad_geo_projection_find_cartesian_point(nexrad_geo_projection *proj, uint16_t x, uint16_t y, nexrad_geo_cartesian *cartesian) {
+    uint16_t width, height, type;
+
+    double (*find_lat)(int, int), (*find_lon)(int, int);
+
+    if (proj == NULL || cartesian == NULL) {
+        return -1;
+    }
+
+    type   = be16toh(proj->header->type);
+    width  = be16toh(proj->header->width);
+    height = be16toh(proj->header->height);
+
+    if (type == NEXRAD_GEO_PROJECTION_EQUIRECT) {
+        find_lat = _equirect_find_lat;
+        find_lon = _equirect_find_lon;
+    } else if (type == NEXRAD_GEO_PROJECTION_MERCATOR) {
+        find_lat = _mercator_find_lat;
+        find_lon = _mercator_find_lon;
+    } else {
+        return -1;
+    }
+
+    if (cartesian) {
+        cartesian->lat = find_lat(y, height);
+        cartesian->lon = find_lon(x, width);
+    }
+
+    return 0;
+}
+
 nexrad_geo_projection_point *nexrad_geo_projection_get_points(nexrad_geo_projection *proj) {
     if (proj == NULL) {
         return NULL;
