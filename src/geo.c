@@ -8,6 +8,7 @@
 #include <math.h>
 #include <errno.h>
 #include "geodesic.h"
+#include "util.h"
 
 #include <nexrad/geo.h>
 
@@ -239,17 +240,21 @@ nexrad_geo_projection *nexrad_geo_projection_create_equirect(const char *path, n
     proj->header->height          = htobe16(height);
     proj->header->rangebins       = htobe16(rangebins);
     proj->header->rangebin_meters = htobe16(rangebin_meters);
-    proj->header->station_lat     = (int32_t)htobe32(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE);
-    proj->header->station_lon     = (int32_t)htobe32(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE);
+    proj->header->world_width     = htobe32(world_width);
+    proj->header->world_height    = htobe32(world_height);
+    proj->header->world_offset_x  = htobe32(world_offset_x);
+    proj->header->world_offset_y  = htobe32(world_offset_y);
+    proj->header->station_lat     = (int32_t)htobe32((int32_t)round(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE));
+    proj->header->station_lon     = (int32_t)htobe32((int32_t)round(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->angle           = 0;
 
     for (x=0; x<4; x++) {
-        proj->header->extents[x].lat = (int32_t)htobe32(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE);
-        proj->header->extents[x].lon = (int32_t)htobe32(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE);
+        proj->header->extents[x].lat = (int32_t)htobe32((int32_t)round(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE));
+        proj->header->extents[x].lon = (int32_t)htobe32((int32_t)round(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE));
     }
 
     memset(&proj->header->opts, '\0', sizeof(proj->header->opts));
-    proj->header->opts.equirect.scale = htobe32(scale / NEXRAD_GEO_COORD_MAGNITUDE);
+    proj->header->opts.equirect.scale = htobe32((int32_t)round(scale / NEXRAD_GEO_COORD_MAGNITUDE));
 
     for (y=0; y<height; y++) {
         for (x=0; x<width; x++) {
@@ -370,13 +375,17 @@ nexrad_geo_projection *nexrad_geo_projection_create_mercator(const char *path, n
     proj->header->height          = htobe16(height);
     proj->header->rangebins       = htobe16(rangebins);
     proj->header->rangebin_meters = htobe16(rangebin_meters);
-    proj->header->station_lat     = htobe32(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE);
-    proj->header->station_lon     = htobe32(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE);
+    proj->header->world_width     = htobe32(world_size);
+    proj->header->world_height    = htobe32(world_size);
+    proj->header->world_offset_x  = htobe32(world_offset_x);
+    proj->header->world_offset_y  = htobe32(world_offset_y);
+    proj->header->station_lat     = htobe32((int32_t)round(radar->lat / NEXRAD_GEO_COORD_MAGNITUDE));
+    proj->header->station_lon     = htobe32((int32_t)round(radar->lon / NEXRAD_GEO_COORD_MAGNITUDE));
     proj->header->angle           = 0;
 
     for (x=0; x<4; x++) {
-        proj->header->extents[x].lat = htobe32(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE);
-        proj->header->extents[x].lon = htobe32(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE);
+        proj->header->extents[x].lat = htobe32((int32_t)round(extents[x].lat / NEXRAD_GEO_COORD_MAGNITUDE));
+        proj->header->extents[x].lon = htobe32((int32_t)round(extents[x].lon / NEXRAD_GEO_COORD_MAGNITUDE));
     }
 
     memset(&proj->header->opts, '\0', sizeof(proj->header->opts));
@@ -549,6 +558,40 @@ int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj, uint16_t
 
         polar->azimuth = be16toh(point->azimuth);
         polar->range   = be16toh(proj->header->rangebin_meters) * be16toh(point->range);
+    }
+
+    return 0;
+}
+
+int nexrad_geo_projection_find_cartesian_point(nexrad_geo_projection *proj, uint16_t x, uint16_t y, nexrad_geo_cartesian *cartesian) {
+    uint16_t type;
+
+    double (*find_lat)(int, int), (*find_lon)(int, int);
+
+    if (proj == NULL || cartesian == NULL || x < be16toh(proj->header->width) || y > be16toh(proj->header->height)) {
+        return -1;
+    }
+
+    type = be16toh(proj->header->type);
+
+    if (type == NEXRAD_GEO_PROJECTION_EQUIRECT) {
+        find_lat = _equirect_find_lat;
+        find_lon = _equirect_find_lon;
+    } else if (type == NEXRAD_GEO_PROJECTION_MERCATOR) {
+        find_lat = _mercator_find_lat;
+        find_lon = _mercator_find_lon;
+    } else {
+        return -1;
+    }
+
+    if (cartesian) {
+        uint32_t world_width    = be32toh(proj->header->world_width);
+        uint32_t world_height   = be32toh(proj->header->world_height);
+        uint32_t world_offset_x = be32toh(proj->header->world_offset_x);
+        uint32_t world_offset_y = be32toh(proj->header->world_offset_y);
+
+        cartesian->lat = find_lat(y + world_offset_y, world_height);
+        cartesian->lon = find_lon(x + world_offset_x, world_width);
     }
 
     return 0;

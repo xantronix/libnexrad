@@ -44,6 +44,10 @@ typedef struct _nexrad_geo_projection_header {
     uint16_t type;
     uint16_t width;
     uint16_t height;
+    uint32_t world_width;    /* Width of world in projected pixels */
+    uint32_t world_height;   /* Height of world in projected pixels */
+    uint32_t world_offset_x; /* Offset of projection in world */
+    uint32_t world_offset_y; /* Offset of projection in world */
     uint16_t rangebins;
     uint16_t rangebin_meters;
     uint16_t angle; /* Scan elevation angle */
@@ -157,6 +161,12 @@ int nexrad_geo_projection_read_station_location(
 int nexrad_geo_projection_read_extents(
     nexrad_geo_projection *proj,
     nexrad_geo_cartesian *extents
+);
+
+int nexrad_geo_projection_find_cartesian_point(nexrad_geo_projection *proj,
+    uint16_t x,
+    uint16_t y,
+    nexrad_geo_cartesian *cartesian
 );
 
 int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj,
