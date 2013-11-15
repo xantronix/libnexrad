@@ -1,6 +1,5 @@
 all:
 	$(MAKE) -C src all
-	$(MAKE) -C colors all
 
 .PHONY: examples
 examples:
@@ -8,7 +7,7 @@ examples:
 
 install:
 	$(MAKE) -C src install
-	$(MAKE) -C colors install
+	$(MAKE) -C colors all install
 
 uninstall:
 	$(MAKE) -C src uninstall
