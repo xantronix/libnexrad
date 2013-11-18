@@ -14,10 +14,10 @@
 
 #ifndef _ENDIAN_H
 #ifdef __DO_SWAP_BYTES
-#define be16toh(v) bswap16((uint16_t)v)
-#define be32toh(v) bswap32((uint32_t)v)
-#define htobe16(v) bswap16((uint16_t)v)
-#define htobe32(v) bswap32((uint32_t)v)
+#define be16toh(v) ((uint16_t)bswap16((uint16_t)v))
+#define be32toh(v) ((uint32_t)bswap32((uint32_t)v))
+#define htobe16(v) ((uint16_t)bswap16((uint16_t)v))
+#define htobe32(v) ((uint32_t)bswap32((uint32_t)v))
 #endif /* __DO_SWAP_BYTES */
 #endif /* !_ENDIAN_H */
 
