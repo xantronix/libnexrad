@@ -2,18 +2,17 @@
 
 OS=`uname -s`
 
-case $OS in
-    Linux)
-        cat <<EOF > src/config.h
+function create_linux_config_h() {
+    cat <<EOF > src/config.h
 #ifndef _CONFIG_H
 #define _CONFIG_H
 #include <endian.h>
 #endif /* _CONFIG_H */
 EOF
-    ;;
+}
 
-    Darwin)
-        cat <<EOF > src/config.h
+function create_darwin_config_h() {
+    cat <<EOF > src/config.h
 #ifndef _CONFIG_H
 #define _CONFIG_H
 #include <architecture/byte_order.h>
@@ -23,5 +22,36 @@ EOF
 #endif /* _DO_SWAP_BYTES */
 #endif /* _CONFIG_H */
 EOF
+}
+
+function create_linux_build_mk() {
+    cat <<'EOF' > mk/build.mk
+LLFLAGS		= -shared -Wl,-soname=$(SONAME)
+
+SONAME_SHORT	= libnexrad.so
+SONAME		= $(SONAME_SHORT).$(VERSION_MAJOR)
+SONAME_FULL	= $(SONAME_SHORT).$(VERSION)
+EOF
+}
+
+function create_darwin_build_mk() {
+    cat <<'EOF' > mk/build.mk
+LLFLAGS		= -dynamiclib -current_version $(VERSION)
+
+SONAME_SHORT	= libnexrad.dylib
+SONAME		= libnexrad.$(VERSION_MAJOR).dylib
+SONAME_FULL	= libnexrad.$(VERSION).dylib
+EOF
+}
+
+case $OS in
+    Linux)
+        create_linux_config_h
+		create_linux_build_mk
+    ;;
+
+    Darwin)
+        create_darwin_config_h
+		create_darwin_build_mk
     ;;
 esac
