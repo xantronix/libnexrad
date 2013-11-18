@@ -1,10 +1,11 @@
+include ../mk/build.mk
+
 INCLUDE_PATH	= ../include
 HEADER_SUBDIR	= nexrad
 
 CC		= $(CROSS)cc
 CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 \
 		  -I$(INCLUDE_PATH)
-LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 LDFLAGS		= -lbz2 -lz -lm
 
 HEADERS		= message.h chunk.h product.h symbology.h graphic.h tabular.h \
@@ -22,10 +23,6 @@ VERSION_MINOR	= 0.0
 VERSION		= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 STATIC		= libnexrad.a
-
-SONAME_SHORT	= libnexrad.so
-SONAME		= $(SONAME_SHORT).$(VERSION_MAJOR)
-SONAME_FULL	= $(SONAME_SHORT).$(VERSION)
 
 PREFIX		= /usr/local
 INSTALL_LIB	= $(PREFIX)/lib

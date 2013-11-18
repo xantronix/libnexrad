@@ -1,0 +1,5 @@
+LLFLAGS		= -shared -Wl,-soname=$(SONAME)
+
+SONAME_SHORT	= libnexrad.so
+SONAME		= $(SONAME_SHORT).$(VERSION_MAJOR)
+SONAME_FULL	= $(SONAME_SHORT).$(VERSION)
