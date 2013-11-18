@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <endian.h>
+#include "../src/util.h"
 
 #include <nexrad/message.h>
 #include <nexrad/radial.h>
