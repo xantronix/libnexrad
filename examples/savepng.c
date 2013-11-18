@@ -7,7 +7,7 @@
 #include <nexrad/radial.h>
 
 static void usage(int argc, char **argv) {
-    fprintf(stderr, "usage: %s colors.clut input.l3 file.proj output.png\n", argv[0]);
+    fprintf(stderr, "usage: %s colors.clut file.proj input.l3 output.png\n", argv[0]);
     exit(1);
 }
 
