@@ -4,8 +4,7 @@ INCLUDE_PATH	= ../include
 HEADER_SUBDIR	= nexrad
 
 CC		= $(CROSS)cc
-CFLAGS		= -g -Wno-unused-result -fno-inline -fPIC -Wall -O2 \
-		  -I$(INCLUDE_PATH)
+CFLAGS		= $(CGFLAGS) -fPIC -Wall -O2 -I$(INCLUDE_PATH)
 LDFLAGS		= -lbz2 -lz -lm
 
 HEADERS		= message.h chunk.h product.h symbology.h graphic.h tabular.h \

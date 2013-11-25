@@ -1,6 +1,7 @@
 #! /bin/sh
 
 OS=`uname -s`
+DEBUG=0
 
 create_linux_config_h() {
     cat <<EOF > src/config.h
@@ -24,8 +25,22 @@ create_darwin_config_h() {
 EOF
 }
 
+create_common_build_mk() {
+    if [ "$DEBUG" = 1 ]; then
+        cat <<'EOF' > mk/build.mk
+CGFLAGS		= -g -fno-inline
+EOF
+	else
+		cat <<'EOF' > mk/build.mk
+CGFLAGS		=
+EOF
+    fi
+}
+
 create_linux_build_mk() {
-    cat <<'EOF' > mk/build.mk
+    create_common_build_mk $@
+
+    cat <<'EOF' >> mk/build.mk
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 
 SONAME_SHORT	= libnexrad.so
@@ -35,7 +50,9 @@ EOF
 }
 
 create_darwin_build_mk() {
-    cat <<'EOF' > mk/build.mk
+    create_common_build_mk $@
+
+    cat <<'EOF' >> mk/build.mk
 LLFLAGS		= -dynamiclib -current_version $(VERSION)
 
 SONAME_SHORT	= libnexrad.dylib
@@ -43,6 +60,14 @@ SONAME		= libnexrad.$(VERSION_MAJOR).dylib
 SONAME_FULL	= libnexrad.$(VERSION).dylib
 EOF
 }
+
+for arg in $@; do
+    case $arg in
+        "--enable-debug")
+            DEBUG=1
+        ;;
+    esac
+done
 
 case $OS in
     Linux)
