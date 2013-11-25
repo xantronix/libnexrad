@@ -2,7 +2,7 @@
 
 OS=`uname -s`
 
-function create_linux_config_h() {
+create_linux_config_h() {
     cat <<EOF > src/config.h
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -11,7 +11,7 @@ function create_linux_config_h() {
 EOF
 }
 
-function create_darwin_config_h() {
+create_darwin_config_h() {
     cat <<EOF > src/config.h
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -24,7 +24,7 @@ function create_darwin_config_h() {
 EOF
 }
 
-function create_linux_build_mk() {
+create_linux_build_mk() {
     cat <<'EOF' > mk/build.mk
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 
@@ -34,7 +34,7 @@ SONAME_FULL	= $(SONAME_SHORT).$(VERSION)
 EOF
 }
 
-function create_darwin_build_mk() {
+create_darwin_build_mk() {
     cat <<'EOF' > mk/build.mk
 LLFLAGS		= -dynamiclib -current_version $(VERSION)
 
