@@ -81,7 +81,7 @@ void nexrad_geo_find_polar_dest(nexrad_geo_spheroid *spheroid, nexrad_geo_cartes
     }
 
     geod_inverse(spheroid->geod,
-        origin->lat, origin->lon, dest->lat, dest->lon, &polar->range, NULL, &polar->azimuth
+        origin->lat, origin->lon, dest->lat, dest->lon, &polar->range, &polar->azimuth, NULL
     );
 }
 
