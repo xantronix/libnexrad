@@ -86,4 +86,4 @@ uninstall-libs: uninstall-shared uninstall-static
 uninstall: uninstall-headers uninstall-libs
 
 clean:
-	$(RM) -f $(SONAME_FULL) $(SONAME) $(SONAME_SHORT) $(OBJS)
+	$(RM) -f $(SONAME_FULL) $(SONAME) $(SONAME_SHORT) $(STATIC) $(OBJS)
