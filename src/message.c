@@ -11,6 +11,8 @@
 
 #include <nexrad/message.h>
 
+#define NEXRAD_MESSAGE_UNKNOWN_FOOTER "\x0d\x0d\x0a\x03"
+
 struct _nexrad_message {
     size_t size;
     size_t page_size;
@@ -19,6 +21,7 @@ struct _nexrad_message {
     void * data;
     void * body;
 
+    nexrad_unknown_header *      unknown_header;
     nexrad_wmo_header *          wmo_header;
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
@@ -81,7 +84,12 @@ static inline nexrad_tabular_block *_tabular_block(nexrad_message *message, nexr
 static size_t _message_get_body_size(nexrad_message *message) {
     size_t ret = message->size;
 
-    ret -= sizeof(nexrad_wmo_header);
+    if (message->unknown_header)
+        ret -= sizeof(nexrad_unknown_header);
+
+    if (message->wmo_header)
+        ret -= sizeof(nexrad_wmo_header);
+
     ret -= sizeof(nexrad_message_header);
     ret -= sizeof(nexrad_product_description);
 
@@ -163,7 +171,8 @@ error_decompress_size:
  * blocks within the message.
  */
 static int _message_index(nexrad_message *message) {
-    nexrad_wmo_header *wmo_header = message->data;
+    nexrad_unknown_header * unknown_header = NULL;
+    nexrad_wmo_header *     wmo_header     = NULL;
 
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
@@ -174,28 +183,47 @@ static int _message_index(nexrad_message *message) {
     nexrad_graphic_block *   graphic   = NULL;
     nexrad_tabular_block *   tabular   = NULL;
 
+    size_t message_offset        = 0;
+    size_t message_size_expected = message->size;
+
     message->body        = NULL;
     message->compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
 
-    if (message->size < sizeof(nexrad_wmo_header)) {
-        goto error_invalid_wmo_header;
+    if (memcmp((char *)message->data + message_offset, NEXRAD_HEADER_UNKNOWN_SIGNATURE, 4) == 0) {
+        unknown_header = (nexrad_unknown_header *)((char *)message->data + message_offset);
+
+        message_offset += sizeof(nexrad_unknown_header);
     }
 
-    if (wmo_header->_whitespace1 != ' ') {
-        goto error_invalid_wmo_header;
-    }
+    if (memcmp((char *)message->data + message_offset, NEXRAD_HEADER_WMO_SIGNATURE, 4) == 0) {
+        wmo_header = (nexrad_wmo_header *)((char *)message->data + message_offset);
 
-    if (message->size < sizeof(nexrad_wmo_header) + sizeof(nexrad_message_header)) {
+        if (wmo_header->_whitespace1 != ' ') {
+            goto error_invalid_message_header;
+        }
+
+        message_offset += sizeof(nexrad_wmo_header);
+    } else {
         goto error_invalid_message_header;
     }
 
-    message_header = (nexrad_message_header *)nexrad_block_after(wmo_header, nexrad_wmo_header);
+    message_size_expected -= message_offset;
+
+    if (memcmp((char *)message->data + message->size - 4, NEXRAD_MESSAGE_UNKNOWN_FOOTER, 4) == 0) {
+        message_size_expected -= 4;
+    }
+
+    if (message_size_expected < sizeof(nexrad_message_header)) {
+        goto error_invalid_message_header;
+    }
+
+    message_header = (nexrad_message_header *)((char *)message->data + message_offset);
 
     if (be16toh(message_header->blocks) > 5) {
         goto error_invalid_message_header;
     }
 
-    if (message->size != sizeof(nexrad_wmo_header) + be32toh(message_header->size)) {
+    if (be32toh(message_header->size) != message_size_expected) {
         goto error_invalid_product_description;
     }
 
@@ -221,6 +249,7 @@ static int _message_index(nexrad_message *message) {
         goto error_invalid_tabular_block_offset;
     }
 
+    message->unknown_header = unknown_header;
     message->wmo_header     = wmo_header;
     message->message_header = message_header;
     message->description    = description;
@@ -237,7 +266,6 @@ error_invalid_symbology_block_offset:
 error_message_get_body:
 error_invalid_product_description:
 error_invalid_message_header:
-error_invalid_wmo_header:
     errno = EINVAL;
 
     return -1;

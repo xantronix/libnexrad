@@ -9,6 +9,15 @@
 #pragma pack(push)
 #pragma pack(1)
 
+#define NEXRAD_HEADER_UNKNOWN_SIGNATURE "\x01\x0d\x0d\x0a"
+#define NEXRAD_HEADER_WMO_SIGNATURE     "SDUS"
+
+typedef struct _nexrad_unknown_header {
+    char reserved1[4];
+    char reserved2[4];
+    char reserved3[3];
+} nexrad_unknown_header;
+
 typedef struct _nexrad_wmo_header {
     char region[6];
     char _whitespace1;
