@@ -171,9 +171,6 @@ error_decompress_size:
  * blocks within the message.
  */
 static int _message_index(nexrad_message *message) {
-    nexrad_unknown_header * unknown_header = NULL;
-    nexrad_wmo_header *     wmo_header     = NULL;
-
     nexrad_message_header *      message_header;
     nexrad_product_description * description;
 
@@ -186,19 +183,21 @@ static int _message_index(nexrad_message *message) {
     size_t message_offset        = 0;
     size_t message_size_expected = message->size;
 
-    message->body        = NULL;
-    message->compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
+    message->unknown_header = NULL;
+    message->wmo_header     = NULL;
+    message->body           = NULL;
+    message->compression    = NEXRAD_PRODUCT_COMPRESSION_NONE;
 
     if (memcmp((char *)message->data + message_offset, NEXRAD_HEADER_UNKNOWN_SIGNATURE, 4) == 0) {
-        unknown_header = (nexrad_unknown_header *)((char *)message->data + message_offset);
+        message->unknown_header = (nexrad_unknown_header *)((char *)message->data + message_offset);
 
         message_offset += sizeof(nexrad_unknown_header);
     }
 
     if (memcmp((char *)message->data + message_offset, NEXRAD_HEADER_WMO_SIGNATURE, 4) == 0) {
-        wmo_header = (nexrad_wmo_header *)((char *)message->data + message_offset);
+        message->wmo_header = (nexrad_wmo_header *)((char *)message->data + message_offset);
 
-        if (wmo_header->_whitespace1 != ' ') {
+        if (message->wmo_header->_whitespace1 != ' ') {
             goto error_invalid_message_header;
         }
 
@@ -249,8 +248,6 @@ static int _message_index(nexrad_message *message) {
         goto error_invalid_tabular_block_offset;
     }
 
-    message->unknown_header = unknown_header;
-    message->wmo_header     = wmo_header;
     message->message_header = message_header;
     message->description    = description;
     message->compression    = compression;
@@ -363,6 +360,7 @@ void nexrad_message_destroy(nexrad_message *message) {
     message->size           = 0;
     message->page_size      = 0;
     message->body           = NULL;
+    message->unknown_header = NULL;
     message->wmo_header     = NULL;
     message->message_header = NULL;
     message->description    = NULL;
