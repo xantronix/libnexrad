@@ -335,6 +335,8 @@ error_mmap:
 error_open:
     nexrad_message_destroy(message);
 
+    return NULL;
+
 error_efbig:
 error_stat:
     free(message);
