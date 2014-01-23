@@ -174,6 +174,9 @@ static int _message_index(nexrad_message *message) {
     nexrad_graphic_block *   graphic   = NULL;
     nexrad_tabular_block *   tabular   = NULL;
 
+    message->body        = NULL;
+    message->compression = NEXRAD_PRODUCT_COMPRESSION_NONE;
+
     if (message->size < sizeof(nexrad_wmo_header)) {
         goto error_invalid_wmo_header;
     }
@@ -297,11 +300,7 @@ nexrad_message *nexrad_message_open(const char *path) {
     return message;
 
 error_message_index:
-    munmap(message->data, message->mapped_size);
-
 error_mmap:
-    close(message->fd);
-
 error_open:
     nexrad_message_destroy(message);
 
