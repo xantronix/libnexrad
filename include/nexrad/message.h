@@ -12,8 +12,8 @@
 #include <nexrad/tabular.h>
 #include <nexrad/packet.h>
 
-#define NEXRAD_MESSAGE_MAX_BODY_SIZE  8388608
-#define NEXRAD_MESSAGE_MAX_SIZE     104857600
+#define NEXRAD_MESSAGE_MAX_BODY_SIZE 8388608
+#define NEXRAD_MESSAGE_MAX_SIZE     10485760
 
 typedef struct _nexrad_message nexrad_message;
 
