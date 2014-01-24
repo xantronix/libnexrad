@@ -230,6 +230,9 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial, int azimuth, uin
         return NULL;
     }
 
+    while (azimuth >= 360) azimuth -= 360;
+    while (azimuth <    0) azimuth += 360;
+
     rays = be16toh(radial->packet->rays);
 
     /*
@@ -276,7 +279,7 @@ int nexrad_radial_ray_get_azimuth(nexrad_radial_ray *ray) {
     return (int)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(ray->angle_start));
 }
 
-int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t range) {
+int nexrad_radial_get_rangebin(nexrad_radial *radial, int azimuth, int range) {
     nexrad_radial_ray *ray;
     uint8_t *data;
 
@@ -287,6 +290,9 @@ int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t
     if (range > be16toh(radial->packet->rangebin_count)) {
         return 0;
     }
+
+    while (azimuth >= 360) azimuth -= 360;
+    while (azimuth <    0) azimuth += 360;
 
     if ((ray = nexrad_radial_get_ray(radial, azimuth, &data)) == NULL) {
         goto error_radial_get_ray;

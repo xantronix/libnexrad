@@ -66,8 +66,8 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial,
 int nexrad_radial_ray_get_azimuth(nexrad_radial_ray *ray);
 
 int nexrad_radial_get_rangebin(nexrad_radial *radial,
-    uint16_t azimuth,
-    uint16_t range
+    int azimuth,
+    int range
 );
 
 nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial,
