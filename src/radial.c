@@ -285,7 +285,7 @@ int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t
     }
 
     if (range > be16toh(radial->packet->rangebin_count)) {
-        goto error_invalid_range;
+        return 0;
     }
 
     if ((ray = nexrad_radial_get_ray(radial, azimuth, &data)) == NULL) {
@@ -294,7 +294,6 @@ int nexrad_radial_get_rangebin(nexrad_radial *radial, uint16_t azimuth, uint16_t
 
     return (int)data[range];
 
-error_invalid_range:
 error_radial_get_ray:
     return -1;
 }
