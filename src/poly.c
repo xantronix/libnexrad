@@ -86,13 +86,13 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, s
     nexrad_radial_ray *ray;
     uint8_t *values;
     uint16_t bins;
-    int nonzero_rangebins = 0;
+    int rangebins = 0;
 
     if (radial == NULL || sizep == NULL || rangebinsp == NULL) {
         return -1;
     }
 
-    if (min > 0 || min > max || max > 255 || min == max) {
+    if (min < 0 || min > max || max > 255 || min == max) {
         return -1;
     }
 
@@ -111,12 +111,12 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, s
             if (v == 0 || v < min || v > max)
                 continue;
 
-            nonzero_rangebins++;
+            rangebins++;
         }
     }
 
-    *sizep      = _poly_multi_size(nonzero_rangebins);
-    *rangebinsp = nonzero_rangebins;
+    *sizep      = _poly_multi_size(rangebins);
+    *rangebinsp = rangebins;
 
     return 0;
 
@@ -149,7 +149,7 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
         return -1;
     }
 
-    if (min > 0 || min > max || max > 255 || min == max) {
+    if (min < 0 || min > max || max > 255 || min == max) {
         return -1;
     }
 
@@ -220,7 +220,7 @@ nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, i
         return NULL;
     }
 
-    if (min > 0 || min > max || max > 255 || min == max) {
+    if (min < 0 || min > max || max > 255 || min == max) {
         return NULL;
     }
 
