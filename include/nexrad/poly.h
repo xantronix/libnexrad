@@ -36,12 +36,16 @@ typedef struct _nexrad_poly_multi {
 #pragma pack(pop)
 
 int nexrad_poly_multi_size_for_radial(nexrad_radial *radial,
+    int      min,
+    int      max,
     size_t * sizep,
     int *    rangebinsp
 );
 
 int nexrad_poly_multi_write_from_radial(
     nexrad_radial *        radial,
+    int                    min,
+    int                    max,
     int                    rangebins,
     nexrad_poly_multi *    multi,
     size_t                 size,
@@ -51,9 +55,11 @@ int nexrad_poly_multi_write_from_radial(
 
 nexrad_poly_multi *nexrad_poly_multi_create_from_radial(
     nexrad_radial *        radial,
-    size_t *               sizep,
+    int                    min,
+    int                    max,
     nexrad_geo_cartesian * radar,
-    nexrad_geo_spheroid *  spheroid
+    nexrad_geo_spheroid *  spheroid,
+    size_t *               sizep
 );
 
 void nexrad_poly_multi_destroy(nexrad_poly_multi *multi);

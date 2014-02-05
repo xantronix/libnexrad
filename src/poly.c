@@ -82,13 +82,17 @@ static void _poly_multi_set_rangebin(nexrad_poly_multi *multi, int index, int az
     _poly_multi_set_poly_at_index(multi, index, ctx->cartesian_points);
 }
 
-int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, size_t *sizep, int *rangebinsp) {
+int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, size_t *sizep, int *rangebinsp) {
     nexrad_radial_ray *ray;
     uint8_t *values;
     uint16_t bins;
     int nonzero_rangebins = 0;
 
     if (radial == NULL || sizep == NULL || rangebinsp == NULL) {
+        return -1;
+    }
+
+    if (min < 0 || min > max || max < 255 || max < min || min == max) {
         return -1;
     }
 
@@ -102,8 +106,12 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, size_t *sizep, int 
         int range;
 
         for (range=0; range<bins; range++) {
-            if (values[range] > 0)
-                nonzero_rangebins++;
+            int v = values[range];
+
+            if (v == 0 || v < min || v > max)
+                continue;
+
+            nonzero_rangebins++;
         }
     }
 
@@ -126,7 +134,7 @@ void _poly_multi_init(nexrad_poly_multi *multi, int rangebins) {
     multi->polys      = htole32(rangebins);
 }
 
-int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int rangebins, nexrad_poly_multi *multi, size_t size, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid) {
+int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max, int rangebins, nexrad_poly_multi *multi, size_t size, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid) {
     nexrad_geo_polar *polar_points;
     nexrad_geo_cartesian *cartesian_points;
 
@@ -138,6 +146,10 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int rangebins, ne
     struct poly_context *ctx;
 
     if (radial == NULL || multi == NULL || size == 0 || radar == NULL || spheroid == NULL) {
+        return -1;
+    }
+
+    if (min < 0 || min > max || max < 255 || max < min || min == max) {
         return -1;
     }
 
@@ -171,7 +183,9 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int rangebins, ne
         int range;
 
         for (range=0; range<bins; range++) {
-            if (values[range] == 0)
+            int v = values[range];
+
+            if (v == 0 || v < min || v > max)
                 continue;
 
             _poly_multi_set_rangebin(multi, rangebin++, azimuth, range, ctx);
@@ -197,7 +211,7 @@ error_radial_get_info:
     return -1;
 }
 
-nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, size_t *sizep, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid) {
+nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, int min, int max, nexrad_geo_cartesian *radar, nexrad_geo_spheroid *spheroid, size_t *sizep) {
     nexrad_poly_multi *multi;
     size_t size;
     int rangebins;
@@ -206,7 +220,11 @@ nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, s
         return NULL;
     }
 
-    if (nexrad_poly_multi_size_for_radial(radial, &size, &rangebins) < 0) {
+    if (min < 0 || min > max || max < 255 || max < min || min == max) {
+        return NULL;
+    }
+
+    if (nexrad_poly_multi_size_for_radial(radial, min, max, &size, &rangebins) < 0) {
         goto error_poly_multi_size_for_radial;
     }
 
@@ -214,7 +232,7 @@ nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, s
         goto error_malloc_multi;
     }
 
-    if (nexrad_poly_multi_write_from_radial(radial, rangebins, multi, size, radar, spheroid) < 0) {
+    if (nexrad_poly_multi_write_from_radial(radial, min, max, rangebins, multi, size, radar, spheroid) < 0) {
         goto error_poly_multi_write_from_radial;
     }
 
