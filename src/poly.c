@@ -31,7 +31,7 @@ static void _poly_multi_set_poly_at_index(nexrad_poly_multi *multi, int index, n
 
     poly = (nexrad_poly *)((char *)multi
         + sizeof(nexrad_poly_multi)
-        + sizeof(nexrad_poly) * index);
+        + index * _poly_size(NEXRAD_POLY_RING_POINTS));
 
     poly->byte_order = NEXRAD_POLY_BYTE_ORDER_LE;
     poly->type       = htole32(NEXRAD_POLY_TYPE);
