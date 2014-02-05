@@ -137,7 +137,7 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int rangebins, ne
 
     struct poly_context *ctx;
 
-    if (radial == NULL || size == 0) {
+    if (radial == NULL || multi == NULL || size == 0 || radar == NULL || spheroid == NULL) {
         return -1;
     }
 
@@ -202,6 +202,10 @@ nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, s
     size_t size;
     int rangebins;
 
+    if (radial == NULL || sizep == NULL || radar == NULL || spheroid == NULL) {
+        return NULL;
+    }
+
     if (nexrad_poly_multi_size_for_radial(radial, &size, &rangebins) < 0) {
         goto error_poly_multi_size_for_radial;
     }
@@ -213,6 +217,8 @@ nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, s
     if (nexrad_poly_multi_write_from_radial(radial, rangebins, multi, size, radar, spheroid) < 0) {
         goto error_poly_multi_write_from_radial;
     }
+
+    *sizep = size;
 
     return multi;
 
