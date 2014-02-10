@@ -69,16 +69,16 @@ static void _poly_multi_set_rangebin(nexrad_poly_multi *multi, int index, int az
     int i;
 
     ctx->polar_points[0].azimuth = (double)azimuth - 0.5;
-    ctx->polar_points[0].range   = range;
+    ctx->polar_points[0].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR;
 
     ctx->polar_points[1].azimuth = (double)azimuth - 0.5;
-    ctx->polar_points[1].range   = (double)range + 1000.0;
+    ctx->polar_points[1].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR + 1000.0;
 
     ctx->polar_points[2].azimuth = (double)azimuth + 0.5;
-    ctx->polar_points[2].range   = (double)range + 1000.0;
+    ctx->polar_points[2].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR + 1000.0;
 
     ctx->polar_points[3].azimuth = (double)azimuth + 0.5;
-    ctx->polar_points[3].range   = (double)range;
+    ctx->polar_points[3].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR;
 
     for (i=0; i<NEXRAD_POLY_POINTS; i++) {
         nexrad_geo_find_cartesian_dest(ctx->spheroid,
@@ -115,7 +115,7 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, s
         for (range=0; range<bins; range++) {
             int v = values[range];
 
-            if (v == 0 || v < min || v > max)
+            if (v < min || v > max)
                 continue;
 
             rangebins++;
@@ -186,13 +186,16 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
     nexrad_radial_reset(radial);
 
     while ((ray = nexrad_radial_read_ray(radial, &values)) != NULL) {
-        int azimuth = (int)round(be16toh(ray->angle_start));
-        int range;
+        int azimuth, range;
+
+        if ((azimuth = nexrad_radial_ray_get_azimuth(ray)) < 0) {
+            goto error_radial_ray_get_azimuth;
+        }
 
         for (range=0; range<bins; range++) {
             int v = values[range];
 
-            if (v == 0 || v < min || v > max)
+            if (v < min || v > max)
                 continue;
 
             _poly_multi_set_rangebin(multi, rangebin++, azimuth, range, ctx);
@@ -207,6 +210,7 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
 
     free(ctx);
 
+error_radial_ray_get_azimuth:
 error_malloc_ctx:
     free(polar_points);
 
