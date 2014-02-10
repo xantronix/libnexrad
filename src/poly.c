@@ -20,7 +20,7 @@ static inline size_t _poly_size(int points) {
 
 static inline size_t _poly_multi_size(int rangebins) {
     return sizeof(nexrad_poly_multi)
-        + rangebins * _poly_size(NEXRAD_POLY_RING_POINTS);
+        + rangebins * _poly_size(NEXRAD_POLY_POINTS + 1);
 }
 
 static void _poly_multi_set_poly_at_index(nexrad_poly_multi *multi, int index, nexrad_geo_cartesian *ipoints) {
@@ -31,7 +31,7 @@ static void _poly_multi_set_poly_at_index(nexrad_poly_multi *multi, int index, n
 
     poly = (nexrad_poly *)((char *)multi
         + sizeof(nexrad_poly_multi)
-        + index * _poly_size(NEXRAD_POLY_RING_POINTS));
+        + index * _poly_size(NEXRAD_POLY_POINTS + 1));
 
     poly->byte_order = NEXRAD_POLY_BYTE_ORDER_LE;
     poly->type       = htole32(NEXRAD_POLY_TYPE);
@@ -40,15 +40,22 @@ static void _poly_multi_set_poly_at_index(nexrad_poly_multi *multi, int index, n
     ring = (nexrad_poly_ring *)((char *)poly
         + sizeof(nexrad_poly));
 
-    ring->points = htole32(NEXRAD_POLY_RING_POINTS);
+    ring->points = htole32(NEXRAD_POLY_POINTS + 1);
 
     points = (nexrad_poly_point *)((char *)ring
         + sizeof(nexrad_poly_ring));
 
-    for (i=0; i<NEXRAD_POLY_RING_POINTS; i++) {
+    for (i=0; i<NEXRAD_POLY_POINTS; i++) {
         points[i].lat = htole64(ipoints[i].lat);
         points[i].lon = htole64(ipoints[i].lon);
     }
+
+    /*
+     * As WKB requires polygons to be closed, repeat the first point in the
+     * final slot allocated.
+     */
+    points[NEXRAD_POLY_POINTS].lat = htole64(ipoints[0].lat);
+    points[NEXRAD_POLY_POINTS].lon = htole64(ipoints[0].lon);
 }
 
 struct poly_context {
@@ -73,7 +80,7 @@ static void _poly_multi_set_rangebin(nexrad_poly_multi *multi, int index, int az
     ctx->polar_points[3].azimuth = (double)azimuth + 0.5;
     ctx->polar_points[3].range   = (double)range;
 
-    for (i=0; i<NEXRAD_POLY_RING_POINTS; i++) {
+    for (i=0; i<NEXRAD_POLY_POINTS; i++) {
         nexrad_geo_find_cartesian_dest(ctx->spheroid,
             ctx->radar, &ctx->cartesian_points[i], &ctx->polar_points[i]
         );
@@ -157,11 +164,11 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
         goto error_radial_get_info;
     }
 
-    if ((cartesian_points = malloc(NEXRAD_POLY_RING_POINTS * sizeof(nexrad_geo_cartesian))) == NULL) {
+    if ((cartesian_points = malloc(NEXRAD_POLY_POINTS * sizeof(nexrad_geo_cartesian))) == NULL) {
         goto error_malloc_cartesian_points;
     }
 
-    if ((polar_points = malloc(NEXRAD_POLY_RING_POINTS * sizeof(nexrad_geo_polar))) == NULL) {
+    if ((polar_points = malloc(NEXRAD_POLY_POINTS * sizeof(nexrad_geo_polar))) == NULL) {
         goto error_malloc_polar_points;
     }
 
