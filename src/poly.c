@@ -99,7 +99,7 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, s
         return -1;
     }
 
-    if (min < 0 || min > max || max > 255 || min == max) {
+    if (min < 0 || min > max || max > 255) {
         return -1;
     }
 
@@ -156,7 +156,7 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
         return -1;
     }
 
-    if (min < 0 || min > max || max > 255 || min == max) {
+    if (min < 0 || min > max || max > 255) {
         return -1;
     }
 
@@ -227,7 +227,7 @@ nexrad_poly_multi *nexrad_poly_multi_create_from_radial(nexrad_radial *radial, i
         return NULL;
     }
 
-    if (min < 0 || min > max || max > 255 || min == max) {
+    if (min < 0 || min > max || max > 255) {
         return NULL;
     }
 
