@@ -7,14 +7,14 @@
 #define NEXRAD_POLY_TYPE          3
 #define NEXRAD_POLY_MULTI_TYPE    6
 #define NEXRAD_POLY_RINGS         1
-#define NEXRAD_POLY_RING_POINTS   4
+#define NEXRAD_POLY_POINTS        4
 
 #pragma pack(1)
 #pragma pack(push)
 
 typedef struct _nexrad_poly_point {
-    double lat;
     double lon;
+    double lat;
 } nexrad_poly_point;
 
 typedef struct _nexrad_poly_ring {
