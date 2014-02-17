@@ -38,6 +38,11 @@ typedef struct _nexrad_geo_cartesian {
 #pragma pack(1)
 #pragma pack(push)
 
+/*!
+ * \file nexrad/geo.h
+ * \brief Geodesic calculations and geographic projection support
+ */
+
 typedef struct _nexrad_geo_projection_header {
     char     magic[4];
     uint16_t version;
@@ -89,24 +94,56 @@ typedef struct _nexrad_geo_projection_point {
 typedef struct _nexrad_geo_spheroid   nexrad_geo_spheroid;
 typedef struct _nexrad_geo_projection nexrad_geo_projection;
 
+/*!
+ * \brief Create a new spheroid object initialized with WGS-84 datums.
+ * \return A new spheroid object, or NULL on error
+ */
 nexrad_geo_spheroid *nexrad_geo_spheroid_create();
 
+/*!
+ * \brief Determine spheroid circumference
+ * \param spheroid A spheroid object
+ * \return Circumference of spheroid, in meters
+ */
 double nexrad_geo_spheroid_get_circumference(nexrad_geo_spheroid *spheroid);
 
+/*!
+ * \brief Determine spheroid flattening ratio
+ * \param spheroid A spheroid object
+ * \return Flattening factor of spheroid
+ */
 double nexrad_geo_spheroid_get_flattening(nexrad_geo_spheroid *spheroid);
 
+/*!
+ * \brief Perform inverse geodesic calculation between Cartesian points
+ * \param spheroid A spheroid object
+ * \param origin The origin Cartesian point
+ * \param dest The destination cartesian point
+ * \param output Pointer to an object to store polar coordinate result
+ */
 void nexrad_geo_find_polar_dest(nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian * origin,
     nexrad_geo_cartesian * dest,
     nexrad_geo_polar *     output
 );
 
+/*!
+ * \brief Perform direct geodesic calculation from a Cartesian point
+ * \param spheroid A spheroid object
+ * \param origin The origin Cartesian point
+ * \param output Pointer to an object to store Cartesian coordinate result
+ * \param dest Polar coordinate of destination relative to origin
+ */
 void nexrad_geo_find_cartesian_dest(nexrad_geo_spheroid *spheroid,
     nexrad_geo_cartesian * origin,
     nexrad_geo_cartesian * output,
     nexrad_geo_polar *     dest
 );
 
+/*!
+ * \brief Destroy and free() a spheroid object
+ * \param object A spheroid object
+ */
 void nexrad_geo_spheroid_destroy(nexrad_geo_spheroid *spheroid);
 
 void nexrad_geo_projection_find_extents(
@@ -117,6 +154,21 @@ void nexrad_geo_projection_find_extents(
     nexrad_geo_cartesian *extents
 );
 
+/*!
+ * \brief Create a new equirectangular projection file for a radar site
+ * \param path Path to a file to create and store radial projection data to
+ * \param spheroid A spheroid object
+ * \param radar Cartesian coordinates of radar site
+ * \param rangebins Number of rangebins in radar coverage area
+ * \param rangebin_meters Size of each rangebin, in meters, in terms of distance
+          from radar site
+ * \param scale Number of degrees of latitude/longitude per projection point
+ * \return A new radar projection object, or NULL on failure
+ *
+ * Create a new equirectangular projection file for a radar site, suitable for
+ * creating rasterized radar images which conform to an equirectangular
+ * projection at a given radar site.
+ */
 nexrad_geo_projection *nexrad_geo_projection_create_equirect(
     const char *path,
     nexrad_geo_spheroid *spheroid,
@@ -126,6 +178,21 @@ nexrad_geo_projection *nexrad_geo_projection_create_equirect(
     double scale
 );
 
+/*!
+ * \brief Create a new Mercator projection file for a radar site
+ * \param path Path to a file to create and store radial projection data to
+ * \param spheroid A spheroid object
+ * \param radar Cartesian coordinates of radar site
+ * \param rangebins Number of rangebins in radar coverage area
+ * \param rangebin_meters Size of each rangebin, in meters, in terms of distance
+          from radar site
+ * \param zoom Web Mercator zoom level of resulting projection
+ * \return A new radar projection object, or NULL on failure
+ *
+ * Create a new Mercator projection file for a radar site, suitable for creating
+ * rasterized radar images which conform to a Mercator projection at a given
+ * radar site.
+ */
 nexrad_geo_projection *nexrad_geo_projection_create_mercator(
     const char *path,
     nexrad_geo_spheroid *spheroid,
@@ -135,50 +202,145 @@ nexrad_geo_projection *nexrad_geo_projection_create_mercator(
     int zoom
 );
 
+/*!
+ * \brief Open an existing geographic projection file from disk, using memory-
+ *        mapped I/O.
+ * \param path A path to a projection file on disk.
+ * \return A geographic projection object, or NULL on failure
+ */
 nexrad_geo_projection *nexrad_geo_projection_open(const char *path);
 
+/*!
+ * \brief Determine the type of projection of an existing geographic projection
+ * \param proj A geographic projection object
+ * \return A value from enum nexrad_geo_projection_type indicating projection
+ *         type
+ */
 enum nexrad_geo_projection_type nexrad_geo_projection_get_type(
     nexrad_geo_projection *proj
 );
 
+/*!
+ * \brief Determine the dimensions, in points, of a projection
+ * \param proj A geographic projection object
+ * \param width A pointer to a uint16_t to write projection width to
+ * \param height A pointer to a uint16_t to write projection height to
+ * \return 0 on success, -1 on failure
+ */
 int nexrad_geo_projection_read_dimensions(
     nexrad_geo_projection *proj,
     uint16_t *width,
     uint16_t *height
 );
 
+/*!
+ * \brief Determine radar coverage area of projection
+ * \param proj A geographic projection object
+ * \param rangebins A pointer to a uint16_t to write number of rangebins covered
+ *        by radar site to
+ * \param rangebin_meters A pointer to a uint16_t to write number of meters per
+ *        rangebin as used in this projection
+ * \return 0 on success, -1 on failure
+ */
 int nexrad_geo_projection_read_range(
     nexrad_geo_projection *proj,
     uint16_t *rangebins,
     uint16_t *rangebin_meters
 );
 
+/*!
+ * \brief Determine radar station location for projection object
+ * \param proj A geographic projection object
+ * \param radar A pointer to a Cartesian point to write station location to
+ * \return 0 on success, -1 on failure
+ */
 int nexrad_geo_projection_read_station_location(
     nexrad_geo_projection *proj,
     nexrad_geo_cartesian *radar
 );
 
+/*!
+ * \brief Determine geographic extents covered by radar projection, in Cartesian
+ *        coordinates
+ * \param proj A geographic projection object
+ * \param extents A pointer to a contiguous array of four (4) Cartesian points
+ * \return 0 on success, -1 on failure
+ *
+ * Determine geographic extents covered by radar projection, in Cartesian
+ * coordinates.  Location extents are written into four (4) separate Cartesian
+ * point objects, each in the following order:
+ *
+ *     - North (0)
+ *     - East  (1)
+ *     - South (2)
+ *     - West  (3)
+ */
 int nexrad_geo_projection_read_extents(
     nexrad_geo_projection *proj,
     nexrad_geo_cartesian *extents
 );
 
+/*!
+ * \brief Determine geographic Cartesian point at given location in projection
+ * \param proj A geographic projection object
+ * \param x X coordinate within projection
+ * \param y Y coordinate within projection
+ * \param cartesian Pointer to Cartesian point to write geographic location of
+ *        point in projection to
+ * \return 0 on success, -1 on failure
+ *
+ * Determine the geographic location of any given X,Y point in a projection
+ * object.
+ */
 int nexrad_geo_projection_find_cartesian_point(nexrad_geo_projection *proj,
     uint16_t x,
     uint16_t y,
     nexrad_geo_cartesian *cartesian
 );
 
+/*!
+ * \brief Determine geographic polar point, relative to radar, at given location
+ * \param proj A geographic projection object
+ * \param x X coordinate within projection
+ * \param y Y coordinate within projection
+ * \param polar Pointer to object to write radar-relative polar coordinates into
+ * \return 0 on success, -1 on failure
+ *
+ * Determine the radar-relative polar coordinates of any given X,Y point in a
+ * projection object.
+ */
 int nexrad_geo_projection_find_polar_point(nexrad_geo_projection *proj,
     uint16_t x,
     uint16_t y,
     nexrad_geo_polar *polar
 );
 
+/*!
+ * \brief Obtain pointer to projection point values in projection object
+ * \param proj A geographic projection object
+ * \return A pointer to projection point values in projection object
+ *
+ * Obtain a pointer to projection values in projection object, which are pairs
+ * of big endian, 16-bit unsigned integers indicating azimuth and range of point
+ * relative to radar site.  Use be16toh() to reference these projection point
+ * polar coordinates in host byte order.
+ */
 nexrad_geo_projection_point *nexrad_geo_projection_get_points(nexrad_geo_projection *proj);
 
+/*!
+ * \brief Save changes made to projection from memory to disk
+ * \param proj A geographic projection object
+ * \return 0 on success, -1 on failure
+ *
+ * Flush any changes made to projection metadata or points from memory to the
+ * file mapped to disk.
+ */
 int nexrad_geo_projection_save(nexrad_geo_projection *proj);
 
+/*!
+ * \brief Close memory-mapped projection file and deallocate object from memory
+ * \param A geographic projection object
+ */
 void nexrad_geo_projection_close(nexrad_geo_projection *proj);
 
 #endif /* _NEXRAD_GEO_POINT_H */
