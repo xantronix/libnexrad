@@ -42,8 +42,9 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 #pragma pack(pop)
 
-/*! \file nexrad/radial.h
- *  \brief Interface to radial radar data in NEXRAD Level III product files
+/*!
+ * \file nexrad/radial.h
+ * \brief Interface to radial radar data in NEXRAD Level III product files
  *
  * The primary interface to reading and handling radial radar data encoded in
  * NEXRAD Level III product files.  Is able to understand radar data encoded
@@ -53,10 +54,11 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 typedef struct _nexrad_radial nexrad_radial;
 
-/*! \brief Unpack any radial packet into a well-ordered digitally-encoded
- *  \param packet A RLE or digitally-encoded radial packet
- *  \param sizep Pointer to a size_t to store size of new radial packet
- *  \return A well-ordered digitally-encoded radial packet
+/*!
+ * \brief Unpack any radial packet into a well-ordered digitally-encoded
+ * \param packet A RLE or digitally-encoded radial packet
+ * \param sizep Pointer to a size_t to store size of new radial packet
+ * \return A well-ordered digitally-encoded radial packet
  *
  * Given an arbitrary radial packet, whether RLE- or digitally-encoded, will
  * generate a new radial packet with 360 rays whose azimuths are ordered 0 to
@@ -72,19 +74,21 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet,
     size_t *sizep
 );
 
-/*! \brief Open a NEXRAD Level III radial packet for reading
- *  \param packet Pointer to a raw NEXRAD Level III radial packet
- *  \return An object to facilitate access of the contents of a NEXRAD Level III
- *          radial packet
+/*!
+ * \brief Open a NEXRAD Level III radial packet for reading
+ * \param packet Pointer to a raw NEXRAD Level III radial packet
+ * \return An object to facilitate access of the contents of a NEXRAD Level III
+ *         radial packet
  *
  * Open a NEXRAD Level III radial packet for reading, returning an object
  * representing the state necessary to traverse a radial packet of any sort.
  */
 nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet);
 
-/*! \brief Determine how many bytes of a radial packet have been read
- *  \param radial A `nexrad_radial` object
- *  \return Number of bytes of NEXRAD Level III radial packet read
+/*!
+ * \brief Determine how many bytes of a radial packet have been read
+ * \param radial A `nexrad_radial` object
+ * \return Number of bytes of NEXRAD Level III radial packet read
  *
  * Determine how many bytes of a radial packet have been read.  This method is
  * useful, as NEXRAD Level III product symbology blocks themselves have a size
@@ -96,8 +100,9 @@ nexrad_radial *nexrad_radial_packet_open(nexrad_radial_packet *packet);
  */
 size_t nexrad_radial_bytes_read(nexrad_radial *radial);
 
-/*! \brief Reset a `nexrad_radial` object to the beginning of a radial packet
- *  \param radial A `nexrad_radial` object
+/*!
+ * \brief Reset a `nexrad_radial` object to the beginning of a radial packet
+ * \param radial A `nexrad_radial` object
  *
  * Reset a `nexrad_radial` object state to the beginning of a radial packet, in
  * case one wants to reuse the same `nexrad_radial` object to make multiple
@@ -105,9 +110,10 @@ size_t nexrad_radial_bytes_read(nexrad_radial *radial);
  */
 void nexrad_radial_reset(nexrad_radial *radial);
 
-/*! \brief Close and destroy all state in a NEXRAD Level III radial packet
- *         reader object
- *  \param radial A `nexrad_radial` object
+/*!
+ * \brief Close and destroy all state in a NEXRAD Level III radial packet
+ *        reader object
+ * \param radial A `nexrad_radial` object
  *
  * Destroys and free()s all state used to read a NEXRAD Level III radial packet.
  * Use this method instead of nexrad_radial_destroy() when the caller does not
@@ -115,9 +121,10 @@ void nexrad_radial_reset(nexrad_radial *radial);
  */
 void nexrad_radial_close(nexrad_radial *radial);
 
-/*! \brief Close and destroy all state in a NEXRAD Level III radial packet
- *         reader object, including packet
- *  \param radial A `nexrad_radial` object
+/*!
+ * \brief Close and destroy all state in a NEXRAD Level III radial packet
+ *        reader object, including packet
+ * \param radial A `nexrad_radial` object
  *
  * Destroys and free()s all state used to read a NEXRAD Level III radial packet.
  * Use this method instead of nexrad_radial_close() when the caller wishes for
@@ -125,12 +132,13 @@ void nexrad_radial_close(nexrad_radial *radial);
  */
 void nexrad_radial_destroy(nexrad_radial *radial);
 
-/*! \brief Search radial packet for radial ray at given azimuth
- *  \param radial A radial reader object
- *  \param azimuth The azimuth 0-359 of the desired ray
- *  \param values Pointer to write address of digitally encoded rangebin values
- *                to
- *  \return A radial ray object
+/*!
+ * \brief Search radial packet for radial ray at given azimuth
+ * \param radial A radial reader object
+ * \param azimuth The azimuth 0-359 of the desired ray
+ * \param values Pointer to write address of digitally encoded rangebin values
+ *               to
+ * \return A radial ray object
  *
  * With the aid of the radial packet reader in `radial`, search for, and return
  * the NEXRAD Level III radial ray whose azimuth is at the desired value.  A
@@ -145,20 +153,22 @@ nexrad_radial_ray *nexrad_radial_get_ray(nexrad_radial *radial,
     uint8_t **values
 );
 
-/*! \brief Determine the azimuth of a given NEXRAD Level III radial ray
- *  \param ray A NEXRAD Level III radial ray
- *  \return An integer 0-359 indicating azimuth of the radial ray, or -1 on
- *          error
+/*!
+ * \brief Determine the azimuth of a given NEXRAD Level III radial ray
+ * \param ray A NEXRAD Level III radial ray
+ * \return An integer 0-359 indicating azimuth of the radial ray, or -1 on
+ *         error
  *
  * Return the azimuth of the radial ray, or -1 when given erroneous input.
  */
 int nexrad_radial_ray_get_azimuth(nexrad_radial_ray *ray);
 
-/*! \brief Determine a rangebin value for a given azimuth and range
- *  \param radial A radial packet reader object
- *  \param azimuth Azimuth 0-359
- *  \param range Distance from radar in 1km increments
- *  \return An integer 0-255 denoting the observed value, or -1 on failure
+/*!
+ * \brief Determine a rangebin value for a given azimuth and range
+ * \param radial A radial packet reader object
+ * \param azimuth Azimuth 0-359
+ * \param range Distance from radar in 1km increments
+ * \return An integer 0-255 denoting the observed value, or -1 on failure
  *
  * Determine the value of a rangebin at a given azimuth and range.
  */
@@ -167,11 +177,12 @@ int nexrad_radial_get_rangebin(nexrad_radial *radial,
     int range
 );
 
-/*! \brief Read the next available ray in a NEXRAD Level III radial packet
- *  \param radial A radial packet reader object
- *  \param values Pointer to an address to store pointer referencing rangebin
- *                values
- *  \return A NEXRAD Level III radial ray, or NULL if no more rays are available
+/*!
+ * \brief Read the next available ray in a NEXRAD Level III radial packet
+ * \param radial A radial packet reader object
+ * \param values Pointer to an address to store pointer referencing rangebin
+ *               values
+ * \return A NEXRAD Level III radial ray, or NULL if no more rays are available
  *
  * Read the next available ray in a NEXRAD Level III radial packet.  If no more
  * rays are available to be read, then NULL will be returned instead.
@@ -180,27 +191,29 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial,
     uint8_t **values
 );
 
-/*! \brief Return the type of packet referenced by the current radial reader
- *  \param radial A radial packet reader object
- *  \return A number indicating whether the radial packet referenced by the
- *          radial reader is RLE- or digitally-encoded, or -1 on error
+/*!
+ * \brief Return the type of packet referenced by the current radial reader
+ * \param radial A radial packet reader object
+ * \return A number indicating whether the radial packet referenced by the
+ *         radial reader is RLE- or digitally-encoded, or -1 on error
  *
  * Returns a value, either NEXRAD_RADIAL_DIGITAL, or NEXRAD_RADIAL_RLE,
  * indicating the type of packet referenced by the current radial packet reader.
  */
 enum nexrad_radial_type nexrad_radial_get_type(nexrad_radial *radial);
 
-/*! \brief Ascertain the dimensions and properties of a radial
- *  \param radial A radial packet reader object
- *  \param rangebin_first Pointer to a uint16_t to write distance offset of
- *         first rangebin
- *  \param rangebin_count Pointer to a uint16_t to write number of rangebins per
- *         ray
- *  \param i Mostly unused
- *  \param j Mostly unused
- *  \param scale Number of meters per rangebin
- *  \param rays Number of rays in radial packet
- *  \return 0 on success, -1 on failure
+/*!
+ * \brief Ascertain the dimensions and properties of a radial
+ * \param radial A radial packet reader object
+ * \param rangebin_first Pointer to a uint16_t to write distance offset of
+ *        first rangebin
+ * \param rangebin_count Pointer to a uint16_t to write number of rangebins per
+ *        ray
+ * \param i Mostly unused
+ * \param j Mostly unused
+ * \param scale Number of meters per rangebin
+ * \param rays Number of rays in radial packet
+ * \return 0 on success, -1 on failure
  *
  * Determine various characteristics of a radial packet referenced by the radial
  * reader object passed.
@@ -214,29 +227,32 @@ int nexrad_radial_get_info(nexrad_radial *radial,
     uint16_t *rays
 );
 
-/*! \brief Determine number of rays left to be read
- *  \param radial A radial reader object
- *  \return Number of rays left to be read
+/*!
+ * \brief Determine number of rays left to be read
+ * \param radial A radial reader object
+ * \return Number of rays left to be read
  * 
  * Deteremine the number of rays left to be read in a radial packet referenced
  * by a radial reader object.
  */
 uint16_t nexrad_radial_rays_left(nexrad_radial *radial);
 
-/*! \brief Get a pointer to the radial packet held by the radial reader object
- *  \param radial A radial reader object
- *  \return A pointer to the NEXRAD Level III radial packet referenced by the
- *          radial reader object, or NULL on error
+/*!
+ * \brief Get a pointer to the radial packet held by the radial reader object
+ * \param radial A radial reader object
+ * \return A pointer to the NEXRAD Level III radial packet referenced by the
+ *         radial reader object, or NULL on error
  *
  * Return a pointer to the NEXRAD Level III radial packet referenced by the
  * current radial reader object.
  */
 nexrad_radial_packet *nexrad_radial_get_packet(nexrad_radial *radial);
 
-/*! \brief Create a top-down image render of a NEXRAD Level III radial packet
- *  \param radial A radial reader object
- *  \param table A color table object
- *  \return A `nexrad_image` object containing rasterized radar data
+/*!
+ * \brief Create a top-down image render of a NEXRAD Level III radial packet
+ * \param radial A radial reader object
+ * \param table A color table object
+ * \return A `nexrad_image` object containing rasterized radar data
  *
  * Rasterize a radial packet referenced by the radial reader object in a simple,
  * polar-distorted, top-down projection, using the color intensity values
@@ -246,11 +262,12 @@ nexrad_image *nexrad_radial_create_image(nexrad_radial *radial,
     nexrad_color_table *table
 );
 
-/*! \brief Create a map projected render of a NEXRAD Level III radial packet
- *  \param radial A radial reader object
- *  \param table A color table
- *  \param proj A cartographic radar projection object
- *  \return A `nexrad_image` object containing rasterized radar data
+/*!
+ * \brief Create a map projected render of a NEXRAD Level III radial packet
+ * \param radial A radial reader object
+ * \param table A color table
+ * \param proj A cartographic radar projection object
+ * \return A `nexrad_image` object containing rasterized radar data
  *
  * Rasterize a radial packet referenced by the radial reader object in an image
  * which conforms to a precomputed projection referenced by `proj`, using the
