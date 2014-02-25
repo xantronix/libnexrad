@@ -1,0 +1,8 @@
+/*!
+ * \mainpage libnexrad Documentation
+ *
+ * The documentation herein shall provide sufficient information required to
+ * perform most requisite manipulations of NEXRAD Level III product file data
+ * as provided by NOAA in the pursuit of analyzing and imaging radial radar
+ * data, as well as for parsing textual data provided in some NOAA products.
+ */
