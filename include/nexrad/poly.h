@@ -9,6 +9,14 @@
 #define NEXRAD_POLY_RINGS         1
 #define NEXRAD_POLY_POINTS        4
 
+/*!
+ * \file nexrad/poly.h
+ * \brief Support for generating Well-Known Binary geometries from radar data
+ *
+ * Provides functions for generating Well-Known Binary geometry boundary
+ * representations of radial radar data.
+ */
+
 #pragma pack(1)
 #pragma pack(push)
 
@@ -36,14 +44,11 @@ typedef struct _nexrad_poly_multi {
 #pragma pack(pop)
 
 /*!
- * \file nexrad/poly.h
- * \brief Support for generating Well-Known Binary geometries from radar data
- *
- * Provides functions for generating Well-Known Binary geometry boundary
- * representations of radial radar data.
+ * \defgroup poly Well-Known Binary geographic polygon generation routines
  */
 
 /*!
+ * \ingroup poly
  * \brief Determine size of Well-Known Binary output for a given radial and
  *        value ranges
  * \param radial A radial reader object
@@ -67,6 +72,7 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial,
 );
 
 /*!
+ * \ingroup poly
  * \brief Write a Well-Known Binary representation of radial data to a buffer
  * \param radial A radial packet reader object
  * \param min Minimum intensity value of radar data to generate polygons for
@@ -95,6 +101,7 @@ int nexrad_poly_multi_write_from_radial(
 );
 
 /*!
+ * \ingroup poly
  * \brief Create a Well-Known Binary representation of radial data
  * \param radial A radial packet reader object
  * \param min Minimum intensity value of radar data to generate polygons for
@@ -123,6 +130,7 @@ nexrad_poly_multi *nexrad_poly_multi_create_from_radial(
 );
 
 /*!
+ * \ingroup poly
  * \brief free()s a Well-Known Binary buffer
  * \param multi A multipolygon Well-Known Binary buffer
  *
