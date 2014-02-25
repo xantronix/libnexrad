@@ -16,6 +16,11 @@
 typedef struct _nexrad_image nexrad_image;
 
 /*!
+ * \defgroup image Image buffer manipulation routines
+ */
+
+/*!
+ * \ingroup image
  * \brief Create a new image buffer
  * \param width Width, in pixels
  * \param height Height, in pixels
@@ -30,6 +35,7 @@ nexrad_image *nexrad_image_create(
 );
 
 /*!
+ * \ingroup image
  * \brief Determine dimensions of an image buffer
  * \param image An image buffer object
  * \param width Pointer to a uint16_t to write image width to
@@ -44,6 +50,7 @@ int nexrad_image_get_info(nexrad_image *image,
 );
 
 /*!
+ * \ingroup image
  * \brief Obtain pointer to raw image data inside buffer object
  * \param image An image buffer object
  * \param sizep Pointer to a size_t to write size of image to, in bytes
@@ -56,6 +63,32 @@ int nexrad_image_get_info(nexrad_image *image,
 uint8_t *nexrad_image_get_buf(nexrad_image *image, size_t *sizep);
 
 /*!
+ * \ingroup image
+ * \brief Save image buffer to disk file as PNG
+ * \param image An image buffer object
+ * \param path Output file path
+ * \return 0 on success, -1 on failure
+ *
+ * Save the image buffer to a PNG file on disk.
+ */
+int nexrad_image_save_png(nexrad_image *image, const char *path);
+
+/*!
+ * \ingroup image
+ * \brief Destroy and deallocate image buffer object
+ * \param image An image buffer object
+ *
+ * Destroy any state associated with the specified image buffer object, and
+ * free() the raw data buffer therein, as well as the object data itself.
+ */
+void nexrad_image_destroy(nexrad_image *image);
+
+/*!
+ * \defgroup drawing Image buffer drawing routines
+ */
+
+/*!
+ * \ingroup drawing
  * \brief Draw a single pixel in buffer
  * \param image An image buffer object
  * \param color A color table entry
@@ -70,35 +103,40 @@ void nexrad_image_draw_pixel(nexrad_image *image,
     uint16_t x, uint16_t y
 );
 
+/*!
+ * \ingroup drawing
+ * \brief Draw a line (run) of pixels of a specified color
+ * \param image An image buffer object
+ * \param color A color table entry
+ * \param x X coordinate of start of run
+ * \param y Y coordinate of start of run
+ * \param length Length of run, in pixels
+ *
+ * Draw a line (run) of pixels of a specified color.  Most useful when rendering
+ * rasterized radar data provided in Run-Length Encoded data packets.
+ */
 void nexrad_image_draw_run(nexrad_image *image,
     nexrad_color color,
     uint16_t x, uint16_t y,
     uint16_t length
 );
 
+/*!
+ * \ingroup drawing
+ * \brief Draw an arc segment relative to center of image
+ * \param image An image buffer object
+ * \param color A color table entry
+ * \param amin Minimum azimuth to draw arc segment for
+ * \param amax Maximum azimuth to draw arc segment for
+ * \param rmin Minimum radius (range) to draw arc segment for
+ * \param rmax Maximum radius (range) to draw arc segment for
+ *
+ * Draw an arc segment relative to the center of the image.
+ */
 void nexrad_image_draw_arc_segment(nexrad_image *image,
     nexrad_color color,
     int amin, int amax,
     int rmin, int rmax
 );
-
-/*!
- * \brief Save image buffer to disk file as PNG
- * \param image An image buffer object
- * \param path Output file path
- * \return 0 on success, -1 on failure
- *
- * Save the image buffer to a PNG file on disk.
- */
-int nexrad_image_save_png(nexrad_image *image, const char *path);
-
-/*!
- * \brief Destroy and deallocate image buffer object
- * \param image An image buffer object
- *
- * Destroy any state associated with the specified image buffer object, and
- * free() the raw data buffer therein, as well as the object data itself.
- */
-void nexrad_image_destroy(nexrad_image *image);
 
 #endif /* _NEXRAD_IMAGE_H */
