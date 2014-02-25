@@ -27,6 +27,11 @@
 typedef struct _nexrad_message nexrad_message;
 
 /*!
+ * \defgroup message NEXRAD Level III product message functions
+ */
+
+/*!
+ * \ingroup message
  * \brief Load a NEXRAD Level III product message file from memory
  * \param buf Pointer to a memory buffer
  * \param len Size of memory buffer in `len`
@@ -37,6 +42,7 @@ typedef struct _nexrad_message nexrad_message;
 nexrad_message *nexrad_message_open_buf(void *buf, size_t len);
 
 /*!
+ * \ingroup message
  * \brief Load a NEXRAD Level III product message file from disk
  * \param path A path to a NEXRAD Level III product message file on disk
  * \return An object representing a NEXRAD Level III Product message file
@@ -46,6 +52,7 @@ nexrad_message *nexrad_message_open_buf(void *buf, size_t len);
 nexrad_message *nexrad_message_open(const char *path);
 
 /*!
+ * \ingroup message
  * \brief Destroy a nexrad_message object
  * \param message An opened NEXRAD Level III message file
  *
@@ -56,6 +63,7 @@ nexrad_message *nexrad_message_open(const char *path);
 void nexrad_message_destroy(nexrad_message *message);
 
 /*!
+ * \ingroup message
  * \brief Close a `nexrad_message` object
  * \param message An opened NEXRAD Level III message file
  *
@@ -74,6 +82,7 @@ nexrad_graphic_block *nexrad_message_get_graphic_block(nexrad_message *message);
 nexrad_tabular_block *nexrad_message_get_tabular_block(nexrad_message *message);
 
 /*!
+ * \ingroup message
  * \brief Obtain the time at which radar data was scanned
  * \param message An opened NEXRAD Level III message file
  * \return Unix epoch timestamp
@@ -84,6 +93,7 @@ nexrad_tabular_block *nexrad_message_get_tabular_block(nexrad_message *message);
 time_t nexrad_message_get_scan_timestamp(nexrad_message *message);
 
 /*!
+ * \ingroup message
  * \brief Obtain the time at which the product file was generated
  * \param message An opened NEXRAD Level III message file
  * \return Unix epoch timestamp
@@ -94,6 +104,7 @@ time_t nexrad_message_get_scan_timestamp(nexrad_message *message);
 time_t nexrad_message_get_gen_timestamp(nexrad_message *message);
 
 /*!
+ * \ingroup message
  * \brief Obtain product type code
  * \param message An opened NEXRAD Level III message file
  * \return NEXRAD Level III product type code as integer, or -1 on failure
@@ -104,6 +115,7 @@ time_t nexrad_message_get_gen_timestamp(nexrad_message *message);
 int nexrad_message_get_product_type(nexrad_message *message);
 
 /*!
+ * \ingroup message
  * \brief Obtain product code string
  * \param message An opened NEXRAD Level III message file
  * \param code Address of a string pointer to return string containing product
@@ -136,6 +148,7 @@ int nexrad_message_find_station_suffix(nexrad_message *message,
 );
 
 /*!
+ * \ingroup message
  * \brief Determine the WSR-88D station identifier of a product file
  * \param message An opened NEXRAD Level III message file
  * \param station Pointer to a string to write station identifier into
@@ -152,6 +165,7 @@ int nexrad_message_read_station(nexrad_message *message,
 );
 
 /*!
+ * \ingroup message
  * \brief Determine the location of the radar which produced a product file
  * \param message An opened NEXRAD Level III message file
  * \param lat Pointer to a double to store station latitude
@@ -168,6 +182,7 @@ int nexrad_message_read_station_location(nexrad_message *message,
 );
 
 /*!
+ * \ingroup message
  * \brief Obtain the first data packet within a product symbology block
  * \param message An opened NEXRAD Level III message file
  * \param type Expected type of product symbology block packet
