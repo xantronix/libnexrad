@@ -14,7 +14,7 @@ static void usage(int argc, char **argv) {
 }
 
 static nexrad_radial *create_radial() {
-    int rangebins = 346;
+    int rangebins = 234;
     int rays      = 360;
     int i;
 
@@ -41,6 +41,7 @@ static nexrad_radial *create_radial() {
             + i * (sizeof(nexrad_radial_ray) + rangebins));
 
         uint8_t *bins = (uint8_t *)ray + sizeof(nexrad_radial_ray);
+        int r;
 
         ray->size        = htobe16(rangebins);
         ray->angle_start = htobe16(10 * i);
@@ -48,12 +49,11 @@ static nexrad_radial *create_radial() {
 
         memset(bins, '\0', rangebins);
 
-        if (i % 5 == 0) {
-            int r;
-
-            for (r=0; r<rangebins; r++) {
-                bins[r] = (i + r) % 255;
-            }
+        for (r=0; r<128; r++) {
+            if (i < 180)
+                bins[r] = r;
+            else
+                bins[r] = r + 128;
         }
 
         if (i % 45 == 0) {
