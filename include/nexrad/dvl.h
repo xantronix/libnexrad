@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#define NEXRAD_DVL_START         2
 #define NEXRAD_DVL_KG_MSQ     1000.0
 #define NEXRAD_DVL_SCALE        90.6875
 #define NEXRAD_DVL_OFFSET        2.0
@@ -13,6 +12,6 @@
 
 int nexrad_dvl_valid(uint8_t v);
 
-double nexrad_dvl_kg_msq(uint8_t v);
+double nexrad_dvl_vil(uint8_t v);
 
 #endif /* _NEXRAD_DVL_H */
