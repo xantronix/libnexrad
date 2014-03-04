@@ -6,9 +6,9 @@
 #define NEXRAD_DVL_START         2
 #define NEXRAD_DVL_KG_MSQ     1000.0
 #define NEXRAD_DVL_SCALE        90.6875
-#define NEXRAD_DVL_OFFSET        4.0
+#define NEXRAD_DVL_OFFSET        2.0
 #define NEXRAD_DVL_LOG_START    20
-#define NEXRAD_DVL_LOG_SCALE    70.875
+#define NEXRAD_DVL_LOG_SCALE    38.875
 #define NEXRAD_DVL_LOG_OFFSET   83.875
 
 int nexrad_dvl_valid(uint8_t v);
