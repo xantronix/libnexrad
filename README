@@ -1,0 +1,16 @@
+
+    libnexrad -- Copyright (c) 2016 Dynamic Weather Solutions, Inc.
+
+A library for accessing NEXRAD Level III product data in the NEXRAD
+Information Dissemination Service format.  Further information on the
+format may be located at NOAA's Radar Operations Center web site:
+
+    http://www.roc.noaa.gov/wsr88d/BuildInfo/Files.aspx
+
+Please see the provided inline Doxygen documentation for further information
+on implementation and usage; see LICENSE for further information on copyright
+and licensing terms.
+
+Source code and documentation written by:
+
+    Alexandra Hrefna Hilmisdóttir <xan@xan.email>

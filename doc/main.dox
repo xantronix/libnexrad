@@ -5,4 +5,15 @@
  * perform most requisite manipulations of NEXRAD Level III product file data
  * as provided by NOAA in the pursuit of analyzing and imaging radial radar
  * data, as well as for parsing textual data provided in some NOAA products.
+ *
+ * Further information on the NEXRAD Level III product file format, NIDS
+ * (NEXRAD Information Dissemination Service) may be located at NOAA's Radar
+ * Operations Center web site:
+ *
+ * http://www.roc.noaa.gov/wsr88d/BuildInfo/Files.aspx
+ *
+ * \copyright (c) 2016 Dynamic Weather Solutions, Inc. Distributed under the
+ * terms of the MIT license.
+ *
+ * \author Alexandra Hrefna Hilmisdóttir &lt;xan@xan.email&gt;
  */
