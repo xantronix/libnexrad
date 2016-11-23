@@ -312,6 +312,12 @@ nexrad_message *nexrad_message_open(const char *path) {
         goto error_efbig;
     }
 
+    if (st.st_size < sizeof(nexrad_message)) {
+        errno = EINVAL;
+
+        goto error_einval;
+    }
+
     message->size        = st.st_size;
     message->page_size   = (size_t)sysconf(_SC_PAGESIZE);
     message->mapped_size = _mapped_size(st.st_size, message->page_size);
@@ -337,6 +343,7 @@ error_open:
 
     return NULL;
 
+error_einval:
 error_efbig:
 error_stat:
     free(message);
