@@ -1,6 +1,6 @@
 CC		= cc
-CFLAGS		= -g -Wno-unused-result -fno-inline -Wall -O2
-LDFLAGS		= -lnexrad -lbz2 -lz -lm
+CFLAGS		= -I../include -g -Wno-unused-result -fno-inline -Wall -O2
+LDFLAGS		= -L../src -lnexrad -lbz2 -lz -lm
 
 EXAMPLES	= display drawarc savepng proj showproj psychedelic
 

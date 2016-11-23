@@ -1,6 +1,6 @@
 CC		= cc
-CFLAGS		= -g -Wno-unused-result -fno-inline -Wall -O2
-LDFLAGS		= -lnexrad
+CFLAGS		= -g -Wno-unused-result -fno-inline -Wall -O2 -I../include
+LDFLAGS		= -lnexrad -L../src
 
 GENCLUTS	= gencluts
 CLUTS		= reflectivity.clut velocity.clut
