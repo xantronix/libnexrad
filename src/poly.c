@@ -5,6 +5,7 @@
 
 #include <nexrad/poly.h>
 #include <nexrad/geo.h>
+#include "util.h"
 
 static inline size_t _poly_point_size() {
     return sizeof(nexrad_poly_point);
