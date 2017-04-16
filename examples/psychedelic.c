@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <nexrad/message.h>
 #include <nexrad/raster.h>
@@ -31,12 +32,7 @@
 
 #include "../src/util.h"
 
-static void usage(int argc, char **argv) {
-    fprintf(stderr, "usage: %s colors.clut file.proj output.png\n", argv[0]);
-    exit(1);
-}
-
-static nexrad_radial *create_radial() {
+static nexrad_radial_packet *create_radial_packet() {
     int rangebins = 234;
     int rays      = 360;
     int i;
@@ -84,42 +80,13 @@ static nexrad_radial *create_radial() {
         }
     }
 
-    return nexrad_radial_packet_open(packet);
+    return packet;
 }
 
 int main(int argc, char **argv) {
-    char *clut, *projfile, *outfile;
-    nexrad_image *image;
-    nexrad_color_table *table;
-    nexrad_geo_projection *proj;
+    nexrad_radial_packet *packet = create_radial_packet();
 
-    if (argc != 4) {
-        usage(argc, argv);
-    }
-
-       clut  = argv[1];
-    projfile = argv[2];
-    outfile  = argv[3];
-
-    if ((table = nexrad_color_table_load(clut)) == NULL) {
-        perror("nexrad_color_table_load()");
-        exit(1);
-    }
-
-    if ((proj = nexrad_geo_projection_open(projfile)) == NULL) {
-        perror("nexrad_geo_projection_open()");
-        exit(1);
-    }
-
-    if ((image = nexrad_radial_create_projected_image(create_radial(), table, proj)) == NULL) {
-        perror("nexrad_radial_create_projected_image()");
-        exit(1);
-    }
-
-    if (nexrad_image_save_png(image, outfile) < 0) {
-        perror("nexrad_image_save_png()");
-        exit(1);
-    }
+    write(1, packet, 86414);
 
     return 0;
 }
