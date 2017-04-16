@@ -59,14 +59,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *tab
             enum nexrad_packet_type type = nexrad_packet_get_type(packet);
 
             switch (type) {
-                case NEXRAD_PACKET_RADIAL: {
-                    nexrad_radial *radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet);
-
-                    nexrad_image *image = nexrad_radial_create_projected_image(radial, table, proj);
-
-                    return image;
-                }
-
+                case NEXRAD_PACKET_RADIAL:
                 case NEXRAD_PACKET_RADIAL_AF1F: {
                     nexrad_radial *radial = nexrad_radial_packet_open((nexrad_radial_packet *)packet);
 
