@@ -338,22 +338,22 @@ nexrad_radial_ray *nexrad_radial_read_ray(nexrad_radial *radial, uint8_t **value
     ray = radial->current;
 
     if (radial->type == NEXRAD_RADIAL_RLE) {
-        uint16_t runs = be16toh(ray->size) * 2;
-        uint16_t bins = be16toh(radial->packet->rangebin_count);
+        uint16_t count = be16toh(ray->size) * 2;
+        uint16_t bins  = be16toh(radial->packet->rangebin_count);
 
-        nexrad_radial_run *data = (nexrad_radial_run *)((char *)ray + sizeof(nexrad_radial_ray));
+        nexrad_radial_run *runs = (nexrad_radial_run *)(ray + 1);
 
         uint16_t r, b;
 
-        for (r=0, b=0; r<runs; r++) {
+        for (r=0, b=0; r<count; r++) {
             uint16_t i;
 
-            for (i=0; i<data[r].length && b<bins; i++, b++) {
-                radial->values[b] = NEXRAD_RADIAL_RLE_FACTOR * data[r].level;
+            for (i=0; i<runs[r].length && b<bins; i++, b++) {
+                radial->values[b] = NEXRAD_RADIAL_RLE_FACTOR * runs[r].level;
             }
         }
 
-        size = sizeof(nexrad_radial_ray) + runs;
+        size = sizeof(nexrad_radial_ray) + count;
     } else if (radial->type == NEXRAD_RADIAL_DIGITAL) {
         uint16_t bins = be16toh(ray->size);
         uint8_t *data = (uint8_t *)ray + sizeof(nexrad_radial_ray);
