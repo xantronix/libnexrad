@@ -77,30 +77,24 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 typedef struct _nexrad_radial nexrad_radial;
 
+typedef struct _nexrad_radial_buffer nexrad_radial_buffer;
+
 /*!
  * \defgroup radial NEXRAD Level III radial data handling routines
  */
 
 /*!
  * \ingroup radial
- * \brief Unpack any radial packet into a well-ordered digitally-encoded
+ * \brief Unpack any radial packet into raster buffer with 0.1° accuracy
  * \param packet A RLE or digitally-encoded radial packet
- * \param sizep Pointer to a size_t to store size of new radial packet
- * \return A well-ordered digitally-encoded radial packet
+ * \return An expanded radial buffer
  *
  * Given an arbitrary radial packet, whether RLE- or digitally-encoded, will
- * generate a new radial packet with 360 rays whose azimuths are ordered 0 to
- * 359, in digital encoding.  RLE-encoded values are scaled from rangebin values
- * of 0-15 to 0-255.
- *
- * The purpose of this method is to allow code performing manipulations upon
- * radial data to do so quickly in a random-access manner, allowing one to, for
- * instance, reference any rangebin by azimuth and range in a single memory
- * lookup operation.
+ * generate a buffer with 8-bit data values, which can be used for O(1) lookups
+ * with polar coordinates accurate to 0.1°.  RLE-encoded values are scaled from
+ * rangebin values of 0-15 to 0-255.
  */
-nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet,
-    size_t *sizep
-);
+nexrad_radial_buffer *nexrad_radial_packet_unpack(nexrad_radial_packet *packet);
 
 /*!
  * \ingroup radial

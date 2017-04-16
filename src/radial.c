@@ -29,6 +29,8 @@
 
 #include <nexrad/radial.h>
 
+#define NEXRAD_RADIAL_BUFFER_RAY_WIDTH 10
+
 struct _nexrad_radial {
     nexrad_radial_packet *  packet;
     enum nexrad_radial_type type;
@@ -39,6 +41,10 @@ struct _nexrad_radial {
 
     uint16_t  bins;
     uint8_t * values;
+};
+
+struct _nexrad_radial_buffer {
+    uint16_t rays, bins, first, _unused;
 };
 
 static int _valid_rle_packet(nexrad_radial_packet *packet) {
@@ -82,26 +88,31 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
     return 0;
 }
 
-nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t *sizep) {
-    nexrad_radial_packet *unpacked;
+nexrad_radial_buffer *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) {
+    nexrad_radial_buffer *buffer;
     nexrad_radial *radial;
-    nexrad_radial_ray *packet_ray;
-    size_t unpacked_size, ray_size;
-    uint16_t rays, bins, scale;
+    nexrad_radial_ray *ray;
+
+    size_t size;
+
+    uint16_t rays,
+             bins,
+             first;
+
     uint8_t *values;
 
     if (packet == NULL) {
         return NULL;
     }
 
-    rays  = be16toh(packet->rays);
+    first = be16toh(packet->rangebin_first);
     bins  = be16toh(packet->rangebin_count);
-    scale = be16toh(packet->scale);
+    rays  = be16toh(packet->rays);
 
-    ray_size      = sizeof(nexrad_radial_ray)    + bins;
-    unpacked_size = sizeof(nexrad_radial_packet) + rays * ray_size;
+    size = sizeof(nexrad_radial_buffer) +
+        NEXRAD_RADIAL_BUFFER_RAY_WIDTH * rays * bins;
 
-    if ((unpacked = malloc(unpacked_size)) == NULL) {
+    if ((buffer = malloc(size)) == NULL) {
         goto error_malloc;
     }
 
@@ -109,43 +120,29 @@ nexrad_radial_packet *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, 
         goto error_radial_packet_open;
     }
 
-    while ((packet_ray = nexrad_radial_read_ray(radial, &values)) != NULL) {
-        nexrad_radial_ray *unpacked_ray;
-        uint8_t *data;
-        uint16_t azimuth = (uint16_t)round(NEXRAD_RADIAL_AZIMUTH_FACTOR * be16toh(packet_ray->angle_start));
+    while ((ray = nexrad_radial_read_ray(radial, &values)) != NULL) {
+        int start = (int)be16toh(ray->angle_start),
+            delta = (int)be16toh(ray->angle_delta);
 
-        while (azimuth >= 360) azimuth -= 360;
+        int j, b;
 
-        unpacked_ray = (nexrad_radial_ray *)((char *)unpacked
-            + sizeof(nexrad_radial_packet)
-            + azimuth * ray_size);
-
-        data = (uint8_t *)unpacked_ray + sizeof(nexrad_radial_ray);
-
-        memcpy(data, values, bins);
-
-        unpacked_ray->size        = htobe16(bins);
-        unpacked_ray->angle_start = htobe16((uint16_t)round(azimuth / NEXRAD_RADIAL_AZIMUTH_FACTOR));
-        unpacked_ray->angle_delta = htobe16((uint16_t)round(1 / NEXRAD_RADIAL_AZIMUTH_FACTOR));
+        for (j=start; j<start+delta; j++) {
+            for (b=first; b<bins; b++) {
+                ((uint8_t *)(buffer + 1))[bins*j+b] = values[b];
+            }
+        }
     }
 
     nexrad_radial_close(radial);
 
-    unpacked->type           = htobe16(NEXRAD_RADIAL_DIGITAL);
-    unpacked->rangebin_first = 0;
-    unpacked->rangebin_count = htobe16(bins);
-    unpacked->i              = 0;
-    unpacked->j              = 0;
-    unpacked->scale          = htobe16(scale);
-    unpacked->rays           = htobe16(rays);
+    buffer->first = first;
+    buffer->bins  = bins;
+    buffer->rays  = rays;
 
-    if (sizep)
-        *sizep = unpacked_size;
-
-    return unpacked;
+    return buffer;
 
 error_radial_packet_open:
-    free(unpacked);
+    free(buffer);
 
 error_malloc:
     return NULL;
@@ -496,7 +493,7 @@ error_color_table_get_entries:
 nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad_color_table *table, nexrad_geo_projection *proj) {
     nexrad_image *image;
     nexrad_color *entries;
-    nexrad_radial_packet *packet;
+    nexrad_radial_buffer *buffer;
     nexrad_geo_projection_point *points;
     uint16_t x, y, width, height, bins;
 
@@ -504,7 +501,7 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
         return NULL;
     }
     
-    if ((packet = nexrad_radial_packet_unpack(radial->packet, NULL)) == NULL) {
+    if ((buffer = nexrad_radial_packet_unpack(radial->packet)) == NULL) {
         goto error_radial_packet_unpack;
     }
 
@@ -532,7 +529,7 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
         for (x=0; x<width; x++) {
             nexrad_color color;
             int azimuth, range;
-            uint8_t *values;
+            uint8_t value;
 
             nexrad_geo_projection_point *point = &points[y*width+x];
 
@@ -543,19 +540,17 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
                 continue;
             }
 
-            values = (uint8_t *)packet
-                + sizeof(nexrad_radial_packet)
-                + azimuth * (sizeof(nexrad_radial_ray) + bins)
-                + sizeof(nexrad_radial_ray);
+            value = ((uint8_t *)(buffer + 1))
+                [azimuth*10*buffer->bins+range];
 
-            color = entries[values[range]];
+            color = entries[value];
 
             if (color.a)
                 nexrad_image_draw_pixel(image, color, x, y);
         }
     }
 
-    free(packet);
+    free(buffer);
 
     return image;
 
@@ -564,7 +559,7 @@ error_geo_projection_get_points:
 error_geo_projection_read_dimensions:
 error_color_table_get_entries:
 error_radial_get_info:
-    free(packet);
+    free(buffer);
 
 error_radial_packet_unpack:
     return NULL;
