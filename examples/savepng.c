@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
     }
 
     if ((image = get_product_image(infile, table, proj)) == NULL) {
-        perror("get_produt_image()");
+        perror("get_product_image()");
         exit(1);
     }
 
