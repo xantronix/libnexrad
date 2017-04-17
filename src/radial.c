@@ -541,7 +541,7 @@ nexrad_image *nexrad_radial_create_projected_image(nexrad_radial *radial, nexrad
             }
 
             value = ((uint8_t *)(buffer + 1))
-                [azimuth*10*buffer->bins+range];
+                [azimuth*buffer->bins+range];
 
             color = entries[value];
 

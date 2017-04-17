@@ -293,11 +293,11 @@ nexrad_geo_projection *nexrad_geo_projection_create_equirect(const char *path, n
 
             nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
 
-            azimuth = (int)round(polar.azimuth);
+            azimuth = (int)round(polar.azimuth * 10);
             range   = (int)round(polar.range / rangebin_meters);
 
-            while (azimuth >= 360) azimuth -= 360;
-            while (azimuth <    0) azimuth += 360;
+            while (azimuth >= 3600) azimuth -= 3600;
+            while (azimuth <     0) azimuth += 3600;
 
             output->azimuth = htobe16((uint16_t)azimuth);
             output->range   = htobe16((uint16_t)range);
@@ -431,11 +431,11 @@ nexrad_geo_projection *nexrad_geo_projection_create_mercator(const char *path, n
 
             nexrad_geo_find_polar_dest(spheroid, radar, &point, &polar);
 
-            azimuth = (int)round(polar.azimuth);
+            azimuth = (int)round(polar.azimuth * 10);
             range   = (int)round(polar.range / rangebin_meters);
 
-            while (azimuth >= 360) azimuth -= 360;
-            while (azimuth <    0) azimuth += 360;
+            while (azimuth >= 3600) azimuth -= 3600;
+            while (azimuth <     0) azimuth += 3600;
 
             output->azimuth = htobe16((uint16_t)azimuth);
             output->range   = htobe16((uint16_t)range);
