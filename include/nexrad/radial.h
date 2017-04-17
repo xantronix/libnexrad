@@ -77,7 +77,9 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 
 typedef struct _nexrad_radial nexrad_radial;
 
-typedef struct _nexrad_radial_buffer nexrad_radial_buffer;
+typedef struct _nexrad_radial_buffer {
+    uint16_t rays, bins, first, _unused;
+} nexrad_radial_buffer;
 
 /*!
  * \defgroup radial NEXRAD Level III radial data handling routines

@@ -43,10 +43,6 @@ struct _nexrad_radial {
     uint8_t * values;
 };
 
-struct _nexrad_radial_buffer {
-    uint16_t rays, bins, first, _unused;
-};
-
 static int _valid_rle_packet(nexrad_radial_packet *packet) {
     if (
       be16toh(packet->rangebin_first) >   460 ||
@@ -88,9 +84,8 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
     return 0;
 }
 
-nexrad_radial_buffer *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) {
+nexrad_radial_buffer *nexrad_radial_unpack(nexrad_radial *radial) {
     nexrad_radial_buffer *buffer;
-    nexrad_radial *radial;
     nexrad_radial_ray *ray;
 
     size_t size;
@@ -101,23 +96,19 @@ nexrad_radial_buffer *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) 
 
     uint8_t *values;
 
-    if (packet == NULL) {
+    if (radial == NULL) {
         return NULL;
     }
 
-    first = be16toh(packet->rangebin_first);
-    bins  = be16toh(packet->rangebin_count);
-    rays  = be16toh(packet->rays);
+    first = be16toh(radial->packet->rangebin_first);
+    bins  = be16toh(radial->packet->rangebin_count);
+    rays  = be16toh(radial->packet->rays);
 
     size = sizeof(nexrad_radial_buffer) +
         NEXRAD_RADIAL_BUFFER_RAY_WIDTH * rays * bins;
 
     if ((buffer = malloc(size)) == NULL) {
         goto error_malloc;
-    }
-
-    if ((radial = nexrad_radial_packet_open(packet)) == NULL) {
-        goto error_radial_packet_open;
     }
 
     while ((ray = nexrad_radial_read_ray(radial, &values)) != NULL) {
@@ -133,18 +124,42 @@ nexrad_radial_buffer *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) 
         }
     }
 
-    nexrad_radial_close(radial);
-
     buffer->first = first;
     buffer->bins  = bins;
     buffer->rays  = rays;
 
+    nexrad_radial_reset(radial);
+
     return buffer;
 
-error_radial_packet_open:
-    free(buffer);
-
 error_malloc:
+    return NULL;
+}
+
+nexrad_radial_buffer *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) {
+    nexrad_radial_buffer *buffer;
+    nexrad_radial *radial;
+
+    if (packet == NULL) {
+        return NULL;
+    }
+
+    if ((radial = nexrad_radial_packet_open(packet)) == NULL) {
+        goto error_radial_packet_open;
+    }
+
+    if ((buffer = nexrad_radial_unpack(radial)) == NULL) {
+        goto error_radial_unpack;
+    }
+
+    nexrad_radial_close(radial);
+
+    return buffer;
+
+error_radial_unpack:
+    nexrad_radial_close(radial);
+
+error_radial_packet_open:
     return NULL;
 }
 
