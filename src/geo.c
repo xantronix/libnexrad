@@ -38,7 +38,7 @@
 struct _nexrad_geo_spheroid {
     struct geod_geodesic * geod;
 
-    double circumference;
+    double radius;
     double flattening;
 };
 
@@ -64,14 +64,14 @@ nexrad_geo_spheroid *nexrad_geo_spheroid_create() {
     }
 
     geod_init(spheroid->geod,
-        NEXRAD_GEO_SPHEROID_CIRCUMFERENCE,
+        NEXRAD_GEO_SPHEROID_RADIUS,
         NEXRAD_GEO_SPHEROID_FLATTENING
     );
 
     errno = 0;
 
-    spheroid->circumference = NEXRAD_GEO_SPHEROID_CIRCUMFERENCE;
-    spheroid->flattening    = NEXRAD_GEO_SPHEROID_FLATTENING;
+    spheroid->radius     = NEXRAD_GEO_SPHEROID_RADIUS;
+    spheroid->flattening = NEXRAD_GEO_SPHEROID_FLATTENING;
 
     return spheroid;
 
@@ -82,12 +82,12 @@ error_malloc_spheroid:
     return NULL;
 }
 
-double nexrad_geo_spheroid_get_circumference(nexrad_geo_spheroid *spheroid) {
+double nexrad_geo_spheroid_get_radius(nexrad_geo_spheroid *spheroid) {
     if (spheroid == NULL) {
         return -1;
     }
 
-    return spheroid->circumference;
+    return spheroid->radius;
 }
 
 double nexrad_geo_spheroid_get_flattening(nexrad_geo_spheroid *spheroid) {

@@ -24,8 +24,8 @@
 #ifndef _NEXRAD_GEO_H
 #define _NEXRAD_GEO_H
 
-#define NEXRAD_GEO_SPHEROID_CIRCUMFERENCE 6378137.0
-#define NEXRAD_GEO_SPHEROID_FLATTENING    (1/298.257223563)
+#define NEXRAD_GEO_SPHEROID_RADIUS     6378137.0
+#define NEXRAD_GEO_SPHEROID_FLATTENING  (1/298.257223563)
 
 #define NEXRAD_GEO_NM_METERS       1852
 #define NEXRAD_GEO_COORD_MAGNITUDE    0.001
@@ -130,11 +130,11 @@ nexrad_geo_spheroid *nexrad_geo_spheroid_create();
 
 /*!
  * \ingroup spheroid
- * \brief Determine spheroid circumference
+ * \brief Determine spheroid radius
  * \param spheroid A spheroid object
- * \return Circumference of spheroid, in meters
+ * \return Radius of spheroid, in meters
  */
-double nexrad_geo_spheroid_get_circumference(nexrad_geo_spheroid *spheroid);
+double nexrad_geo_spheroid_get_radius(nexrad_geo_spheroid *spheroid);
 
 /*!
  * \ingroup spheroid
