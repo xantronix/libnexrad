@@ -199,22 +199,30 @@ int nexrad_raster_get_info(nexrad_raster *raster, uint16_t *widthp, uint16_t *he
     return 0;
 }
 
+static void _draw_run(nexrad_image *image, nexrad_color color, size_t x, size_t y, size_t length) {
+    uint8_t *buf;
+    size_t offset, i;
+
+    if (image == NULL) {
+        return;
+    }
+
+    buf    = image->buf;
+    offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, image->width);
+
+    for (i=0; i<length; i++) {
+        memcpy(buf + offset, &color, sizeof(nexrad_color));
+
+        offset += sizeof(nexrad_color);
+    }
+}
+
 static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad_color *entries) {
     nexrad_raster_line *line;
     nexrad_raster_run  *data;
-    unsigned char *buf;
 
     uint16_t y = 0;
     uint16_t runs;
-    uint16_t width, height;
-
-    if ((buf = nexrad_image_get_buf(image, NULL)) == NULL) {
-        goto error_image_get_buf;
-    }
-
-    if (nexrad_image_get_info(image, &width, &height) < 0) {
-        goto error_image_get_info;
-    }
 
     while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
         uint16_t r, x = 0;
@@ -226,23 +234,19 @@ static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad
             nexrad_color color = entries[level];
 
             if (color.a)
-                nexrad_image_draw_run(image, color, x, y, length);
+                _draw_run(image, color, x, y, length);
 
             x += length;
 
-            if (x >= width) break;
+            if (x >= image->width) break;
         }
 
         y++;
 
-        if (y >= height) break;
+        if (y >= image->height) break;
     }
 
     return 0;
-
-error_image_get_info:
-error_image_get_buf:
-    return -1;
 }
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color_table *table) {

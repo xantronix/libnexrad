@@ -121,9 +121,9 @@ static void _poly_multi_set_rangebin(nexrad_poly_multi *multi, int index, int az
 }
 
 int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, size_t *sizep, int *rangebinsp) {
-    nexrad_radial_ray *ray;
-    uint8_t *values;
-    uint16_t bins;
+    uint16_t azimuth,
+             bins;
+
     int rangebins = 0;
 
     if (radial == NULL || sizep == NULL || rangebinsp == NULL) {
@@ -134,17 +134,13 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, s
         return -1;
     }
 
-    if (nexrad_radial_get_info(radial, NULL, &bins, NULL, NULL, NULL, NULL) < 0) {
-        goto error_radial_get_info;
-    }
+    bins = radial->bins;
 
-    nexrad_radial_reset(radial);
+    for (azimuth=0; azimuth<3600; azimuth+=10) {
+        uint16_t range;
 
-    while ((ray = nexrad_radial_read_ray(radial, &values)) != NULL) {
-        int range;
-
-        for (range=0; range<bins; range++) {
-            int v = values[range];
+        for (range=0; range<radial->bins; range++) {
+            int v = ((uint8_t *)(radial + 1))[azimuth*bins+range];
 
             if (v < min || v > max)
                 continue;
@@ -157,9 +153,6 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, s
     *rangebinsp = rangebins;
 
     return 0;
-
-error_radial_get_info:
-    return -1;
 }
 
 void _poly_multi_init(nexrad_poly_multi *multi, int rangebins) {
@@ -176,12 +169,12 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
     nexrad_geo_polar *polar_points;
     nexrad_geo_cartesian *cartesian_points;
 
-    nexrad_radial_ray *ray;
-    uint8_t *values;
-    uint16_t bins;
     int rangebin = 0;
 
     struct poly_context *ctx;
+
+    uint16_t bins,
+             azimuth;
 
     if (radial == NULL || multi == NULL || size == 0 || radar == NULL || spheroid == NULL) {
         return -1;
@@ -191,9 +184,7 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
         return -1;
     }
 
-    if (nexrad_radial_get_info(radial, NULL, &bins, NULL, NULL, NULL, NULL) < 0) {
-        goto error_radial_get_info;
-    }
+    bins = radial->bins;
 
     if ((cartesian_points = malloc(NEXRAD_POLY_POINTS * sizeof(nexrad_geo_cartesian))) == NULL) {
         goto error_malloc_cartesian_points;
@@ -214,17 +205,11 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
 
     _poly_multi_init(multi, rangebins);
 
-    nexrad_radial_reset(radial);
-
-    while ((ray = nexrad_radial_read_ray(radial, &values)) != NULL) {
-        int azimuth, range;
-
-        if ((azimuth = nexrad_radial_ray_get_azimuth(ray)) < 0) {
-            goto error_radial_ray_get_azimuth;
-        }
+    for (azimuth=0; azimuth<3600; azimuth+=10) {
+        uint16_t range;
 
         for (range=0; range<bins; range++) {
-            int v = values[range];
+            int v = ((uint8_t *)(radial + 1))[azimuth*bins+range];
 
             if (v < min || v > max)
                 continue;
@@ -241,7 +226,6 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial, int min, int max,
 
     free(ctx);
 
-error_radial_ray_get_azimuth:
 error_malloc_ctx:
     free(polar_points);
 
@@ -249,7 +233,6 @@ error_malloc_polar_points:
     free(cartesian_points);
 
 error_malloc_cartesian_points:
-error_radial_get_info:
     return -1;
 }
 
