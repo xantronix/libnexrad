@@ -64,13 +64,68 @@ static void _find_heading(nexrad_map_point start,
     heading->range   = NEXRAD_MAP_EARTH_RADIUS * c;
 }
 
-nexrad_image *nexrad_map_project_radial(nexrad_radial *radial, nexrad_map_radar *radar, nexrad_color_table *clut, float tilt, float resolution, int zoom) {
+static inline float _mercator_find_lon(size_t x, size_t width) {
+    return (360.0 * ((float)x / (float)width)) - 180.0;
+}
+
+static size_t _mercator_find_x(float lon, size_t width) {
+    return (size_t)roundf((float)width * ((lon + 180.0) / 360.0));
+}
+
+static double _mercator_find_lat(int y, int height) {
+    static const double deg = 180 / M_PI;
+
+    int cy = height / 2;
+    double r = M_PI * (((double)cy - (double)y) / (double)cy);
+
+    return deg * atan(sinh(r));
+}
+
+static int _mercator_find_y(double lat, int height) {
+    static const double rad = M_PI / 180;
+
+    int cy   = height / 2;
+    int sign = (lat >= 0)? 1: -1;
+
+    double sinl = sin(sign * rad * lat);
+    double yrad = sign * log((1.0 + sinl) / (1.0 - sinl)) / 2.0;
+
+    return cy - (int)round(height * (yrad / (2 * M_PI)));
+}
+
+static void _find_ne_extent(nexrad_map_radar *radar, float range,
+                            nexrad_map_point *extent) {
+    nexrad_map_point n, e;
+
+    nexrad_map_heading heading = {
+        .range = range
+    };
+
+    heading.azimuth = 0.0;
+    _find_point((nexrad_map_point *)radar, heading, &n);
+
+    heading.azimuth = 90.0;
+    _find_point((nexrad_map_point *)radar, heading, &e);
+
+    extent->lat = n.lat;
+    extent->lon = e.lon;
+}
+
+nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
+                                        nexrad_map_radar *radar,
+                                        nexrad_color_table *clut,
+                                        float tilt,
+                                        float resolution,
+                                        int zoom) {
     nexrad_image *image;
+
+    nexrad_map_point *ne_extent;
 
     /*
      * First, determine the north and westernmost Cartesian extents of the
      * image for the given radar location and tilt, and the resolution of the
      * radial data provided.
      */
-    return NULL;
+
+    return image;
 }

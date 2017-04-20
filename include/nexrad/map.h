@@ -6,6 +6,11 @@
 
 #define NEXRAD_MAP_EARTH_RADIUS 6378137.0
 
+#define NEXRAD_MAP_MAX_LAT    85.05112878
+#define NEXRAD_MAP_TILE_SIZE 256
+#define NEXRAD_MAP_MIN_ZOOM    4
+#define NEXRAD_MAP_MAX_ZOOM   10
+
 typedef struct _nexrad_map_point {
     float lat, lon;
 } nexrad_map_point;
