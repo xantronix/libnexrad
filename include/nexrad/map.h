@@ -4,17 +4,15 @@
 #include <nexrad/image.h>
 #include <nexrad/radial.h>
 
-typedef struct _nexrad_map_point {
-    union {
-        float lat;
-        float azimuth;
-    };
+#define NEXRAD_MAP_EARTH_RADIUS 6378137.0
 
-    union {
-        float lon;
-        float range;
-    };
+typedef struct _nexrad_map_point {
+    float lat, lon;
 } nexrad_map_point;
+
+typedef struct _nexrad_map_heading {
+    float azimuth, range;
+} nexrad_map_heading;
 
 typedef struct _nexrad_map_radar {
     float lat, lon, altitude;
@@ -24,6 +22,8 @@ typedef struct _nexrad_map_radar {
 nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
     nexrad_map_radar *radar,
     nexrad_color_table *clut,
+    float tilt,
+    float resolution,
     int zoom);
 
 #endif /* _NEXRAD_MAP_H */
