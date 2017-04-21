@@ -155,7 +155,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
             while (heading.azimuth >= 360.0) heading.azimuth -= 360.0;
             while (heading.azimuth <    0.0) heading.azimuth += 360.0;
 
-            a = (uint16_t)abs((int)roundf(heading.azimuth * 10));
+            a = (uint16_t)abs((int)floorf(heading.azimuth * 10));
             r = (uint16_t)roundf((heading.range * range_factor) / 1000.0);
 
             if (r >= radial->bins)
