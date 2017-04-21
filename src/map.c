@@ -43,17 +43,14 @@ static void _find_heading(nexrad_map_point start,
             l12 =   l2 -   l1;
 
     float sinphi1 = sinf(phi1),
-          sinphi2 = sinf(phi2),
           cosphi1 = cosf(phi1),
           cosphi2 = cosf(phi2),
-          tanphi1 = tanf(phi1),
           tanphi2 = tanf(phi2);
 
     float sinl12 = sinf(l12),
           cosl12 = cosf(l12);
 
-    float a1 = atan2f(sinl12,  (cosphi1 * tanphi2) - (sinphi1 * cosl12)),
-          a2 = atan2f(sinl12, (-cosphi2 * tanphi1) + (sinphi2 * cosl12));
+    float a1 = atan2f(sinl12,  (cosphi1 * tanphi2) - (sinphi1 * cosl12));
 
     float a = powf(sinf(phi12 / 2.0), 2.0)
         + cosphi1 * cosphi2 * powf(sinf(l12 / 2.0), 2.0);
@@ -72,43 +69,25 @@ static size_t _mercator_find_x(float lon, size_t width) {
     return (size_t)roundf((float)width * ((lon + 180.0) / 360.0));
 }
 
-static double _mercator_find_lat(int y, int height) {
-    static const double deg = 180 / M_PI;
+static float _mercator_find_lat(size_t y, size_t height) {
+    static const float deg = 180.0 / M_PI;
 
-    int cy = height / 2;
-    double r = M_PI * (((double)cy - (double)y) / (double)cy);
+    size_t cy = height / 2;
+    float r   = M_PI * (((float)cy - (float)y) / (float)cy);
 
-    return deg * atan(sinh(r));
+    return deg * atanf(sinhf(r));
 }
 
-static int _mercator_find_y(double lat, int height) {
-    static const double rad = M_PI / 180;
+static size_t _mercator_find_y(float lat, size_t height) {
+    static const float rad = M_PI / 180;
 
-    int cy   = height / 2;
-    int sign = (lat >= 0)? 1: -1;
+    size_t cy  = height / 2;
+    float sign = (lat >= 0)? 1: -1;
 
-    double sinl = sin(sign * rad * lat);
-    double yrad = sign * log((1.0 + sinl) / (1.0 - sinl)) / 2.0;
+    float sinl = sinf(sign * rad * lat);
+    float yrad = sign * logf((1.0 + sinl) / (1.0 - sinl)) / 2.0;
 
-    return cy - (int)round(height * (yrad / (2 * M_PI)));
-}
-
-static void _find_ne_extent(nexrad_map_radar *radar, float range,
-                            nexrad_map_point *extent) {
-    nexrad_map_point n, e;
-
-    nexrad_map_heading heading = {
-        .range = range
-    };
-
-    heading.azimuth = 0.0;
-    _find_point((nexrad_map_point *)radar, heading, &n);
-
-    heading.azimuth = 90.0;
-    _find_point((nexrad_map_point *)radar, heading, &e);
-
-    extent->lat = n.lat;
-    extent->lon = e.lon;
+    return cy - (size_t)roundf(height * (yrad / (2.0 * M_PI)));
 }
 
 nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
@@ -117,15 +96,85 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                                         float tilt,
                                         float resolution,
                                         int zoom) {
+    float range_factor = NEXRAD_MAP_REFRACTION_FACTOR
+        * cosf(tilt * (M_PI / 180.0));
+
+    size_t world_size, width, height,
+        world_x, world_y;
+
+    size_t x, y;
+
     nexrad_image *image;
 
-    nexrad_map_point *ne_extent;
+    nexrad_map_point n, e, s, w, start = {
+        radar->lat, radar->lon
+    };
+
+    nexrad_map_heading heading = {
+        .range = radial->bins * resolution * range_factor
+    };
+
+    fprintf(stderr, "bins %u range factor %f\n", radial->bins, range_factor);
+    fprintf(stderr, "zoom %d\n", zoom);
 
     /*
-     * First, determine the north and westernmost Cartesian extents of the
-     * image for the given radar location and tilt, and the resolution of the
-     * radial data provided.
+     * First, determine the Cartesian extents of the image for the given radar
+     * location and range factor based on tilt, resolution and refraction.
      */
+    heading.azimuth =   0.0; _find_point(start, heading, &n);
+    heading.azimuth =  90.0; _find_point(start, heading, &e);
+    heading.azimuth = 180.0; _find_point(start, heading, &s);
+    heading.azimuth = 270.0; _find_point(start, heading, &w);
+
+    /*
+     * Next, determine the width and height of the output image.
+     */
+    world_size = NEXRAD_MAP_TILE_SIZE * pow(2, zoom);
+    world_x    = _mercator_find_x(w.lon, world_size);
+    world_y    = _mercator_find_y(n.lat, world_size);
+    width      = _mercator_find_x(e.lon, world_size) - world_x;
+    height     = _mercator_find_y(s.lat, world_size) - world_y;
+
+    fprintf(stderr, "image dimensions %zdx%zd\n", width, height);
+
+    if ((image = nexrad_image_create(width, height)) == NULL) {
+        goto error_image_create;
+    }
+
+    for (y=0; y<height; y++) {
+        float lat = _mercator_find_lat(y + world_y, world_size);
+
+        for (x=0; x<width; x++) {
+            nexrad_map_point point = {
+                .lat = lat,
+                .lon = _mercator_find_lon(x + world_x, world_size)
+            };
+
+            uint16_t a, r;
+             uint8_t v;
+
+            _find_heading(start, point, &heading);
+
+            while (heading.azimuth >= 360.0) heading.azimuth -= 360.0;
+            while (heading.azimuth <    0.0) heading.azimuth += 360.0;
+
+            a = (uint16_t)abs(roundf(heading.azimuth * 10));
+            r = (uint16_t)roundf((heading.range * range_factor) / 1000.0);
+
+            if (r >= radial->bins)
+                continue;
+
+            v = ((uint8_t *)(radial + 1))[a*radial->bins+r];
+
+            image->buf[y*width+x]   = ((nexrad_color *)(clut + 1))[v].r;
+            image->buf[y*width+x+1] = ((nexrad_color *)(clut + 1))[v].g;
+            image->buf[y*width+x+2] = ((nexrad_color *)(clut + 1))[v].b;
+            image->buf[y*width+x+3] = ((nexrad_color *)(clut + 1))[v].a;
+        }
+    }
 
     return image;
+
+error_image_create:
+    return NULL;
 }

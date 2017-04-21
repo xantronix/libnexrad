@@ -93,7 +93,7 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
 
         nexrad_radial_run *runs = (nexrad_radial_run *)(current + 1);
 
-        uint16_t count = be16toh(current->size),
+        uint16_t count = 2 * be16toh(current->size),
                  azimuth;
 
         uint16_t start = be16toh(current->angle_start),
@@ -105,7 +105,7 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
             for (r=0, b=0; r<count; r++) {
                 uint16_t i;
 
-                for (i=0; i<runs[r].length && b<bins; i++) {
+                for (i=0; i<runs[r].length && b<bins; i++, b++) {
                     ((uint8_t *)(radial + 1))[bins*azimuth+b] =
                         NEXRAD_RADIAL_RLE_FACTOR* runs[r].level;
                 }
@@ -113,7 +113,7 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
         }
 
         offset += sizeof(nexrad_radial_ray)
-            + (2 * count * sizeof(nexrad_radial_run));
+            + (count * sizeof(nexrad_radial_run));
     }
 
     return;

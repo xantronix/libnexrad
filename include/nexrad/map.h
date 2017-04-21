@@ -4,7 +4,8 @@
 #include <nexrad/image.h>
 #include <nexrad/radial.h>
 
-#define NEXRAD_MAP_EARTH_RADIUS 6378137.0
+#define NEXRAD_MAP_EARTH_RADIUS      6378137.0
+#define NEXRAD_MAP_REFRACTION_FACTOR (4.0f/3.0f)
 
 #define NEXRAD_MAP_MAX_LAT    85.05112878
 #define NEXRAD_MAP_TILE_SIZE 256
