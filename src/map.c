@@ -145,6 +145,8 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                 .lon = _mercator_find_lon(x + world_x, world_size)
             };
 
+            size_t pixel = NEXRAD_IMAGE_PIXEL_BYTES * (y * width + x);
+
             uint16_t a, r;
              uint8_t v;
 
@@ -161,10 +163,10 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
 
             v = ((uint8_t *)(radial + 1))[a*radial->bins+r];
 
-            image->buf[y*width+x]   = ((nexrad_color *)(clut + 1))[v].r;
-            image->buf[y*width+x+1] = ((nexrad_color *)(clut + 1))[v].g;
-            image->buf[y*width+x+2] = ((nexrad_color *)(clut + 1))[v].b;
-            image->buf[y*width+x+3] = ((nexrad_color *)(clut + 1))[v].a;
+            image->buf[pixel]   = ((nexrad_color *)(clut + 1))[v].r;
+            image->buf[pixel+1] = ((nexrad_color *)(clut + 1))[v].g;
+            image->buf[pixel+2] = ((nexrad_color *)(clut + 1))[v].b;
+            image->buf[pixel+3] = ((nexrad_color *)(clut + 1))[v].a;
         }
     }
 

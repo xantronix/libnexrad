@@ -179,7 +179,8 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) {
 
     rays = be16toh(packet->rays);
     bins = be16toh(packet->rangebin_count);
-    size = sizeof(nexrad_radial) + NEXRAD_RADIAL_BUFFER_RAY_WIDTH * rays * bins;
+    size = sizeof(nexrad_radial)
+        + NEXRAD_RADIAL_BUFFER_RAY_WIDTH * rays * bins;
 
     if ((radial = malloc(size)) == NULL) {
         goto error_malloc_radial;

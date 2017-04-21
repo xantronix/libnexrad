@@ -21,7 +21,6 @@
  * IN THE SOFTWARE.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -109,12 +108,6 @@ static void _poly_multi_set_rangebin(nexrad_poly_multi *multi, int index, int az
         nexrad_geo_find_cartesian_dest(ctx->spheroid,
             ctx->radar, &ctx->cartesian_points[i], &ctx->polar_points[i]
         );
-
-        if (ctx->cartesian_points[i].lon >= -80.0)
-            fprintf(stderr, "Found a weird longitude\n");
-
-        if (ctx->cartesian_points[i].lat >= 40.0)
-            fprintf(stderr, "Found a weird latitude\n");
     }
 
     _poly_multi_set_poly_at_index(multi, index, ctx->cartesian_points);
