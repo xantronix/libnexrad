@@ -114,9 +114,6 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
         .range = radial->bins * resolution * range_factor
     };
 
-    fprintf(stderr, "bins %u range factor %f\n", radial->bins, range_factor);
-    fprintf(stderr, "zoom %d\n", zoom);
-
     /*
      * First, determine the Cartesian extents of the image for the given radar
      * location and range factor based on tilt, resolution and refraction.
@@ -134,8 +131,6 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
     world_y    = _mercator_find_y(n.lat, world_size);
     width      = _mercator_find_x(e.lon, world_size) - world_x;
     height     = _mercator_find_y(s.lat, world_size) - world_y;
-
-    fprintf(stderr, "image dimensions %zdx%zd\n", width, height);
 
     if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
