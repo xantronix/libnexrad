@@ -107,13 +107,12 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
 
                 for (i=0; i<runs[r].length && b<bins; i++, b++) {
                     ((uint8_t *)(radial + 1))[bins*azimuth+b] =
-                        NEXRAD_RADIAL_RLE_FACTOR* runs[r].level;
+                        NEXRAD_RADIAL_RLE_FACTOR * runs[r].level;
                 }
             }
         }
 
-        offset += sizeof(nexrad_radial_ray)
-            + (count * sizeof(nexrad_radial_run));
+        offset += sizeof(nexrad_radial_ray) + count;
     }
 
     return;
