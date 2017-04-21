@@ -27,7 +27,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <nexrad/geo.h>
 #include <nexrad/image.h>
 
 #define NEXRAD_RADIAL_RLE_FACTOR     16

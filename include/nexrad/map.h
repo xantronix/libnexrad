@@ -25,6 +25,14 @@ typedef struct _nexrad_map_radar {
     char name[4];
 } nexrad_map_radar;
 
+void nexrad_map_find_point(nexrad_map_point start,
+                           nexrad_map_heading heading,
+                           nexrad_map_point *end);
+
+void nexrad_map_find_heading(nexrad_map_point start,
+                             nexrad_map_point end,
+                             nexrad_map_heading *heading);
+
 nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
     nexrad_map_radar *radar,
     nexrad_color_table *clut,

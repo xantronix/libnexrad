@@ -3,9 +3,9 @@
 
 #include <nexrad/map.h>
 
-static void _find_point(nexrad_map_point start,
-                        nexrad_map_heading heading,
-                        nexrad_map_point *end) {
+void nexrad_map_find_point(nexrad_map_point start,
+                           nexrad_map_heading heading,
+                           nexrad_map_point *end) {
     float phi1 =       start.lat * (M_PI / 180.0),
             l1 =       start.lon * (M_PI / 180.0),
             a1 = heading.azimuth * (M_PI / 180.0);
@@ -31,9 +31,9 @@ static void _find_point(nexrad_map_point start,
     end->lon =   l2 * (180.0 / M_PI);
 }
 
-static void _find_heading(nexrad_map_point start,
-                          nexrad_map_point end,
-                          nexrad_map_heading *heading) {
+void nexrad_map_find_heading(nexrad_map_point start,
+                             nexrad_map_point end,
+                             nexrad_map_heading *heading) {
     float phi1 = start.lat * (M_PI / 180.0),
           phi2 =   end.lat * (M_PI / 180.0),
             l1 = start.lon * (M_PI / 180.0),
@@ -118,10 +118,10 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
      * First, determine the Cartesian extents of the image for the given radar
      * location and range factor based on tilt, resolution and refraction.
      */
-    heading.azimuth =   0.0; _find_point(start, heading, &n);
-    heading.azimuth =  90.0; _find_point(start, heading, &e);
-    heading.azimuth = 180.0; _find_point(start, heading, &s);
-    heading.azimuth = 270.0; _find_point(start, heading, &w);
+    heading.azimuth =   0.0; nexrad_map_find_point(start, heading, &n);
+    heading.azimuth =  90.0; nexrad_map_find_point(start, heading, &e);
+    heading.azimuth = 180.0; nexrad_map_find_point(start, heading, &s);
+    heading.azimuth = 270.0; nexrad_map_find_point(start, heading, &w);
 
     /*
      * Next, determine the width and height of the output image.
@@ -150,7 +150,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
             uint16_t a, r;
              uint8_t v;
 
-            _find_heading(start, point, &heading);
+            nexrad_map_find_heading(start, point, &heading);
 
             while (heading.azimuth >= 360.0) heading.azimuth -= 360.0;
             while (heading.azimuth <    0.0) heading.azimuth += 360.0;

@@ -24,6 +24,7 @@
 #ifndef _NEXRAD_POLY_H
 #define _NEXRAD_POLY_H
 
+#include <nexrad/map.h>
 #include <nexrad/radial.h>
 
 #define NEXRAD_POLY_BYTE_ORDER_LE 1
@@ -113,14 +114,13 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial,
  * extents.
  */
 int nexrad_poly_multi_write_from_radial(
-    nexrad_radial *        radial,
-    int                    min,
-    int                    max,
-    int                    rangebins,
-    nexrad_poly_multi *    multi,
-    size_t                 size,
-    nexrad_geo_cartesian * radar,
-    nexrad_geo_spheroid *  spheroid
+    nexrad_radial *     radial,
+    int                 min,
+    int                 max,
+    int                 rangebins,
+    nexrad_poly_multi * multi,
+    size_t              size,
+    nexrad_map_point *  radar
 );
 
 /*!
@@ -144,12 +144,11 @@ int nexrad_poly_multi_write_from_radial(
  * nexrad_poly_multi_write_from_radial().
  */
 nexrad_poly_multi *nexrad_poly_multi_create_from_radial(
-    nexrad_radial *        radial,
-    int                    min,
-    int                    max,
-    nexrad_geo_cartesian * radar,
-    nexrad_geo_spheroid *  spheroid,
-    size_t *               sizep
+    nexrad_radial *    radial,
+    int                min,
+    int                max,
+    nexrad_map_point * radar,
+    size_t *           sizep
 );
 
 /*!
