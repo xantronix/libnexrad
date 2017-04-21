@@ -71,7 +71,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *clu
                     };
 
                     nexrad_image *image = nexrad_map_project_radial(radial,
-                        &radar, clut, 0.5, 1000.0, 12);
+                        &radar, clut, 0.5, 1000.0, 8);
 
                     return image;
                 }
