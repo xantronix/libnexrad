@@ -64,14 +64,15 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *clu
                 case NEXRAD_PACKET_RADIAL_AF1F: {
                     nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet);
 
-                    nexrad_map_radar radar = {
-                        .lat      =  39.4227,
-                        .lon      = -86.1649,
-                        .altitude = 240.7920
+                    nexrad_map_point radar = {
+                        .lat =  25.5458,
+                        .lon = -97.2508
                     };
 
+                    nexrad_map_point extents[4];
+
                     nexrad_image *image = nexrad_map_project_radial(radial,
-                        &radar, clut, 0.5, 1000.0, 8);
+                        &radar, extents, clut, 0.5, 1000.0, 8);
 
                     return image;
                 }

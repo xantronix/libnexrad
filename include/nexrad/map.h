@@ -20,11 +20,6 @@ typedef struct _nexrad_map_heading {
     float azimuth, range;
 } nexrad_map_heading;
 
-typedef struct _nexrad_map_radar {
-    float lat, lon, altitude;
-    char name[4];
-} nexrad_map_radar;
-
 void nexrad_map_find_point(nexrad_map_point start,
                            nexrad_map_heading heading,
                            nexrad_map_point *end);
@@ -34,10 +29,11 @@ void nexrad_map_find_heading(nexrad_map_point start,
                              nexrad_map_heading *heading);
 
 nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
-    nexrad_map_radar *radar,
-    nexrad_color_table *clut,
-    float tilt,
-    float resolution,
-    int zoom);
+                                        nexrad_map_point *radar,
+                                        nexrad_map_point *extents,
+                                        nexrad_color_table *clut,
+                                        float tilt,
+                                        float resolution,
+                                        int zoom);
 
 #endif /* _NEXRAD_MAP_H */

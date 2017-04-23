@@ -91,7 +91,8 @@ static size_t _mercator_find_y(float lat, size_t height) {
 }
 
 nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
-                                        nexrad_map_radar *radar,
+                                        nexrad_map_point *radar,
+                                        nexrad_map_point *extents,
                                         nexrad_color_table *clut,
                                         float tilt,
                                         float resolution,
@@ -106,10 +107,6 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
 
     nexrad_image *image;
 
-    nexrad_map_point n, e, s, w, start = {
-        radar->lat, radar->lon
-    };
-
     nexrad_map_heading heading = {
         .range = radial->bins * resolution * range_factor
     };
@@ -118,19 +115,26 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
      * First, determine the Cartesian extents of the image for the given radar
      * location and range factor based on tilt, resolution and refraction.
      */
-    heading.azimuth =   0.0; nexrad_map_find_point(start, heading, &n);
-    heading.azimuth =  90.0; nexrad_map_find_point(start, heading, &e);
-    heading.azimuth = 180.0; nexrad_map_find_point(start, heading, &s);
-    heading.azimuth = 270.0; nexrad_map_find_point(start, heading, &w);
+    heading.azimuth =   0.0;
+    nexrad_map_find_point(*radar, heading, &extents[0]);
+
+    heading.azimuth =  90.0;
+    nexrad_map_find_point(*radar, heading, &extents[1]);
+
+    heading.azimuth = 180.0;
+    nexrad_map_find_point(*radar, heading, &extents[2]);
+
+    heading.azimuth = 270.0;
+    nexrad_map_find_point(*radar, heading, &extents[3]);
 
     /*
      * Next, determine the width and height of the output image.
      */
     world_size = NEXRAD_MAP_TILE_SIZE * pow(2, zoom);
-    world_x    = _mercator_find_x(w.lon, world_size);
-    world_y    = _mercator_find_y(n.lat, world_size);
-    width      = _mercator_find_x(e.lon, world_size) - world_x;
-    height     = _mercator_find_y(s.lat, world_size) - world_y;
+    world_x    = _mercator_find_x(extents[3].lon, world_size);
+    world_y    = _mercator_find_y(extents[0].lat, world_size);
+    width      = _mercator_find_x(extents[1].lon, world_size) - world_x;
+    height     = _mercator_find_y(extents[2].lat, world_size) - world_y;
 
     if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
@@ -150,7 +154,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
             uint16_t a, r;
              uint8_t v;
 
-            nexrad_map_find_heading(start, point, &heading);
+            nexrad_map_find_heading(*radar, point, &heading);
 
             while (heading.azimuth >= 360.0) heading.azimuth -= 360.0;
             while (heading.azimuth <    0.0) heading.azimuth += 360.0;
