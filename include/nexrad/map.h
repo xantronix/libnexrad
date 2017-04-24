@@ -31,7 +31,7 @@ void nexrad_map_find_heading(nexrad_map_point start,
 nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                                         nexrad_map_point *radar,
                                         nexrad_map_point *extents,
-                                        nexrad_color_table *clut,
+                                        nexrad_color *colors,
                                         float tilt,
                                         float resolution,
                                         int zoom);

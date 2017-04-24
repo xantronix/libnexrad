@@ -27,40 +27,27 @@
 
 #include <nexrad/image.h>
 
-static size_t _image_size(size_t width, size_t height) {
-    return NEXRAD_IMAGE_PIXEL_BYTES * width * height;
-}
-
 nexrad_image *nexrad_image_create(size_t width, size_t height) {
     nexrad_image *image;
     size_t size;
-    uint8_t *buf;
 
     if (width == 0 || height == 0) {
         return NULL;
     }
 
-    if ((image = malloc(sizeof(nexrad_image))) == NULL) {
+    size = sizeof(nexrad_image)
+        + NEXRAD_IMAGE_PIXEL_BYTES * width * height;
+
+    if ((image = malloc(size)) == NULL) {
         goto error_malloc_image;
     }
 
-    size = _image_size(width, height);
+    memset(image, '\0', size);
 
-    if ((buf = malloc(size)) == NULL) {
-        goto error_malloc_buf;
-    }
-
-    memset(buf, '\0', size);
-
-    image->buf    = buf;
-    image->size   = size;
     image->width  = width;
     image->height = height;
 
     return image;
-
-error_malloc_buf:
-    free(image);
 
 error_malloc_image:
     return NULL;
@@ -82,7 +69,7 @@ int nexrad_image_save_png(nexrad_image *image, const char *path) {
     }
 
     if (png_set_data(&png,
-        image->width, image->height, NEXRAD_IMAGE_COLOR_DEPTH, NEXRAD_IMAGE_COLOR_FORMAT, image->buf
+        image->width, image->height, NEXRAD_IMAGE_COLOR_DEPTH, NEXRAD_IMAGE_COLOR_FORMAT, (uint8_t *)(image + 1)
     ) < 0) {
         goto error_set_data;
     }
@@ -106,10 +93,6 @@ error_open_file_write:
 void nexrad_image_destroy(nexrad_image *image) {
     if (image == NULL) {
         return;
-    }
-
-    if (image->buf) {
-        free(image->buf);
     }
 
     free(image);

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -93,7 +94,7 @@ static size_t _mercator_find_y(float lat, size_t height) {
 nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                                         nexrad_map_point *radar,
                                         nexrad_map_point *extents,
-                                        nexrad_color_table *clut,
+                                        nexrad_color *colors,
                                         float tilt,
                                         float resolution,
                                         int zoom) {
@@ -110,6 +111,8 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
     nexrad_map_heading heading = {
         .range = radial->bins * resolution * range_factor
     };
+
+    nexrad_color *buf;
 
     /*
      * First, determine the Cartesian extents of the image for the given radar
@@ -140,6 +143,8 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
         goto error_image_create;
     }
 
+    buf = (nexrad_color *)image + 1;
+
     for (y=0; y<height; y++) {
         float lat = _mercator_find_lat(y + world_y, world_size);
 
@@ -149,7 +154,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                 .lon = _mercator_find_lon(x + world_x, world_size)
             };
 
-            size_t pixel = NEXRAD_IMAGE_PIXEL_BYTES * (y * width + x);
+            size_t pixel = y * width + x;
 
             uint16_t a, r;
              uint8_t v;
@@ -167,10 +172,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
 
             v = ((uint8_t *)(radial + 1))[a*radial->bins+r];
 
-            image->buf[pixel]   = ((nexrad_color *)(clut + 1))[v].r;
-            image->buf[pixel+1] = ((nexrad_color *)(clut + 1))[v].g;
-            image->buf[pixel+2] = ((nexrad_color *)(clut + 1))[v].b;
-            image->buf[pixel+3] = ((nexrad_color *)(clut + 1))[v].a;
+            buf[pixel] = colors[v];
         }
     }
 

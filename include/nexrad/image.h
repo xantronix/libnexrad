@@ -44,9 +44,6 @@
   ((y * w * NEXRAD_IMAGE_PIXEL_BYTES) + x * NEXRAD_IMAGE_PIXEL_BYTES)
 
 typedef struct _nexrad_image {
-    uint8_t * buf;
-    size_t    size;
-
     size_t width,
            height;
 } nexrad_image;

@@ -78,7 +78,7 @@ int nexrad_raster_get_info(nexrad_raster *raster,
 );
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster,
-    nexrad_color_table *table
+    nexrad_color *table
 );
 
 #endif /* _NEXRAD_RASTER_H */

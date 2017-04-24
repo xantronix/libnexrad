@@ -31,191 +31,51 @@
 
 #include <nexrad/color.h>
 
-static inline size_t _table_size(size_t size) {
-    return size * sizeof(nexrad_color);
-}
+static nexrad_color tables[NEXRAD_COLOR_TABLE_END][16] = {
+    /*
+     * Reflectivity
+     */
+    {
+        { 0x00, 0x00, 0x00, 0x00 }, { 0x00, 0xec, 0xec, 0xff }, { 0x01, 0xa0, 0xf6, 0xff }, { 0x00, 0x00, 0xf6, 0xff },
+        { 0x00, 0xff, 0x00, 0xff }, { 0x00, 0xc8, 0x00, 0xff }, { 0x00, 0x90, 0x00, 0xff }, { 0xff, 0xff, 0x00, 0xff },
+        { 0xe7, 0xc0, 0x00, 0xff }, { 0xff, 0x90, 0x00, 0xff }, { 0xff, 0x00, 0x00, 0xff }, { 0xd6, 0x00, 0x00, 0xff },
+        { 0xc0, 0x00, 0x00, 0xff }, { 0xff, 0x00, 0xff, 0xff }, { 0x99, 0x55, 0xc9, 0xff }, { 0xff, 0xff, 0xff, 0xff }
+    },
 
-static inline size_t _table_size_total(size_t size) {
-    return sizeof(nexrad_color_table) + _table_size(size);
-}
-
-nexrad_color_table *nexrad_color_table_create(size_t size) {
-    nexrad_color_table *table;
-    size_t table_size = _table_size_total(size);
-
-    if (size > NEXRAD_COLOR_TABLE_MAX_SIZE) {
-        errno = EINVAL;
-        return NULL;
+    /*
+     * Velocity
+     */
+    {
+        { 0x00, 0x00, 0x00, 0x00 }, { 0x02, 0xfc, 0x02, 0xff }, { 0x01, 0xe4, 0x01, 0xff }, { 0x01, 0xc5, 0x01, 0xff },
+        { 0x07, 0xac, 0x04, 0xff }, { 0x06, 0x8f, 0x03, 0xff }, { 0x04, 0x72, 0x02, 0xff }, { 0x7c, 0x97, 0x7b, 0xff },
+        { 0x98, 0x77, 0x77, 0xff }, { 0x89, 0x00, 0x00, 0xff }, { 0xa2, 0x00, 0x00, 0xff }, { 0xb9, 0x00, 0x00, 0xff },
+        { 0xd8, 0x00, 0x00, 0xff }, { 0xef, 0x00, 0x00, 0xff }, { 0xfe, 0x00, 0x00, 0xff }, { 0x90, 0x00, 0xa0, 0xff }
     }
+};
 
-    if ((table = malloc(table_size)) == NULL) {
-        goto error_malloc;
+static void expand_table(nexrad_color *dest, nexrad_color *src) {
+    size_t s, d;
+
+    for (s=0, d=0; s<16; s++) {
+        size_t i;
+
+        for (i=0; i<16; i++, d++) {
+            dest[d] = src[s];
+        }
     }
-
-    memcpy(table->magic, "CLUT", 4);
-
-    table->size = size;
-
-    memset((uint8_t *)table + sizeof(nexrad_color_table), '\0', _table_size(size));
-
-    return table;
-
-error_malloc:
-    return NULL;
 }
 
-void nexrad_color_table_store_entry(nexrad_color_table *table, uint8_t index, nexrad_color color) {
+nexrad_color *nexrad_color_create_table(enum nexrad_color_table table) {
     nexrad_color *entries;
 
-    if (table == NULL) {
-        return;
+    if ((entries = malloc(NEXRAD_COLOR_TABLE_ENTRIES * sizeof(nexrad_color))) == NULL) {
+        goto error_malloc_entries;
     }
 
-    entries = (nexrad_color *)((char *)table + sizeof(nexrad_color_table));
+    expand_table(entries, tables[table]);
 
-    entries[index] = color;
-}
+    return entries;
 
-nexrad_color_table *nexrad_color_table_load(const char *path) {
-    nexrad_color_table header, *table;
-    struct stat st;
-    size_t table_size;
-    int fd;
-
-    if (path == NULL) {
-        return NULL;
-    }
-
-    if ((fd = open(path, O_RDONLY)) < 0) {
-        goto error_open;
-    }
-
-    if (fstat(fd, &st) < 0) {
-        goto error_fstat;
-    }
-
-    if (st.st_size < sizeof(*table)) {
-        goto error_toosmall;
-    }
-
-    if (read(fd, &header, sizeof(header)) < 0) {
-        goto error_read;
-    }
-
-    /*
-     * Check the magic header of the color lookup table file.  Fail if this is
-     * not what we expect.
-     */
-    if (strncmp(header.magic, "CLUT", 4) != 0) {
-        errno = EINVAL;
-        goto error_invalid_clut;
-    }
-
-    /*
-     * Ensure the table size recorded in the file does not exceed the maximum
-     * color table size.
-     */
-    if (header.size > NEXRAD_COLOR_TABLE_MAX_SIZE) {
-        errno = EINVAL;
-        goto error_invalid_size;
-    }
-
-    /*
-     * Calculate the expected total size of the file based on the header.  If the
-     * actual file size differs, then fail.
-     */
-    table_size = _table_size_total(header.size);
-
-    if (table_size != st.st_size) {
-        goto error_invalid_size;
-    }
-
-    /*
-     * On the other hand, if everything looks fine, allocate the whole table and
-     * read the rest of the file.
-     */
-    if ((table = malloc(table_size)) == NULL) {
-        goto error_malloc;
-    }
-
-    if (lseek(fd, 0, SEEK_SET) < 0) {
-        goto error_lseek;
-    }
-
-    if (read(fd, table, table_size) < 0) {
-        goto error_read_full;
-    }
-
-    close(fd);
-
-    return table;
-
-error_read_full:
-error_lseek:
-    free(table);
-
-error_malloc:
-error_invalid_size:
-error_invalid_clut:
-error_read:
-error_toosmall:
-error_fstat:
-    close(fd);
-
-error_open:
+error_malloc_entries:
     return NULL;
-}
-
-nexrad_color *nexrad_color_table_get_entries(nexrad_color_table *table, size_t *size) {
-    if (table == NULL) {
-        return NULL;
-    }
-
-    if (size)
-        *size = table->size;
-
-    return (nexrad_color *)((char *)table + sizeof(nexrad_color_table));
-}
-
-int nexrad_color_table_save(nexrad_color_table *table, const char *path) {
-    int fd;
-    size_t table_size;
-
-    if (table == NULL || path == NULL) {
-        return -1;
-    }
-
-    table_size = _table_size_total(table->size);
-
-    if ((fd = open(path, O_CREAT | O_WRONLY | O_TRUNC, 0666)) < 0) {
-        goto error_open;
-    }
-
-    if (write(fd, table, table_size) < 0) {
-        goto error_write;
-    }
-
-    close(fd);
-
-    return 0;
-
-error_write:
-    close(fd);
-
-error_open:
-    return -1;
-}
-
-void nexrad_color_table_destroy(nexrad_color_table *table) {
-    size_t table_size;
-
-    if (table == NULL) {
-        return;
-    }
-
-    table_size = _table_size_total(table->size);
-
-    memset(table, '\0', table_size);
-
-    free(table);
 }

@@ -31,11 +31,11 @@
 #include <nexrad/map.h>
 
 static void usage(int argc, char **argv) {
-    fprintf(stderr, "usage: %s colors.clut input.l3 output.png\n", argv[0]);
+    fprintf(stderr, "usage: %s colortable input.l3 output.png\n", argv[0]);
     exit(1);
 }
 
-static nexrad_image *get_product_image(const char *file, nexrad_color_table *clut) {
+static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
     nexrad_message *message;
     nexrad_symbology_block *symbology;
     nexrad_chunk *block, *layer;
@@ -72,7 +72,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *clu
                     nexrad_map_point extents[4];
 
                     nexrad_image *image = nexrad_map_project_radial(radial,
-                        &radar, extents, clut, 0.5, 1000.0, 8);
+                        &radar, extents, colors, 0.5, 1000.0, 8);
 
                     return image;
                 }
@@ -81,7 +81,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color_table *clu
                 case NEXRAD_PACKET_RASTER_BA07: {
                     nexrad_raster *raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet);
 
-                    nexrad_image *image = nexrad_raster_create_image(raster, clut);
+                    nexrad_image *image = nexrad_raster_create_image(raster, colors);
 
                     return image;
                 }
@@ -107,10 +107,22 @@ error_message_open:
     return NULL;
 }
 
+static nexrad_color *load_colors(char *name) {
+    if (strcmp(name, "reflectivity") == 0) {
+        return nexrad_color_create_table(NEXRAD_COLOR_TABLE_REFLECTIVITY);
+    } else if (strcmp(name, "velocity") == 0) {
+        return nexrad_color_create_table(NEXRAD_COLOR_TABLE_VELOCITY);
+    } else {
+        fprintf(stderr, "Invalid color table '%s'\n", name);
+
+        exit(1);
+    }
+}
+
 int main(int argc, char **argv) {
     char *infile, *outfile;
     nexrad_image *image;
-    nexrad_color_table *clut;
+    nexrad_color *colors;
 
     if (argc != 4) {
         usage(argc, argv);
@@ -119,12 +131,9 @@ int main(int argc, char **argv) {
      infile = argv[2];
     outfile = argv[3];
 
-    if ((clut = nexrad_color_table_load(argv[1])) == NULL) {
-        perror("nexrad_color_table_load()");
-        exit(1);
-    }
+    colors = load_colors(argv[1]);
 
-    if ((image = get_product_image(infile, clut)) == NULL) {
+    if ((image = get_product_image(infile, colors)) == NULL) {
         perror("get_product_image()");
         exit(1);
     }

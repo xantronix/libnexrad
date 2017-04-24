@@ -207,7 +207,7 @@ static void _draw_run(nexrad_image *image, nexrad_color color, size_t x, size_t 
         return;
     }
 
-    buf    = image->buf;
+    buf    = (uint8_t *)image + 1;
     offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, image->width);
 
     for (i=0; i<length; i++) {
@@ -249,9 +249,8 @@ static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad
     return 0;
 }
 
-nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color_table *table) {
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color *table) {
     nexrad_image *image;
-    nexrad_color *entries;
     uint16_t width, height;
 
     if (raster == NULL || table == NULL) {
@@ -262,15 +261,11 @@ nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color_tab
         goto error_raster_get_info;
     }
 
-    if ((entries = nexrad_color_table_get_entries(table, NULL)) == NULL) {
-        goto error_color_table_get_entries;
-    }
-
     if ((image = nexrad_image_create(width, height)) == NULL) {
         goto error_image_create;
     }
 
-    if (_raster_unpack_rle(raster, image, entries) < 0) {
+    if (_raster_unpack_rle(raster, image, table) < 0) {
         goto error_image_unpack;
     }
 
@@ -280,7 +275,6 @@ error_image_unpack:
     nexrad_image_destroy(image);
 
 error_image_create:
-error_color_table_get_entries:
 error_raster_get_info:
     return NULL;
 }
