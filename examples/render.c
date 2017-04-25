@@ -71,8 +71,11 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
 
                     nexrad_map_point extents[4];
 
+                    float factor = nexrad_map_range_factor(0.5,
+                        NEXRAD_MAP_EARTH_REFRACTION);
+
                     nexrad_image *image = nexrad_map_project_radial(radial,
-                        &radar, extents, colors, 0.5, 1000.0, 8);
+                        &radar, extents, colors, factor, 1000.0, 10);
 
                     return image;
                 }
