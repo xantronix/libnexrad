@@ -26,6 +26,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <nexrad/map.h>
 #include <nexrad/message.h>
 #include <nexrad/raster.h>
 #include <nexrad/radial.h>
@@ -33,7 +34,7 @@
 #include "../src/util.h"
 
 static nexrad_radial_packet *create_radial_packet() {
-    int rangebins = 234;
+    int rangebins = 230;
     int rays      = 360;
     int i;
 
@@ -86,7 +87,29 @@ static nexrad_radial_packet *create_radial_packet() {
 int main(int argc, char **argv) {
     nexrad_radial_packet *packet = create_radial_packet();
 
-    write(1, packet, 86414);
+    nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet);
+
+    nexrad_color *colors = nexrad_color_create_table(NEXRAD_COLOR_TABLE_REFLECTIVITY);
+
+    nexrad_map_point radar = {
+        .lat =  25.5458,
+        .lon = -97.2508
+    };
+
+    nexrad_map_point extents[4];
+
+    if (argc != 2) {
+        fprintf(stderr, "Naff off!\n");
+        exit(1);
+    }
+
+    nexrad_image *image = nexrad_map_project_radial(radial,
+        &radar, extents, colors, 0.5, 1000.0, 10);
+
+    if (nexrad_image_save_png(image, argv[1]) < 0) {
+        perror("nexrad_image_save_png()");
+        exit(1);
+    }
 
     return 0;
 }
