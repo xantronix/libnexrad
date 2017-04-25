@@ -31,7 +31,7 @@
 #include <nexrad/map.h>
 
 static void usage(int argc, char **argv) {
-    fprintf(stderr, "usage: %s colortable input.l3 output.png\n", argv[0]);
+    fprintf(stderr, "usage: %s --reflectivity|--velocity input.l3 output.png\n", argv[0]);
     exit(1);
 }
 
@@ -108,9 +108,9 @@ error_message_open:
 }
 
 static nexrad_color *load_colors(char *name) {
-    if (strcmp(name, "reflectivity") == 0) {
+    if (strcmp(name, "--reflectivity") == 0) {
         return nexrad_color_create_table(NEXRAD_COLOR_TABLE_REFLECTIVITY);
-    } else if (strcmp(name, "velocity") == 0) {
+    } else if (strcmp(name, "--velocity") == 0) {
         return nexrad_color_create_table(NEXRAD_COLOR_TABLE_VELOCITY);
     } else {
         fprintf(stderr, "Invalid color table '%s'\n", name);
