@@ -109,7 +109,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
     nexrad_image *image;
 
     nexrad_map_heading heading = {
-        .range = radial->bins * resolution * range_factor
+        .range = (radial->bins * resolution) / range_factor
     };
 
     nexrad_color *buf;
