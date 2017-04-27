@@ -123,7 +123,9 @@ static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size
         }
     }
 
-    *bytes_read = offset;
+    if (bytes_read != NULL) {
+        *bytes_read = offset;
+    }
 
     return 0;
 
@@ -181,7 +183,9 @@ static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, 
         }
     }
 
-    *bytes_read = offset;
+    if (bytes_read != NULL) {
+        *bytes_read = offset;
+    }
 
     return 0;
 
