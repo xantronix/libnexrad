@@ -51,6 +51,8 @@ void *nexrad_chunk_peek(nexrad_chunk *iterator,
     void **data
 );
 
+size_t nexrad_chunk_bytes_left(nexrad_chunk *iterator);
+
 void nexrad_chunk_next(nexrad_chunk *iterator, size_t size);
 
 void *nexrad_chunk_read(nexrad_chunk *iterator,

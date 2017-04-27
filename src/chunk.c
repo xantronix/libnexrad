@@ -186,6 +186,10 @@ void *nexrad_chunk_peek(nexrad_chunk *iterator, size_t *size, size_t *payload, v
     return iterator->current;
 }
 
+size_t nexrad_chunk_bytes_left(nexrad_chunk *iterator) {
+    return iterator->bytes_left;
+}
+
 void nexrad_chunk_next(nexrad_chunk *iterator, size_t size) {
     if (iterator == NULL) {
         return;
