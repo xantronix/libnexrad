@@ -94,7 +94,7 @@ typedef struct _nexrad_radial {
  * with polar coordinates accurate to 0.1°.  RLE-encoded values are scaled from
  * rangebin values of 0-15 to 0-255.
  */
-nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet);
+nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t expected);
 
 /*!
  * \ingroup radial

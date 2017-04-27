@@ -33,17 +33,17 @@
 
 #include "../src/util.h"
 
-static nexrad_radial_packet *create_radial_packet() {
+static nexrad_radial_packet *create_radial_packet(size_t *size) {
     int rangebins = 230;
     int rays      = 360;
     int i;
 
-    size_t size = sizeof(nexrad_radial_packet)
+    *size = sizeof(nexrad_radial_packet)
         + rays * (sizeof(nexrad_radial_ray) + rangebins);
 
     nexrad_radial_packet *packet;
 
-    if ((packet = malloc(size)) == NULL) {
+    if ((packet = malloc(*size)) == NULL) {
         return NULL;
     }
 
@@ -85,9 +85,11 @@ static nexrad_radial_packet *create_radial_packet() {
 }
 
 int main(int argc, char **argv) {
-    nexrad_radial_packet *packet = create_radial_packet();
+    size_t size;
 
-    nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet);
+    nexrad_radial_packet *packet = create_radial_packet(&size);
+
+    nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet, size);
 
     nexrad_color *colors = nexrad_color_create_table(NEXRAD_COLOR_TABLE_REFLECTIVITY);
 

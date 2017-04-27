@@ -72,8 +72,8 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
     return 0;
 }
 
-static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
-    size_t offset = 0;
+static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size_t expected) {
+    size_t offset = sizeof(nexrad_radial_packet);
 
     uint16_t rays,
              bins;
@@ -81,7 +81,7 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
     int ray;
 
     if (radial == NULL || packet == NULL) {
-        return;
+        return -1;
     }
 
     rays = be16toh(packet->rays);
@@ -89,7 +89,7 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
 
     for (ray=0; ray<rays; ray++) {
         nexrad_radial_ray *current = (nexrad_radial_ray *)
-            (((uint8_t *)(packet + 1)) + offset);
+            ((uint8_t *)packet + offset);
 
         nexrad_radial_run *runs = (nexrad_radial_run *)(current + 1);
 
@@ -98,6 +98,12 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
 
         uint16_t start = be16toh(current->angle_start),
                  delta = be16toh(current->angle_delta);
+
+        offset += sizeof(nexrad_radial_ray) + count;
+
+        if (offset > expected) {
+            goto error_unexpected;
+        }
 
         for (azimuth=start; azimuth<start+delta; azimuth++) {
             uint16_t a = azimuth,
@@ -115,15 +121,16 @@ static void _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet) {
                 }
             }
         }
-
-        offset += sizeof(nexrad_radial_ray) + count;
     }
 
-    return;
+    return 0;
+
+error_unexpected:
+    return -1;
 }
 
-static void _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet) {
-    size_t offset = 0;
+static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, size_t expected) {
+    size_t offset = sizeof(nexrad_radial_packet);
 
     uint16_t rays,
              bins;
@@ -131,7 +138,7 @@ static void _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet)
     int ray;
 
     if (radial == NULL || packet == NULL) {
-        return;
+        return -1;
     }
 
     rays = be16toh(packet->rays);
@@ -139,7 +146,7 @@ static void _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet)
 
     for (ray=0; ray<rays; ray++) {
         nexrad_radial_ray *current = (nexrad_radial_ray *)
-            (((uint8_t *)(packet + 1)) + offset);
+            ((uint8_t *)packet + offset);
 
         uint16_t start = be16toh(current->angle_start),
                  delta = be16toh(current->angle_delta);
@@ -147,6 +154,16 @@ static void _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet)
         uint16_t azimuth;
 
         size_t size = be16toh(current->size);
+
+        offset += sizeof(nexrad_radial_ray) + size;
+
+        if (offset & 1) {
+            offset++;
+        }
+
+        if (offset > expected) {
+            goto error_unexpected;
+        }
 
         for (azimuth=start; azimuth<start+delta; azimuth++) {
             uint16_t a = azimuth;
@@ -160,23 +177,23 @@ static void _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet)
 
             memcpy((uint8_t *)(radial + 1) + dest, current + 1, size);
         }
-
-        offset += sizeof(nexrad_radial_ray) + size;
-
-        if (offset & 1)
-            offset++;
     }
 
-    return;
+    return 0;
+
+error_unexpected:
+    return -1;
 }
 
-nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) {
+nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t expected) {
     nexrad_radial *radial;
     enum nexrad_radial_type type;
     size_t size;
 
     uint16_t rays,
              bins;
+
+    int result;
 
     if (packet == NULL) {
         return NULL;
@@ -202,13 +219,20 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet) {
 
     switch (type) {
         case NEXRAD_RADIAL_RLE:
-            _unpack_rle(radial, packet); break;
+            result = _unpack_rle(radial, packet, expected); break;
 
         case NEXRAD_RADIAL_DIGITAL:
-            _unpack_digital(radial, packet); break;
+            result = _unpack_digital(radial, packet, expected); break;
+    }
+
+    if (result < 0) {
+        goto error_unexpected;
     }
 
     return radial;
+
+error_unexpected:
+    free(radial);
 
 error_malloc_radial:
     return NULL;
