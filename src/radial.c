@@ -72,7 +72,7 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
     return 0;
 }
 
-static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size_t expected) {
+static ssize_t _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size_t max) {
     size_t offset = sizeof(nexrad_radial_packet);
 
     uint16_t rays,
@@ -101,7 +101,7 @@ static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size
 
         offset += sizeof(nexrad_radial_ray) + count;
 
-        if (offset > expected) {
+        if (offset > max) {
             goto error_unexpected;
         }
 
@@ -123,13 +123,13 @@ static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size
         }
     }
 
-    return 0;
+    return (ssize_t)offset;
 
 error_unexpected:
     return -1;
 }
 
-static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, size_t expected) {
+static ssize_t _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, size_t max) {
     size_t offset = sizeof(nexrad_radial_packet);
 
     uint16_t rays,
@@ -161,7 +161,7 @@ static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, 
             offset++;
         }
 
-        if (offset > expected) {
+        if (offset > max) {
             goto error_unexpected;
         }
 
@@ -179,13 +179,13 @@ static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, 
         }
     }
 
-    return 0;
+    return (ssize_t)offset;
 
 error_unexpected:
     return -1;
 }
 
-nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t expected) {
+nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t *bytes_read, size_t max) {
     nexrad_radial *radial;
     enum nexrad_radial_type type;
     size_t size;
@@ -193,7 +193,7 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t 
     uint16_t rays,
              bins;
 
-    int result;
+    ssize_t result;
 
     if (packet == NULL) {
         return NULL;
@@ -219,14 +219,18 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t 
 
     switch (type) {
         case NEXRAD_RADIAL_RLE:
-            result = _unpack_rle(radial, packet, expected); break;
+            result = _unpack_rle(radial, packet, max); break;
 
         case NEXRAD_RADIAL_DIGITAL:
-            result = _unpack_digital(radial, packet, expected); break;
+            result = _unpack_digital(radial, packet, max); break;
     }
 
     if (result < 0) {
         goto error_unexpected;
+    }
+
+    if (bytes_read != NULL) {
+        *bytes_read = (size_t)result;
     }
 
     return radial;

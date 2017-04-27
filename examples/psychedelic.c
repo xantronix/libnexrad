@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
     nexrad_radial_packet *packet = create_radial_packet(&size);
 
-    nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet, size);
+    nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet, NULL, size);
 
     nexrad_color *colors = nexrad_color_create_table(NEXRAD_COLOR_TABLE_REFLECTIVITY);
 

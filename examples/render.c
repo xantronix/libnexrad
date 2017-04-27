@@ -63,7 +63,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
                 case NEXRAD_PACKET_RADIAL:
                 case NEXRAD_PACKET_RADIAL_AF1F: {
                     nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet,
-                        nexrad_chunk_bytes_left(layer));
+                        NULL, nexrad_chunk_bytes_left(layer));
 
                     nexrad_map_point radar = {
                         .lat =  25.5458,

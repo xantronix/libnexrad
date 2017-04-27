@@ -38,11 +38,10 @@ static void usage(int argc, char **argv) {
     exit(1);
 }
 
-static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
+static void show_radial_packet(nexrad_radial_packet *packet, size_t *size, size_t max) {
     nexrad_radial *radial;
-    nexrad_radial_ray *ray;
 
-    if ((radial = nexrad_radial_packet_open(packet)) == NULL) {
+    if ((radial = nexrad_radial_packet_unpack(packet, size, max)) == NULL) {
         perror("nexrad_radial_packet_open()");
         exit(1);
     }
@@ -51,26 +50,11 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size) {
         (int)be16toh(packet->type),
         (int)be16toh(packet->rangebin_first),
         (int)be16toh(packet->rangebin_count),
-        (int)be16toh(packet->rays)
-    );
-
-    printf("Radial has scale %d with %d, %d offset\n",
-        (int)be16toh(packet->scale),
-        (int)be16toh(packet->i),
-        (int)be16toh(packet->j)
-    );
-
-    while ((ray = nexrad_radial_read_ray(radial, NULL)) != NULL) {
-        printf("Wee, got a ray with size %hu start %hu delta %hu\n",
-            be16toh(ray->size), be16toh(ray->angle_start), be16toh(ray->angle_delta)
-        );
-    }
-
-    *size = nexrad_radial_bytes_read(radial);
+        (int)be16toh(packet->rays));
 
     printf("Done reading radial of %lu bytes\n", *size);
 
-    nexrad_radial_close(radial);
+    nexrad_radial_destroy(radial);
 }
 
 static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
@@ -102,13 +86,13 @@ static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
     nexrad_raster_close(raster);
 }
 
-static void show_packet(nexrad_packet *packet, size_t *size) {
+static void show_packet(nexrad_packet *packet, size_t *size, size_t max) {
     enum nexrad_packet_type type = nexrad_packet_get_type(packet);
 
     switch (type) {
         case NEXRAD_PACKET_RADIAL:
         case NEXRAD_PACKET_RADIAL_AF1F: {
-            show_radial_packet((nexrad_radial_packet *)packet, size);
+            show_radial_packet((nexrad_radial_packet *)packet, size, max);
 
             break;
         }
@@ -174,7 +158,7 @@ static void show_symbology_block(nexrad_message *message) {
         size_t size;
 
         while ((packet = nexrad_symbology_layer_peek_packet(layer, &size)) != NULL) {
-            show_packet(packet, &size);
+            show_packet(packet, &size, nexrad_chunk_bytes_left(layer));
 
             nexrad_symbology_layer_next_packet(layer, size);
         }

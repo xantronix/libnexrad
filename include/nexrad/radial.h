@@ -87,6 +87,8 @@ typedef struct _nexrad_radial {
  * \ingroup radial
  * \brief Unpack any radial packet into raster buffer with 0.1° accuracy
  * \param packet A RLE or digitally-encoded radial packet
+ * \param bytes_read Pointer to store number of bytes read from packet
+ * \param max The maximum number of bytes to read from packet
  * \return An expanded radial buffer
  *
  * Given an arbitrary radial packet, whether RLE- or digitally-encoded, will
@@ -94,7 +96,7 @@ typedef struct _nexrad_radial {
  * with polar coordinates accurate to 0.1°.  RLE-encoded values are scaled from
  * rangebin values of 0-15 to 0-255.
  */
-nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t expected);
+nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t *bytes_read, size_t max);
 
 /*!
  * \ingroup radial
