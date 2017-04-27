@@ -72,7 +72,7 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
     return 0;
 }
 
-static ssize_t _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size_t max) {
+static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size_t *bytes_read, size_t max) {
     size_t offset = sizeof(nexrad_radial_packet);
 
     uint16_t rays,
@@ -123,13 +123,15 @@ static ssize_t _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, 
         }
     }
 
-    return (ssize_t)offset;
+    *bytes_read = offset;
+
+    return 0;
 
 error_unexpected:
     return -1;
 }
 
-static ssize_t _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, size_t max) {
+static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, size_t *bytes_read, size_t max) {
     size_t offset = sizeof(nexrad_radial_packet);
 
     uint16_t rays,
@@ -179,7 +181,9 @@ static ssize_t _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *pack
         }
     }
 
-    return (ssize_t)offset;
+    *bytes_read = offset;
+
+    return 0;
 
 error_unexpected:
     return -1;
@@ -219,18 +223,14 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t 
 
     switch (type) {
         case NEXRAD_RADIAL_RLE:
-            result = _unpack_rle(radial, packet, max); break;
+            result = _unpack_rle(radial, packet, bytes_read, max); break;
 
         case NEXRAD_RADIAL_DIGITAL:
-            result = _unpack_digital(radial, packet, max); break;
+            result = _unpack_digital(radial, packet, bytes_read, max); break;
     }
 
     if (result < 0) {
         goto error_unexpected;
-    }
-
-    if (bytes_read != NULL) {
-        *bytes_read = (size_t)result;
     }
 
     return radial;

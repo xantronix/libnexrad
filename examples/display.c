@@ -57,33 +57,20 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size, size_
     nexrad_radial_destroy(radial);
 }
 
-static void show_raster_packet(nexrad_raster_packet *packet, size_t *size) {
+static void show_raster_packet(nexrad_raster_packet *packet, size_t *size, size_t max) {
     nexrad_raster *raster;
-    nexrad_raster_line *line;
-    uint16_t line_size;
-    uint16_t width, height;
 
-    if ((raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet)) == NULL) {
+    if ((raster = nexrad_raster_packet_unpack((nexrad_raster_packet *)packet, size, max)) == NULL) {
         perror("nexrad_raster_packet_open()");
         exit(1);
     }
 
-    if (nexrad_raster_get_info(raster, &width, &height) < 0) {
-        perror("nexrad_raster_get_info()");
-        exit(1);
-    }
-
-    printf("Huzzah, got a raster, %hu%hu\n", width, height);
-
-    while ((line = nexrad_raster_read_line(raster, NULL, &line_size)) != NULL) {
-        printf("Wee, got a line sized %hu bytes!\n", line_size);
-    }
-
-    *size = nexrad_raster_bytes_read(raster);
+    printf("Huzzah, got raster data %zux%zu\n",
+        raster->width, raster->height);
 
     printf("Done reading raster of %lu bytes\n", *size);
 
-    nexrad_raster_close(raster);
+    nexrad_raster_destroy(raster);
 }
 
 static void show_packet(nexrad_packet *packet, size_t *size, size_t max) {
@@ -99,7 +86,7 @@ static void show_packet(nexrad_packet *packet, size_t *size, size_t max) {
 
         case NEXRAD_PACKET_RASTER_BA0F:
         case NEXRAD_PACKET_RASTER_BA07: {
-            show_raster_packet((nexrad_raster_packet *)packet, size);
+            show_raster_packet((nexrad_raster_packet *)packet, size, max);
 
             break;
         }

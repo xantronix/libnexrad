@@ -26,14 +26,8 @@
 #include <errno.h>
 #include "util.h"
 
+#include <nexrad/packet.h>
 #include <nexrad/raster.h>
-
-struct _nexrad_raster {
-    nexrad_raster_packet * packet;
-    size_t                 bytes_read;
-    uint16_t               lines_left;
-    nexrad_raster_line *   current;
-};
 
 static int _valid_packet(nexrad_raster_packet *packet) {
     if (packet == NULL) {
@@ -41,18 +35,15 @@ static int _valid_packet(nexrad_raster_packet *packet) {
     }
 
     switch (be16toh(packet->type)) {
-        case 0xba0f:
-        case 0xba07: {
+        case NEXRAD_PACKET_RASTER_BA0F:
+        case NEXRAD_PACKET_RASTER_BA07:
             break;
-        }
 
-        default: {
+        default:
             return 0;
-        }
     }
 
-    if (
-               be16toh(packet->flags_1) != 0x8000 ||
+    if (       be16toh(packet->flags_1) != 0x8000 ||
                be16toh(packet->flags_2) != 0x00c0 ||
       (int16_t)be16toh(packet->i)        >   2047 ||
       (int16_t)be16toh(packet->i)        <  -2048 ||
@@ -63,218 +54,138 @@ static int _valid_packet(nexrad_raster_packet *packet) {
                be16toh(packet->y_scale)  <      1 ||
                be16toh(packet->y_scale)  >     67 ||
                be16toh(packet->lines)    <      1 ||
-               be16toh(packet->lines)    >    464
-    ) {
+               be16toh(packet->lines)    >    464) {
         return 0;
     }
 
     return 1;
 }
 
-nexrad_raster *nexrad_raster_packet_open(nexrad_raster_packet *packet) {
-    nexrad_raster *raster;
+static size_t _rle_width(nexrad_raster_packet *packet) {
+    nexrad_raster_line *line = (nexrad_raster_line *)
+        (packet + 1);
 
-    if (!_valid_packet(packet)) {
-        return NULL;
-    }
+    nexrad_raster_run *runs = (nexrad_raster_run *)
+        (line + 1);
 
-    if ((raster = malloc(sizeof(nexrad_raster))) == NULL) {
-        goto error_malloc;
-    }
+    size_t count = be16toh(line->runs),
+           width = 0,
+           i;
 
-    raster->packet     = packet;
-    raster->bytes_read = sizeof(nexrad_raster_packet);
-    raster->lines_left = be16toh(packet->lines);
-    raster->current    = (nexrad_raster_line *)((char *)packet + sizeof(nexrad_raster_packet));
-
-    return raster;
-
-error_malloc:
-    return NULL;
-}
-
-static uint16_t _raster_line_width(nexrad_raster_line *line) {
-    nexrad_raster_run *runs = (nexrad_raster_run *)((char *)line + sizeof(nexrad_raster_line));
-
-    uint16_t width = 0;
-    uint16_t i, nruns = be16toh(line->runs);
-
-    for (i=0; i<nruns; i++) {
+    for (i=0; i<count; i++) {
         width += runs[i].length;
     }
 
     return width;
 }
 
-nexrad_raster_line *nexrad_raster_read_line(nexrad_raster *raster, void **data, uint16_t *runsp) {
-    nexrad_raster_line *line;
-    uint16_t runs;
+int _unpack_rle(nexrad_raster *raster, nexrad_raster_packet *packet, size_t *bytes_read, size_t max) {
+    size_t offset = sizeof(nexrad_raster_packet);
 
-    if (raster == NULL) {
-        return NULL;
+    size_t x, y;
+
+    for (y=0; y<raster->height; y++) {
+        nexrad_raster_line *line = (nexrad_raster_line *)
+            ((uint8_t *)packet + offset);
+
+        nexrad_raster_run *runs = (nexrad_raster_run *)
+            (line + 1);
+
+        size_t count = be16toh(line->runs),
+               r;
+
+        offset += sizeof(nexrad_raster_line) + count;
+
+        if (offset > max) {
+            goto error_unexpected;
+        }
+
+        for (r=0, x=0; r<count; r++) {
+            size_t i;
+
+            for (i=0; i<runs[r].length; i++) {
+                ((uint8_t *)(raster + 1))[y*raster->width+x] =
+                    NEXRAD_RASTER_RLE_FACTOR * runs[r].level;
+
+                x++;
+            }
+        }
     }
 
-    if (raster->lines_left == 0) {
-        return NULL;
+    if (bytes_read != NULL) {
+        *bytes_read = offset;
     }
 
-    line = raster->current;
-    runs = sizeof(nexrad_raster_line) + be16toh(line->runs);
+    return 0;
 
-    /*
-     * Advance the current line pointer beyond the line to follow.
-     */
-    raster->current = (nexrad_raster_line *)((char *)line + runs);
-
-    /*
-     * Increase the number of bytes read in the current raster packet.
-     */
-    raster->bytes_read += runs;
-
-    /*
-     * Decrement the number of lines left in the current raster packet.
-     */
-    raster->lines_left--;
-
-    /*
-     * If the caller provided a pointer to an address to store the resultant
-     * raster line run count, then populate that address with that value.
-     */
-    if (runsp)
-        *runsp = runs;
-
-    /*
-     * If the caller provided a pointer to an address to store a pointer to
-     * the raster line's RLE-encoded data, then provide that address.
-     */
-    if (data)
-        *data = (char *)line + sizeof(nexrad_raster_line);
-
-    return line;
+error_unexpected:
+    return -1;
 }
 
-size_t nexrad_raster_bytes_read(nexrad_raster *raster) {
-    if (raster == NULL) {
-        return 0;
+nexrad_raster *nexrad_raster_packet_unpack(nexrad_raster_packet *packet, size_t *bytes_read, size_t max) {
+    nexrad_raster *raster;
+
+    size_t size,
+           width, height;
+
+    if (!_valid_packet(packet)) {
+        goto error_invalid;
     }
 
-    return raster->bytes_read;
+    width  = _rle_width(packet);
+    height = be16toh(packet->lines);
+    size   = sizeof(nexrad_raster) + width * height;
+
+    if ((raster = malloc(size)) == NULL) {
+        goto error_malloc;
+    }
+
+    raster->width  = width;
+    raster->height = height;
+
+    if (_unpack_rle(raster, packet, bytes_read, max) < 0) {
+        goto error_unpack;
+    }
+
+    return raster;
+
+error_unpack:
+    free(raster);
+
+error_malloc:
+error_invalid:
+    return NULL;
 }
 
-void nexrad_raster_close(nexrad_raster *raster) {
-    if (raster == NULL) {
-        return;
-    }
-
-    raster->packet     = NULL;
-    raster->bytes_read = 0;
-    raster->lines_left = 0;
-    raster->current    = NULL;
-
+void nexrad_raster_destroy(nexrad_raster *raster) {
     free(raster);
 }
 
-int nexrad_raster_get_info(nexrad_raster *raster, uint16_t *widthp, uint16_t *heightp) {
-    if (raster == NULL) {
-        return -1;
-    }
-
-    /*
-     * If we cannot identify that there is at least one raster line available
-     * in the current raster packet, then do not attempt to populate data.
-     */
-    if (be16toh(raster->packet->lines) < 1) {
-        return -1;
-    }
-
-    if (widthp) {
-        nexrad_raster_line *line = (nexrad_raster_line *)((char *)raster->packet + sizeof(nexrad_raster_packet));
-
-        *widthp = _raster_line_width(line);
-    }
-
-    if (heightp)
-        *heightp = be16toh(raster->packet->lines);
-
-    return 0;
-}
-
-static void _draw_run(nexrad_image *image, nexrad_color color, size_t x, size_t y, size_t length) {
-    uint8_t *buf;
-    size_t offset, i;
-
-    if (image == NULL) {
-        return;
-    }
-
-    buf    = (uint8_t *)image + 1;
-    offset = NEXRAD_IMAGE_PIXEL_OFFSET(x, y, image->width);
-
-    for (i=0; i<length; i++) {
-        memcpy(buf + offset, &color, sizeof(nexrad_color));
-
-        offset += sizeof(nexrad_color);
-    }
-}
-
-static int _raster_unpack_rle(nexrad_raster *raster, nexrad_image *image, nexrad_color *entries) {
-    nexrad_raster_line *line;
-    nexrad_raster_run  *data;
-
-    uint16_t y = 0;
-    uint16_t runs;
-
-    while ((line = nexrad_raster_read_line(raster, (void **)&data, &runs)) != NULL) {
-        uint16_t r, x = 0;
-
-        for (r=0; r<runs; r++) {
-            uint8_t level  = data[r].level * NEXRAD_RASTER_RLE_FACTOR;
-            uint8_t length = data[r].length;
-
-            nexrad_color color = entries[level];
-
-            if (color.a)
-                _draw_run(image, color, x, y, length);
-
-            x += length;
-
-            if (x >= image->width) break;
-        }
-
-        y++;
-
-        if (y >= image->height) break;
-    }
-
-    return 0;
-}
-
-nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color *table) {
+nexrad_image *nexrad_raster_create_image(nexrad_raster *raster, nexrad_color *colors) {
     nexrad_image *image;
-    uint16_t width, height;
 
-    if (raster == NULL || table == NULL) {
+    size_t x, y;
+
+    if (raster == NULL || colors == NULL) {
         return NULL;
     }
 
-    if (nexrad_raster_get_info(raster, &width, &height) < 0) {
-        goto error_raster_get_info;
-    }
-
-    if ((image = nexrad_image_create(width, height)) == NULL) {
+    if ((image = nexrad_image_create(raster->width, raster->height)) == NULL) {
         goto error_image_create;
     }
 
-    if (_raster_unpack_rle(raster, image, table) < 0) {
-        goto error_image_unpack;
+    for (y=0; y<raster->height; y++) {
+        for (x=0; x<raster->width; x++) {
+            size_t index = y * raster->width + x;
+
+            uint8_t v = ((uint8_t *)(raster + 1))[index];
+
+            ((nexrad_color *)(image + 1))[index] = colors[v];
+        }
     }
 
     return image;
 
-error_image_unpack:
-    nexrad_image_destroy(image);
-
 error_image_create:
-error_raster_get_info:
     return NULL;
 }

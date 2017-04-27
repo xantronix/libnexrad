@@ -75,8 +75,8 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 #pragma pack(pop)
 
 typedef struct _nexrad_radial {
-    uint16_t bins;  /* Number of rangebins per ray */
-    uint16_t first; /* Index to first rangebin sampled */
+    size_t bins;  /* Number of rangebins per ray */
+    size_t first; /* Index to first rangebin sampled */
 } nexrad_radial;
 
 /*!

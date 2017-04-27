@@ -59,26 +59,16 @@ typedef struct _nexrad_raster_run {
 
 #pragma pack(pop)
 
-typedef struct _nexrad_raster nexrad_raster;
+typedef struct _nexrad_raster {
+    size_t width, height;
+} nexrad_raster;
 
-nexrad_raster *nexrad_raster_packet_open(nexrad_raster_packet *packet);
+nexrad_raster *nexrad_raster_packet_unpack(nexrad_raster_packet *packet,
+    size_t *bytes_read, size_t max);
 
-size_t nexrad_raster_bytes_read(nexrad_raster *raster);
-
-void nexrad_raster_close(nexrad_raster *raster);
-
-nexrad_raster_line *nexrad_raster_read_line(nexrad_raster *raster,
-    void **data,
-    uint16_t *runsp
-);
-
-int nexrad_raster_get_info(nexrad_raster *raster,
-    uint16_t *widthp,
-    uint16_t *heightp
-);
+void nexrad_raster_destroy(nexrad_raster *raster);
 
 nexrad_image *nexrad_raster_create_image(nexrad_raster *raster,
-    nexrad_color *table
-);
+    nexrad_color *colors);
 
 #endif /* _NEXRAD_RASTER_H */

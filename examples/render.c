@@ -83,7 +83,8 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
 
                 case NEXRAD_PACKET_RASTER_BA0F:
                 case NEXRAD_PACKET_RASTER_BA07: {
-                    nexrad_raster *raster = nexrad_raster_packet_open((nexrad_raster_packet *)packet);
+                    nexrad_raster *raster = nexrad_raster_packet_unpack((nexrad_raster_packet *)packet,
+                        NULL, nexrad_chunk_bytes_left(layer));
 
                     nexrad_image *image = nexrad_raster_create_image(raster, colors);
 
