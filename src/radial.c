@@ -106,11 +106,12 @@ static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size
         }
 
         for (azimuth=start; azimuth<start+delta; azimuth++) {
-            uint16_t a = azimuth,
-                     r, b;
+            int a = (int)azimuth - 5;
 
-            if (a >= 3600)
-                a -= 3600;
+            uint16_t r, b;
+
+            while (a >= 3600) a -= 3600;
+            while (a <     0) a += 3600;
 
             for (r=0, b=0; r<count; r++) {
                 uint16_t i;
@@ -170,12 +171,12 @@ static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, 
         }
 
         for (azimuth=start; azimuth<start+delta; azimuth++) {
-            uint16_t a = azimuth;
+            int a = (int)azimuth - 5;
 
             size_t dest;
 
-            if (a >= 3600)
-                a -= 3600;
+            while (a >= 3600) a -= 3600;
+            while (a <     0) a += 3600;
 
             dest = a * bins;
 
