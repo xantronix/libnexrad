@@ -38,6 +38,6 @@ typedef struct _nexrad_color {
     uint8_t r, g, b, a;
 } nexrad_color;
 
-nexrad_color *nexrad_color_create_table(enum nexrad_color_table table);
+nexrad_color *nexrad_color_table_load(enum nexrad_color_table table);
 
 #endif /* _NEXRAD_COLOR_H */

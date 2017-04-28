@@ -114,9 +114,9 @@ error_message_open:
 
 static nexrad_color *load_colors(char *name) {
     if (strcmp(name, "--reflectivity") == 0) {
-        return nexrad_color_create_table(NEXRAD_COLOR_TABLE_REFLECTIVITY);
+        return nexrad_color_table_load(NEXRAD_COLOR_TABLE_REFLECTIVITY);
     } else if (strcmp(name, "--velocity") == 0) {
-        return nexrad_color_create_table(NEXRAD_COLOR_TABLE_VELOCITY);
+        return nexrad_color_table_load(NEXRAD_COLOR_TABLE_VELOCITY);
     } else {
         fprintf(stderr, "Invalid color table '%s'\n", name);
 

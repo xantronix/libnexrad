@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
     nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet, NULL, size);
 
-    nexrad_color *colors = nexrad_color_create_table(NEXRAD_COLOR_TABLE_REFLECTIVITY);
+    nexrad_color *colors = nexrad_color_table_load(NEXRAD_COLOR_TABLE_REFLECTIVITY);
 
     nexrad_map_point radar = {
         .lat =  25.5458,
