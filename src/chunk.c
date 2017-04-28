@@ -159,6 +159,10 @@ void *nexrad_chunk_peek(nexrad_chunk *iterator, size_t *size, size_t *payload, v
      */
     chunk_size = find_chunk_size(iterator->current, iterator->type);
 
+    if (iterator->bytes_left < chunk_size + header_size) {
+        goto error_invalid_chunk;
+    }
+
     /*
      * If a pointer was provided to store the resultant total chunk size in,
      * then provide that value.
@@ -184,6 +188,9 @@ void *nexrad_chunk_peek(nexrad_chunk *iterator, size_t *size, size_t *payload, v
     }
 
     return iterator->current;
+
+error_invalid_chunk:
+    return NULL;
 }
 
 size_t nexrad_chunk_bytes_left(nexrad_chunk *iterator) {
