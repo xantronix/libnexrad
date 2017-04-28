@@ -232,6 +232,9 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t 
 
         case NEXRAD_RADIAL_DIGITAL:
             result = _unpack_digital(radial, packet, bytes_read, max); break;
+
+        default:
+            goto error_unsupported;
     }
 
     if (result < 0) {
@@ -241,6 +244,7 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t 
     return radial;
 
 error_unexpected:
+error_unsupported:
     free(radial);
 
 error_malloc_radial:
