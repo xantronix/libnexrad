@@ -132,7 +132,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
     nexrad_image *image;
 
     nexrad_map_heading heading = {
-        .range = (radial->bins * resolution) / factor
+        .range = (radial->rangebin_count * resolution) / factor
     };
 
     nexrad_color *buf;
@@ -190,10 +190,10 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
             a = (uint16_t)(heading.azimuth * 10);
             r = (uint16_t)((heading.range * factor) / resolution);
 
-            if (r >= radial->bins)
+            if (r >= radial->rangebin_count)
                 continue;
 
-            v = ((uint8_t *)(radial + 1))[a*radial->bins+r];
+            v = ((uint8_t *)(radial + 1))[a*radial->rangebin_count+r];
 
             buf[pixel] = colors[v];
         }

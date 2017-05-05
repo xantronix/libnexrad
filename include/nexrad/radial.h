@@ -29,9 +29,9 @@
 
 #include <nexrad/image.h>
 
-#define NEXRAD_RADIAL_RLE_FACTOR     16
-#define NEXRAD_RADIAL_AZIMUTH_FACTOR  0.1
-#define NEXRAD_RADIAL_RANGE_FACTOR    0.001
+#define NEXRAD_RADIAL_RLE_FACTOR           16
+#define NEXRAD_RADIAL_AZIMUTHAL_RESOLUTION  0.1
+#define NEXRAD_RADIAL_RANGE_FACTOR          0.001
 
 enum nexrad_radial_type {
     NEXRAD_RADIAL_RLE     = 0xaf1f,
@@ -75,8 +75,8 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 #pragma pack(pop)
 
 typedef struct _nexrad_radial {
-    size_t bins;  /* Number of rangebins per ray */
-    size_t first; /* Index to first rangebin sampled */
+    size_t rangebin_count;       /* Number of rangebins per ray */
+    float  azimuthal_resolution; /* Azimuthal resolution of data */
 } nexrad_radial;
 
 /*!

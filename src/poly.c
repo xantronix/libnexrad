@@ -123,12 +123,12 @@ int nexrad_poly_multi_size_for_radial(nexrad_radial *radial, int min, int max, s
         return -1;
     }
 
-    bins = radial->bins;
+    bins = radial->rangebin_count;
 
     for (azimuth=0; azimuth<3600; azimuth+=10) {
         uint16_t range;
 
-        for (range=0; range<radial->bins; range++) {
+        for (range=0; range<bins; range++) {
             int v = ((uint8_t *)(radial + 1))[azimuth*bins+range];
 
             if (v < min || v > max)
@@ -179,7 +179,7 @@ int nexrad_poly_multi_write_from_radial(nexrad_radial *radial,
         return -1;
     }
 
-    bins = radial->bins;
+    bins = radial->rangebin_count;
 
     if ((points = malloc(NEXRAD_POLY_POINTS * sizeof(nexrad_map_point))) == NULL) {
         goto error_malloc_points;

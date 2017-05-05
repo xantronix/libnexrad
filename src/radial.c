@@ -223,8 +223,8 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t 
         goto error_malloc_radial;
     }
 
-    radial->bins  = bins;
-    radial->first = be16toh(packet->rangebin_first);
+    radial->rangebin_count       = bins;
+    radial->azimuthal_resolution = NEXRAD_RADIAL_AZIMUTHAL_RESOLUTION;
 
     switch (type) {
         case NEXRAD_RADIAL_RLE:
@@ -262,9 +262,9 @@ int nexrad_radial_get_rangebin(nexrad_radial *radial, float azimuth, int index) 
         return -1;
     }
 
-    if (index > be16toh(radial->bins)) {
+    if (index > radial->rangebin_count) {
         return 0;
     }
 
-    return ((uint8_t *)(radial + 1))[j*radial->bins+index];
+    return ((uint8_t *)(radial + 1))[j*radial->rangebin_count+index];
 }
