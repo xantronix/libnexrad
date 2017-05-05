@@ -91,16 +91,16 @@ static void _poly_multi_set_rangebin(nexrad_poly_multi *multi, int index, int az
     int i;
 
     ctx->headings[0].azimuth = (double)azimuth - 0.5;
-    ctx->headings[0].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR;
+    ctx->headings[0].range   = (double)range / NEXRAD_POLY_RANGE_FACTOR;
 
     ctx->headings[1].azimuth = (double)azimuth - 0.5;
-    ctx->headings[1].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR + 1000.0;
+    ctx->headings[1].range   = (double)range / NEXRAD_POLY_RANGE_FACTOR + 1000.0;
 
     ctx->headings[2].azimuth = (double)azimuth + 0.5;
-    ctx->headings[2].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR + 1000.0;
+    ctx->headings[2].range   = (double)range / NEXRAD_POLY_RANGE_FACTOR + 1000.0;
 
     ctx->headings[3].azimuth = (double)azimuth + 0.5;
-    ctx->headings[3].range   = (double)range / NEXRAD_RADIAL_RANGE_FACTOR;
+    ctx->headings[3].range   = (double)range / NEXRAD_POLY_RANGE_FACTOR;
 
     for (i=0; i<NEXRAD_POLY_POINTS; i++) {
         nexrad_map_find_point(*(ctx->radar), ctx->headings[i], &ctx->points[i]);

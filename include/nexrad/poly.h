@@ -33,6 +33,8 @@
 #define NEXRAD_POLY_RINGS         1
 #define NEXRAD_POLY_POINTS        4
 
+#define NEXRAD_POLY_RANGE_FACTOR 0.001
+
 /*!
  * \file nexrad/poly.h
  * \brief Support for generating Well-Known Binary geometries from radar data
