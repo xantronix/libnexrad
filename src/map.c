@@ -188,7 +188,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
             while (heading.azimuth >= 360.0) heading.azimuth -= 360.0;
             while (heading.azimuth <    0.0) heading.azimuth += 360.0;
 
-            a = (uint16_t)(heading.azimuth * 10);
+            a = (uint16_t)(heading.azimuth / radial->azimuthal_resolution);
             r = (uint16_t)(heading.range / factor);
 
             if (r >= radial->rangebin_count)
