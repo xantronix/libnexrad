@@ -43,22 +43,18 @@ static int _valid_packet(nexrad_raster_packet *packet) {
             return 0;
     }
 
-    if (       be16toh(packet->flags_1) != 0x8000 ||
-               be16toh(packet->flags_2) != 0x00c0 ||
-      (int16_t)be16toh(packet->i)        >   2047 ||
-      (int16_t)be16toh(packet->i)        <  -2048 ||
-      (int16_t)be16toh(packet->j)        >   2047 ||
-      (int16_t)be16toh(packet->j)        <  -2048 ||
-               be16toh(packet->x_scale)  <      1 ||
-               be16toh(packet->x_scale)  >     67 ||
-               be16toh(packet->y_scale)  <      1 ||
-               be16toh(packet->y_scale)  >     67 ||
-               be16toh(packet->lines)    <      1 ||
-               be16toh(packet->lines)    >    464) {
-        return 0;
-    }
-
-    return 1;
+    return          be16toh(packet->flags_1) != 0x8000 ||
+                    be16toh(packet->flags_2) != 0x00c0 ||
+           (int16_t)be16toh(packet->i)        >   2047 ||
+           (int16_t)be16toh(packet->i)        <  -2048 ||
+           (int16_t)be16toh(packet->j)        >   2047 ||
+           (int16_t)be16toh(packet->j)        <  -2048 ||
+                   be16toh(packet->x_scale)  <      1 ||
+                   be16toh(packet->x_scale)  >     67 ||
+                   be16toh(packet->y_scale)  <      1 ||
+                   be16toh(packet->y_scale)  >     67 ||
+                   be16toh(packet->lines)    <      1 ||
+                   be16toh(packet->lines)    >    464? 0: 1;
 }
 
 static size_t _rle_width(nexrad_raster_packet *packet) {

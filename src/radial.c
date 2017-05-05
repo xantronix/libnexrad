@@ -32,31 +32,19 @@
 #define NEXRAD_RADIAL_BUFFER_RAY_WIDTH 10
 
 static int _valid_rle_packet(nexrad_radial_packet *packet) {
-    if (
-      be16toh(packet->rangebin_first) >   460 ||
-      be16toh(packet->rangebin_count) >   460 ||
-      be16toh(packet->scale)          >  8000 ||
-      be16toh(packet->scale)          <     1 ||
-      be16toh(packet->rays)           >   400
-    ) {
-        return 0;
-    }
-
-    return 1;
+    return be16toh(packet->rangebin_first) >   460 ||
+           be16toh(packet->rangebin_count) >   460 ||
+           be16toh(packet->scale)          >  8000 ||
+           be16toh(packet->scale)          <     1 ||
+           be16toh(packet->rays)           >   400? 0: 1;
 }
 
 static int _valid_digital_packet(nexrad_radial_packet *packet) {
-    if (
-      be16toh(packet->rangebin_first) >   230 ||
-      be16toh(packet->rangebin_count) >  1840 ||
-      be16toh(packet->scale)          >  1000 ||
-      be16toh(packet->scale)          <     1 ||
-      be16toh(packet->rays)           >   720
-    ) {
-        return 0;
-    }
-
-    return 1;
+    return be16toh(packet->rangebin_first) >   230 ||
+           be16toh(packet->rangebin_count) >  1840 ||
+           be16toh(packet->scale)          >  1000 ||
+           be16toh(packet->scale)          <     1 ||
+           be16toh(packet->rays)           >   720? 0: 1;
 }
 
 static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type type) {
@@ -64,9 +52,8 @@ static int _valid_packet(nexrad_radial_packet *packet, enum nexrad_radial_type t
         case NEXRAD_RADIAL_RLE:     return _valid_rle_packet(packet);
         case NEXRAD_RADIAL_DIGITAL: return _valid_digital_packet(packet);
 
-        default: {
+        default:
             break;
-        }
     }
 
     return 0;
