@@ -41,7 +41,9 @@ typedef struct _nexrad_map_heading {
     float azimuth, range;
 } nexrad_map_heading;
 
-float nexrad_map_range_factor(float tilt, float refraction);
+float nexrad_map_range_factor(float tilt,
+                              float resolution,
+                              float refraction);
 
 void nexrad_map_find_point(nexrad_map_point start,
                            nexrad_map_heading heading,
@@ -55,8 +57,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                                         nexrad_map_point *radar,
                                         nexrad_map_point *extents,
                                         nexrad_color *colors,
-                                        float tilt,
-                                        float resolution,
+                                        float factor,
                                         int zoom);
 
 #endif /* _NEXRAD_MAP_H */

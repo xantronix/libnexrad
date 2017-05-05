@@ -100,7 +100,8 @@ int main(int argc, char **argv) {
 
     nexrad_map_point extents[4];
 
-    float factor = nexrad_map_range_factor(0.5, NEXRAD_MAP_EARTH_REFRACTION);
+    float factor = nexrad_map_range_factor(0.5, 1000.0,
+        NEXRAD_MAP_EARTH_REFRACTION);
 
     if (argc != 2) {
         fprintf(stderr, "Naff off!\n");
@@ -108,7 +109,7 @@ int main(int argc, char **argv) {
     }
 
     nexrad_image *image = nexrad_map_project_radial(radial,
-        &radar, extents, colors, factor, 1000.0, 10);
+        &radar, extents, colors, factor, 10);
 
     if (nexrad_image_save_png(image, argv[1]) < 0) {
         perror("nexrad_image_save_png()");

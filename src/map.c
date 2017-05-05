@@ -26,8 +26,10 @@
 
 #include <nexrad/map.h>
 
-float nexrad_map_range_factor(float tilt, float refraction) {
-    return refraction * cosf(tilt * (M_PI / 180.0));
+float nexrad_map_range_factor(float tilt,
+                              float resolution,
+                              float refraction) {
+    return resolution * refraction * cosf(tilt * (M_PI / 180.0));
 }
 
 void nexrad_map_find_point(nexrad_map_point start,
@@ -122,7 +124,6 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                                         nexrad_map_point *extents,
                                         nexrad_color *colors,
                                         float factor,
-                                        float resolution,
                                         int zoom) {
     size_t world_size, width, height,
         world_x, world_y;
@@ -132,7 +133,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
     nexrad_image *image;
 
     nexrad_map_heading heading = {
-        .range = (radial->rangebin_count * resolution) / factor
+        .range = radial->rangebin_count * factor
     };
 
     nexrad_color *buf;
@@ -188,7 +189,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
             while (heading.azimuth <    0.0) heading.azimuth += 360.0;
 
             a = (uint16_t)(heading.azimuth * 10);
-            r = (uint16_t)((heading.range * factor) / resolution);
+            r = (uint16_t)(heading.range / factor);
 
             if (r >= radial->rangebin_count)
                 continue;
