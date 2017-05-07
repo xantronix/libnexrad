@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../src/util.h"
 
 #include <nexrad/message.h>
 #include <nexrad/raster.h>
@@ -37,11 +38,32 @@ static void usage(int argc, char **argv) {
 
 static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
     nexrad_message *message;
+    nexrad_message_header *header;
+    nexrad_product_description *description;
     nexrad_symbology_block *symbology;
     nexrad_chunk *block, *layer;
+    nexrad_product_spec *spec;
+    nexrad_map_point radar;
+    float alt;
 
     if ((message = nexrad_message_open(file)) == NULL) {
         goto error_message_open;
+    }
+
+    if ((header = nexrad_message_get_header(message)) == NULL) {
+        goto error_message_get_header;
+    }
+
+    if ((description = nexrad_message_get_product_description(message)) == NULL) {
+        goto error_message_get_product_description;
+    }
+
+    if ((spec = nexrad_product_spec_lookup(be16toh(header->product_type))) == NULL) {
+        goto error_product_spec_lookup;
+    }
+
+    if (nexrad_message_read_station_location(message, &radar, &alt) < 0) {
+        goto error_message_read_station_location;
     }
 
     if ((symbology = nexrad_message_get_symbology_block(message)) == NULL) {
@@ -65,14 +87,9 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
                     nexrad_radial *radial = nexrad_radial_packet_unpack((nexrad_radial_packet *)packet,
                         NULL, nexrad_chunk_bytes_left(layer));
 
-                    nexrad_map_point radar = {
-                        .lat =  25.5458,
-                        .lon = -97.2508
-                    };
-
                     nexrad_map_point extents[4];
 
-                    float factor = nexrad_map_range_factor(0.5, 1000.0,
+                    float factor = nexrad_map_range_factor(0.5, spec->resolution_x,
                         NEXRAD_MAP_EARTH_REFRACTION);
 
                     nexrad_image *image = nexrad_map_project_radial(radial,
@@ -106,6 +123,10 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
 
 error_symbology_block_open:
 error_message_get_symbology_block:
+error_message_read_station_location:
+error_product_spec_lookup:
+error_message_get_product_description:
+error_message_get_header:
     nexrad_message_close(message);
 
 error_message_open:

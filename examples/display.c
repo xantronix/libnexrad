@@ -261,7 +261,8 @@ static void show_tabular_block(nexrad_message *message) {
 int main(int argc, char **argv) {
     int ret = 0;
     nexrad_message *message;
-    double lat, lon;
+    nexrad_product_description *description;
+    nexrad_map_point radar;
 
     if (argc != 2) {
         usage(argc, argv);
@@ -272,9 +273,15 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    nexrad_message_read_station_location(message, &lat, &lon, NULL);
+    if ((description = nexrad_message_get_product_description(message)) == NULL) {
+        perror("nexrad_message_get_product_description()");
+        exit(1);
+    }
 
-    printf("Radar lat/lon: %f, %f\n", lat, lon);
+    nexrad_message_read_station_location(message, &radar, NULL);
+
+    printf("Radar lat/lon: %f, %f\n", radar.lat, radar.lon);
+    printf("Elevation: %hd\n", (int16_t)be16toh(description->attributes.generic.elevation));
 
     show_symbology_block(message);
     show_graphic_block(message);
