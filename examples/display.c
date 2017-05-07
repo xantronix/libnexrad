@@ -281,7 +281,9 @@ int main(int argc, char **argv) {
     nexrad_message_read_station_location(message, &radar, NULL);
 
     printf("Radar lat/lon: %f, %f\n", radar.lat, radar.lon);
-    printf("Elevation: %hd\n", (int16_t)be16toh(description->attributes.generic.elevation));
+
+    printf("Tilt angle: %f\n",
+        0.1f * (int16_t)be16toh(description->attributes.generic.tilt));
 
     show_symbology_block(message);
     show_graphic_block(message);
