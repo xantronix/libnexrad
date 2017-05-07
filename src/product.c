@@ -21,6 +21,7 @@
  * IN THE SOFTWARE.
  */
 
+#include <stdlib.h>
 #include "util.h"
 
 #include <nexrad/product.h>
@@ -30,6 +31,52 @@ static enum nexrad_product_type compressed_products[] = {
     153, 154, 155, 159, 161, 163, 165, 170, 172,
     173, 174, 175, 176, 177, 194, 195, 199,   0
 };
+
+static nexrad_product_spec specs[] = {
+    { 19,   1, "base reflectivity",               1000.08, 1.0 },
+    { 20,   1, "base reflectivity",               2037.20, 1.0 },
+    { 25,   2, "base velocity",                    240.76, 1.0 },
+    { 26,   2, "base velocity",                    500.04, 1.0 },
+    { 27,   2, "base velocity",                   1000.08, 1.0 },
+    { 28,   3, "base spectrum width",              240.76, 1.0 },
+    { 30,   3, "base spectrum width",             1000.08, 1.0 },
+    { 134, 39, "high resolution VIL",             1000.08, 1.0 },
+    { 135, 41, "enhanced echo tops",              1000.08, 1.0 },
+    { 153,  1, "super resolution reflectivity",    240.76, 0.5 },
+    { 154,  2, "super resolution velocity",        240.76, 0.5 },
+    { 155,  3, "super resolution spectrum width",  240.76, 0.5 },
+    {   0,  0, NULL,                                 0.00, 0.0 }
+};
+
+nexrad_product_spec *nexrad_product_spec_lookup(enum nexrad_product_type type) {
+    static nexrad_product_spec **lookup = NULL;
+
+    if (lookup == NULL) {
+        int i, j;
+
+        if ((lookup = malloc(155 * sizeof(void *))) == NULL) {
+            goto error_malloc;
+        }
+
+        for (i=0, j=0; i<=155; i++) {
+            if (i == specs[j].code) {
+                lookup[i] = &specs[j++];
+            } else {
+                lookup[i] = NULL;
+            }
+        }
+    }
+
+    if (type > 155) {
+        goto error_invalid_type;
+    }
+
+    return lookup[type];
+
+error_invalid_type:
+error_malloc:
+    return NULL;
+}
 
 int nexrad_product_type_supports_compression(enum nexrad_product_type type) {
     int i;

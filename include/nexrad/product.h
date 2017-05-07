@@ -124,6 +124,18 @@ typedef struct _nexrad_product_description {
 
 #pragma pack(pop)
 
+typedef struct _nexrad_product_spec {
+    uint16_t code,
+             ntr;
+
+    char *name;
+
+    float resolution_x,
+          resolution_y;
+} nexrad_product_spec;
+
+nexrad_product_spec *nexrad_product_spec_lookup(enum nexrad_product_type type);
+
 int nexrad_product_type_supports_compression(enum nexrad_product_type type);
 
 enum nexrad_product_type nexrad_product_get_type(nexrad_product_description *product);
