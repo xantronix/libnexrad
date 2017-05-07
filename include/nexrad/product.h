@@ -58,7 +58,7 @@ enum nexrad_radar_mode {
 typedef struct _nexrad_product_attributes {
     uint16_t p1_2[2];
      int16_t elevation;
-    uint16_t p3;
+    uint16_t tilt;
     uint16_t thresholds[16];
     uint16_t p4_7[4];
     uint16_t compression;
