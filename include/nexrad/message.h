@@ -34,6 +34,7 @@
 #include <nexrad/graphic.h>
 #include <nexrad/tabular.h>
 #include <nexrad/packet.h>
+#include <nexrad/map.h>
 
 #define NEXRAD_MESSAGE_MAX_BODY_SIZE 8388608
 #define NEXRAD_MESSAGE_MAX_SIZE     10485760
@@ -199,10 +200,8 @@ int nexrad_message_read_station(nexrad_message *message,
  * Obtain the latitude, longitude and altitude of the WSR-88D station antenna.
  */
 int nexrad_message_read_station_location(nexrad_message *message,
-    double *lat,
-    double *lon,
-    double *alt
-);
+                                         nexrad_map_point *point,
+                                         float *alt);
 
 /*!
  * \ingroup message
