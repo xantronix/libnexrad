@@ -44,7 +44,7 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
     nexrad_chunk *block, *layer;
     nexrad_product_spec *spec;
     nexrad_map_point radar;
-    float alt;
+    float alt, tilt;
 
     if ((message = nexrad_message_open(file)) == NULL) {
         goto error_message_open;
@@ -62,9 +62,8 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
         goto error_product_spec_lookup;
     }
 
-    if (nexrad_message_read_station_location(message, &radar, &alt) < 0) {
-        goto error_message_read_station_location;
-    }
+    nexrad_message_read_station_location(message, &radar, &alt);
+    nexrad_message_read_tilt(message, &tilt);
 
     if ((symbology = nexrad_message_get_symbology_block(message)) == NULL) {
         goto error_message_get_symbology_block;
@@ -88,9 +87,6 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
                         NULL, nexrad_chunk_bytes_left(layer));
 
                     nexrad_map_point extents[4];
-
-                    float tilt = 0.1f *
-                        (int16_t)be16toh(description->attributes.generic.tilt);
 
                     float factor = nexrad_map_range_factor(tilt,
                         spec->resolution_x, NEXRAD_MAP_EARTH_REFRACTION);
@@ -126,7 +122,6 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
 
 error_symbology_block_open:
 error_message_get_symbology_block:
-error_message_read_station_location:
 error_product_spec_lookup:
 error_message_get_product_description:
 error_message_get_header:

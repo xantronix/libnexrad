@@ -199,9 +199,11 @@ int nexrad_message_read_station(nexrad_message *message,
  *
  * Obtain the latitude, longitude and altitude of the WSR-88D station antenna.
  */
-int nexrad_message_read_station_location(nexrad_message *message,
-                                         nexrad_map_point *point,
-                                         float *alt);
+void nexrad_message_read_station_location(nexrad_message *message,
+                                          nexrad_map_point *point,
+                                          float *alt);
+
+void nexrad_message_read_tilt(nexrad_message *message, float *tilt);
 
 /*!
  * \ingroup message
