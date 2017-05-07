@@ -62,8 +62,8 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
         goto error_product_spec_lookup;
     }
 
-    nexrad_message_read_station_location(message, &radar, &alt);
-    nexrad_message_read_tilt(message, &tilt);
+    nexrad_message_read_radar_location(message, &radar, &alt);
+    nexrad_message_read_radar_tilt(message, &tilt);
 
     if ((symbology = nexrad_message_get_symbology_block(message)) == NULL) {
         goto error_message_get_symbology_block;

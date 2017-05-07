@@ -565,7 +565,7 @@ int nexrad_message_read_station(nexrad_message *message, char *dest, size_t dest
     );
 }
 
-void nexrad_message_read_station_location(nexrad_message *message, nexrad_map_point *point, float *alt) {
+void nexrad_message_read_radar_location(nexrad_message *message, nexrad_map_point *point, float *alt) {
     point->lat = NEXRAD_PRODUCT_COORD_MAGNITUDE * (int32_t)be32toh(message->description->station_lat);
     point->lon = NEXRAD_PRODUCT_COORD_MAGNITUDE * (int32_t)be32toh(message->description->station_lon);
 
@@ -573,7 +573,7 @@ void nexrad_message_read_station_location(nexrad_message *message, nexrad_map_po
         *alt = NEXRAD_PRODUCT_ALT_FACTOR * (int16_t)be16toh(message->description->station_altitude);
 }
 
-void nexrad_message_read_tilt(nexrad_message *message, float *tilt) {
+void nexrad_message_read_radar_tilt(nexrad_message *message, float *tilt) {
     *tilt = 0.1f *
         (int16_t)be16toh(message->description->attributes.generic.tilt);
 }

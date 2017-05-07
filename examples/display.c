@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    nexrad_message_read_station_location(message, &radar, NULL);
+    nexrad_message_read_radar_location(message, &radar, NULL);
 
     printf("Radar lat/lon: %f, %f\n", radar.lat, radar.lon);
 

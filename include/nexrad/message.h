@@ -192,18 +192,18 @@ int nexrad_message_read_station(nexrad_message *message,
  * \ingroup message
  * \brief Determine the location of the radar which produced a product file
  * \param message An opened NEXRAD Level III message file
- * \param lat Pointer to a double to store station latitude
- * \param lon Pointer to a double to store station longitude
- * \param alt Pointer to a double to store station altitude
+ * \param lat Pointer to a double to store radar latitude
+ * \param lon Pointer to a double to store radar longitude
+ * \param alt Pointer to a double to store radar altitude
  * \return 0 on success, -1 on failure
  *
  * Obtain the latitude, longitude and altitude of the WSR-88D station antenna.
  */
-void nexrad_message_read_station_location(nexrad_message *message,
-                                          nexrad_map_point *point,
-                                          float *alt);
+void nexrad_message_read_radar_location(nexrad_message *message,
+                                        nexrad_map_point *point,
+                                        float *alt);
 
-void nexrad_message_read_tilt(nexrad_message *message, float *tilt);
+void nexrad_message_read_radar_tilt(nexrad_message *message, float *tilt);
 
 /*!
  * \ingroup message
