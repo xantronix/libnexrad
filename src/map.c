@@ -138,6 +138,8 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
 
     nexrad_color *buf;
 
+    float half_beamwidth = radial->beamwidth / 2.0f;
+
     /*
      * First, determine the Cartesian extents of the image for the given radar
      * location and range factor based on tilt, resolution and refraction.
@@ -184,6 +186,12 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
              uint8_t v;
 
             nexrad_map_find_heading(*radar, point, &heading);
+
+            /*
+             * Adjust pixel azimuth forward by half a beamwidth to ensure the
+             * beam center is aligned with the data azimuth
+             */
+            heading.azimuth += half_beamwidth;
 
             while (heading.azimuth >= 360.0) heading.azimuth -= 360.0;
             while (heading.azimuth <    0.0) heading.azimuth += 360.0;

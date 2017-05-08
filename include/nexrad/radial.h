@@ -32,6 +32,7 @@
 #define NEXRAD_RADIAL_RLE_FACTOR           16
 #define NEXRAD_RADIAL_AZIMUTHAL_RESOLUTION  0.1
 #define NEXRAD_RADIAL_RANGE_FACTOR          0.001
+#define NEXRAD_RADIAL_BEAMWIDTH             1.0
 
 enum nexrad_radial_type {
     NEXRAD_RADIAL_RLE     = 0xaf1f,
@@ -77,6 +78,7 @@ typedef struct _nexrad_radial_run { /* For 0xaf1f */
 typedef struct _nexrad_radial {
     size_t rangebin_count;       /* Number of rangebins per ray */
     float  azimuthal_resolution; /* Azimuthal resolution of data */
+    float  beamwidth;            /* Nominal beamwidth for each ray */
 } nexrad_radial;
 
 /*!
@@ -96,7 +98,9 @@ typedef struct _nexrad_radial {
  * with polar coordinates accurate to 0.1°.  RLE-encoded values are scaled from
  * rangebin values of 0-15 to 0-255.
  */
-nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t *bytes_read, size_t max);
+nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet,
+                                           size_t *bytes_read,
+                                           size_t max);
 
 /*!
  * \ingroup radial

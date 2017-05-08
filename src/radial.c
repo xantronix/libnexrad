@@ -93,12 +93,12 @@ static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size
         }
 
         for (azimuth=start; azimuth<start+delta; azimuth++) {
-            int a = (int)azimuth - 5;
+            size_t a = azimuth;
 
             uint16_t r, b;
 
-            while (a >= 3600) a -= 3600;
-            while (a <     0) a += 3600;
+            while (a >= 3600)
+                a -= 3600;
 
             for (r=0, b=0; r<count; r++) {
                 uint16_t i;
@@ -158,12 +158,12 @@ static int _unpack_digital(nexrad_radial *radial, nexrad_radial_packet *packet, 
         }
 
         for (azimuth=start; azimuth<start+delta; azimuth++) {
-            int a = (int)azimuth - 5;
+            uint16_t a = azimuth;
 
             size_t dest;
 
-            while (a >= 3600) a -= 3600;
-            while (a <     0) a += 3600;
+            while (a >= 3600)
+                a -= 3600;
 
             dest = a * bins;
 
@@ -212,6 +212,7 @@ nexrad_radial *nexrad_radial_packet_unpack(nexrad_radial_packet *packet, size_t 
 
     radial->rangebin_count       = bins;
     radial->azimuthal_resolution = NEXRAD_RADIAL_AZIMUTHAL_RESOLUTION;
+    radial->beamwidth            = NEXRAD_RADIAL_BEAMWIDTH;
 
     switch (type) {
         case NEXRAD_RADIAL_RLE:
