@@ -263,6 +263,7 @@ int main(int argc, char **argv) {
     nexrad_message *message;
     nexrad_product_description *description;
     nexrad_map_point radar;
+    nexrad_product_spec *spec;
 
     if (argc != 2) {
         usage(argc, argv);
@@ -278,7 +279,11 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    spec = nexrad_product_spec_lookup(nexrad_product_get_type(description));
+
     nexrad_message_read_radar_location(message, &radar, NULL);
+
+    printf("Resolution: %fm\n", spec->resolution_x);
 
     printf("Radar lat/lon: %f, %f\n", radar.lat, radar.lon);
 
