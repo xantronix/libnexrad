@@ -56,7 +56,7 @@ nexrad_product_spec *nexrad_product_spec_lookup(enum nexrad_product_type type) {
     if (lookup == NULL) {
         int i, j;
 
-        if ((lookup = malloc(155 * sizeof(void *))) == NULL) {
+        if ((lookup = malloc(156 * sizeof(void *))) == NULL) {
             goto error_malloc;
         }
 
