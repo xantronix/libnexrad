@@ -32,6 +32,11 @@ static enum nexrad_product_type compressed_products[] = {
     173, 174, 175, 176, 177, 194, 195, 199,   0
 };
 
+#define NEXRAD_PRODUCT_SPEC_TYPE_MAX 155
+
+#define NEXRAD_PRODUCT_SPEC_TABLE_SIZE \
+    ((NEXRAD_PRODUCT_SPEC_TYPE_MAX + 1) * sizeof(void *))
+
 static nexrad_product_spec specs[] = {
     {  19,  1, "base reflectivity",               1000.08, 1.0 },
     {  20,  1, "base reflectivity",               2037.20, 1.0 },
@@ -56,11 +61,11 @@ nexrad_product_spec *nexrad_product_spec_lookup(enum nexrad_product_type type) {
     if (lookup == NULL) {
         int i, j;
 
-        if ((lookup = malloc(156 * sizeof(void *))) == NULL) {
+        if ((lookup = malloc(NEXRAD_PRODUCT_SPEC_TABLE_SIZE)) == NULL) {
             goto error_malloc;
         }
 
-        for (i=0, j=0; i<=155; i++) {
+        for (i=0, j=0; i<=NEXRAD_PRODUCT_SPEC_TYPE_MAX; i++) {
             if (i == specs[j].code) {
                 lookup[i] = &specs[j++];
             } else {
@@ -69,7 +74,7 @@ nexrad_product_spec *nexrad_product_spec_lookup(enum nexrad_product_type type) {
         }
     }
 
-    if (type > 155) {
+    if (type > NEXRAD_PRODUCT_SPEC_TYPE_MAX) {
         goto error_invalid_type;
     }
 

@@ -104,8 +104,24 @@ static int _unpack_rle(nexrad_radial *radial, nexrad_radial_packet *packet, size
                 uint16_t i;
 
                 for (i=0; i<runs[r].length && b<bins; i++, b++) {
-                    ((uint8_t *)(radial + 1))[bins*a+b] =
-                        NEXRAD_RADIAL_RLE_FACTOR * runs[r].level;
+                    uint8_t value;
+
+                    switch (runs[r].level) {
+                        case  0:
+                            value = 0; break;
+
+                        case  1: case  2: case  3: case  4: case  5:
+                        case  6: case  7: case  8: case  9: case 10:
+                        case 11: case 12: case 13: case 14:
+                            value = NEXRAD_RADIAL_RLE_FACTOR * runs[r].level - 1;
+                            break;
+
+                        case 15:
+                            value = 255;
+                            break;
+                    }
+
+                    ((uint8_t *)(radial + 1))[bins*a+b] = value;
                 }
             }
         }
