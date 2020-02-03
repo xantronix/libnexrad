@@ -43,7 +43,9 @@ create_linux_build_mk() {
     cat <<'EOF' >> mk/build.mk
 LLFLAGS		= -shared -Wl,-soname=$(SONAME)
 
-SONAME_SHORT	= libnexrad.so
+STATIC          = lib$(LIBNAME).a
+
+SONAME_SHORT	= lib$(LIBNAME).so
 SONAME		= $(SONAME_SHORT).$(VERSION_MAJOR)
 SONAME_FULL	= $(SONAME_SHORT).$(VERSION)
 EOF
@@ -55,9 +57,9 @@ create_darwin_build_mk() {
     cat <<'EOF' >> mk/build.mk
 LLFLAGS		= -dynamiclib -current_version $(VERSION)
 
-SONAME_SHORT	= libnexrad.dylib
-SONAME		= libnexrad.$(VERSION_MAJOR).dylib
-SONAME_FULL	= libnexrad.$(VERSION).dylib
+SONAME_SHORT	= lib$(LIBNAME).dylib
+SONAME		= lib$(LIBNAME).$(VERSION_MAJOR).dylib
+SONAME_FULL	= lib$(LIBNAME).$(VERSION).dylib
 EOF
 }
 

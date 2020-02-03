@@ -21,7 +21,7 @@ VERSION_MAJOR	= 0
 VERSION_MINOR	= 0.0
 VERSION		= $(VERSION_MAJOR).$(VERSION_MINOR)
 
-STATIC		= libnexrad.a
+LIBNAME		= nexrad
 
 PREFIX		= /usr/local
 INSTALL_LIB	= $(PREFIX)/lib
@@ -38,7 +38,7 @@ LN		= /bin/ln
 RMDIR		= /bin/rmdir
 INSTALL		= /usr/bin/install
 
-all: $(STATIC) $(SONAME_FULL)
+all: $(STATIC) $(SONAME_FULL) $(SONAME) $(SONAME_SHORT)
 
 $(STATIC): $(OBJS)
 	$(AR) rc $(STATIC) $(OBJS)
@@ -46,6 +46,12 @@ $(STATIC): $(OBJS)
 
 $(SONAME_FULL): $(OBJS)
 	$(CC) $(LLFLAGS) $(OBJS) $(LDFLAGS) -o $(SONAME_FULL)
+
+$(SONAME): $(SONAME_FULL)
+	$(LN) -s $< $@
+
+$(SONAME_SHORT): $(SONAME_FULL)
+	$(LN) -s $< $@
 
 $(OBJS): %.o: %.c $(HEADERS_BUILD) $(HEADERS_PRIVATE)
 	$(CC) $(CFLAGS) -c $<
