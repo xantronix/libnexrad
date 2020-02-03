@@ -169,7 +169,7 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
         goto error_image_create;
     }
 
-    buf = (nexrad_color *)image + 1;
+    buf = (nexrad_color *)(image + 1);
 
     for (y=0; y<height; y++) {
         float lat = _mercator_find_lat(y + world_y, world_size);
