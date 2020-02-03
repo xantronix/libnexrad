@@ -60,4 +60,12 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                                         float factor,
                                         int zoom);
 
+nexrad_image *nexrad_map_tile_project_radial(nexrad_radial *radial,
+                                             nexrad_map_point *radar,
+                                             nexrad_color *colors,
+                                             float factor,
+                                             int tile_z,
+                                             int tile_x,
+                                             int tile_y);
+
 #endif /* _NEXRAD_MAP_H */

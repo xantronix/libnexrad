@@ -213,3 +213,78 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
 error_image_create:
     return NULL;
 }
+
+nexrad_image *nexrad_map_tile_project_radial(nexrad_radial *radial,
+                                             nexrad_map_point *radar,
+                                             nexrad_color *colors,
+                                             float factor,
+                                             int tile_z,
+                                             int tile_x,
+                                             int tile_y) {
+    size_t world_size, world_x, world_y;
+
+    size_t x, y;
+
+    nexrad_image *image;
+
+    nexrad_map_heading heading;
+
+    nexrad_color *buf;
+
+    float half_beamwidth = radial->beamwidth / 2.0f;
+
+    /*
+     * Next, determine the width and height of the output image.
+     */
+    world_size = NEXRAD_MAP_TILE_SIZE * pow(2, tile_z);
+    world_x    = NEXRAD_MAP_TILE_SIZE * tile_x;
+    world_y    = NEXRAD_MAP_TILE_SIZE * tile_y;
+
+    if ((image = nexrad_image_create(NEXRAD_MAP_TILE_SIZE, NEXRAD_MAP_TILE_SIZE)) == NULL) {
+        goto error_image_create;
+    }
+
+    buf = (nexrad_color *)(image + 1);
+
+    for (y=0; y<NEXRAD_MAP_TILE_SIZE; y++) {
+        float lat = _mercator_find_lat(y + world_y, world_size);
+
+        for (x=0; x<NEXRAD_MAP_TILE_SIZE; x++) {
+            nexrad_map_point point = {
+                .lat = lat,
+                .lon = _mercator_find_lon(x + world_x, world_size)
+            };
+
+            size_t pixel = y * NEXRAD_MAP_TILE_SIZE + x;
+
+            uint16_t a, r;
+             uint8_t v;
+
+            nexrad_map_find_heading(*radar, point, &heading);
+
+            /*
+             * Adjust pixel azimuth forward by half a beamwidth to ensure the
+             * beam center is aligned with the data azimuth
+             */
+            heading.azimuth += half_beamwidth;
+
+            while (heading.azimuth >= 360.0) heading.azimuth -= 360.0;
+            while (heading.azimuth <    0.0) heading.azimuth += 360.0;
+
+            a = (uint16_t)(heading.azimuth / radial->azimuthal_resolution);
+            r = (uint16_t)(heading.range / factor);
+
+            if (r >= radial->rangebin_count)
+                continue;
+
+            v = ((uint8_t *)(radial + 1))[a*radial->rangebin_count+r];
+
+            buf[pixel] = colors[v];
+        }
+    }
+
+    return image;
+
+error_image_create:
+    return NULL;
+}
