@@ -52,6 +52,10 @@ static void show_radial_packet(nexrad_radial_packet *packet, size_t *size, size_
         (int)be16toh(packet->rangebin_count),
         (int)be16toh(packet->rays));
 
+    printf("Azimuthal resolution %f\n", radial->azimuthal_resolution);
+
+    printf("Scale %f\n", 0.001 * (float)be16toh(packet->scale));
+
     printf("Done reading radial of %lu bytes\n", *size);
 
     nexrad_radial_destroy(radial);
@@ -278,6 +282,8 @@ int main(int argc, char **argv) {
         perror("nexrad_message_get_product_description()");
         exit(1);
     }
+
+    printf("Product type: %d\n", nexrad_product_get_type(description));
 
     spec = nexrad_product_spec_lookup(nexrad_product_get_type(description));
 
