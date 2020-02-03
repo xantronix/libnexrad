@@ -89,10 +89,10 @@ static nexrad_image *get_product_image(const char *file, nexrad_color *colors) {
                     nexrad_map_point extents[4];
 
                     float factor = nexrad_map_range_factor(tilt,
-                        spec->resolution_x, NEXRAD_MAP_EARTH_REFRACTION);
+                        spec->resolution_x, 1.0);
 
                     nexrad_image *image = nexrad_map_project_radial(radial,
-                        &radar, extents, colors, factor, 10);
+                        &radar, extents, colors, factor, 9);
 
                     return image;
                 }
