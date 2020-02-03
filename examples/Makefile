@@ -9,7 +9,7 @@ RM		= /bin/rm
 all: $(EXAMPLES)
 
 $(EXAMPLES): %: %.c
-	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 clean:
 	$(RM) -f $(EXAMPLES)
