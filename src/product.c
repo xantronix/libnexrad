@@ -38,21 +38,21 @@ static enum nexrad_product_type compressed_products[] = {
     ((NEXRAD_PRODUCT_SPEC_TYPE_MAX + 1) * sizeof(void *))
 
 static nexrad_product_spec specs[] = {
-    {  19,  1, "base reflectivity",               1000.08, 1.0 },
-    {  20,  1, "base reflectivity",               2037.20, 1.0 },
-    {  25,  2, "base velocity",                    240.76, 1.0 },
-    {  26,  2, "base velocity",                    500.04, 1.0 },
-    {  27,  2, "base velocity",                   1000.08, 1.0 },
-    {  28,  3, "base spectrum width",              240.76, 1.0 },
-    {  30,  3, "base spectrum width",             1000.08, 1.0 },
-    {  94,  1, "base reflectivity",               1000.08, 1.0 },
-    {  99,  2, "base velocity",                    240.76, 1.0 },
-    { 134, 39, "high resolution VIL",             1000.08, 1.0 },
-    { 135, 41, "enhanced echo tops",              1000.08, 1.0 },
-    { 153,  1, "super resolution reflectivity",    240.76, 0.5 },
-    { 154,  2, "super resolution velocity",        240.76, 0.5 },
-    { 155,  3, "super resolution spectrum width",  240.76, 0.5 },
-    {   0,  0, NULL,                                 0.00, 0.0 }
+    {  19,  1, "base reflectivity",               1000.0, 1.0 },
+    {  20,  1, "base reflectivity",               2000.0, 1.0 },
+    {  25,  2, "base velocity",                    250.0, 1.0 },
+    {  26,  2, "base velocity",                    500.0, 1.0 },
+    {  27,  2, "base velocity",                   1000.0, 1.0 },
+    {  28,  3, "base spectrum width",              250.0, 1.0 },
+    {  30,  3, "base spectrum width",             1000.0, 1.0 },
+    {  94,  1, "base reflectivity",               1000.0, 1.0 },
+    {  99,  2, "base velocity",                    250.0, 1.0 },
+    { 134, 39, "high resolution VIL",             1000.0, 1.0 },
+    { 135, 41, "enhanced echo tops",              1000.0, 1.0 },
+    { 153,  1, "super resolution reflectivity",    460.0, 0.5 },
+    { 154,  2, "super resolution velocity",        460.0, 0.5 },
+    { 155,  3, "super resolution spectrum width",  460.0, 0.5 },
+    {   0,  0, NULL,                                 0.0, 0.0 }
 };
 
 nexrad_product_spec *nexrad_product_spec_lookup(enum nexrad_product_type type) {
