@@ -90,6 +90,25 @@ error_open_file_write:
     return -1;
 }
 
+int nexrad_image_write_png(nexrad_image *image,
+                           nexrad_image_writer *writer,
+                           void *data) {
+    png_t png;
+
+    memset(&png, '\0', sizeof(png));
+
+    png_init(NULL, NULL);
+
+    if (png_open_write(&png, (png_write_callback_t)writer, data) != PNG_NO_ERROR) {
+        goto error_png_open_write;
+    }
+
+    return 0;
+
+error_png_open_write:
+    return -1;
+}
+
 void nexrad_image_destroy(nexrad_image *image) {
     if (image == NULL) {
         return;

@@ -48,6 +48,8 @@ typedef struct _nexrad_image {
            height;
 } nexrad_image;
 
+typedef size_t (nexrad_image_writer)(void *buf, size_t size, size_t num, void *data);
+
 /*!
  * \defgroup image Image buffer manipulation routines
  */
@@ -74,6 +76,10 @@ nexrad_image *nexrad_image_create(size_t width, size_t height);
  * Save the image buffer to a PNG file on disk.
  */
 int nexrad_image_save_png(nexrad_image *image, const char *path);
+
+int nexrad_image_write_png(nexrad_image *image,
+                           nexrad_image_writer *writer,
+                           void *data);
 
 /*!
  * \ingroup image
