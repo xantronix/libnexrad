@@ -41,6 +41,10 @@ typedef struct _nexrad_map_heading {
     float azimuth, range;
 } nexrad_map_heading;
 
+typedef struct _nexrad_map_tile_index {
+    int x, y;
+} nexrad_map_tile_index;
+
 float nexrad_map_range_factor(float tilt,
                               float resolution,
                               float refraction);
@@ -59,6 +63,11 @@ nexrad_image *nexrad_map_project_radial(nexrad_radial *radial,
                                         nexrad_color *colors,
                                         float factor,
                                         int zoom);
+
+void nexrad_map_tile_extents(nexrad_map_point *radar,
+                             float range,
+                             int zoom,
+                             nexrad_map_tile_index *extents);
 
 nexrad_image *nexrad_map_tile_project_radial(nexrad_radial *radial,
                                              nexrad_map_point *radar,

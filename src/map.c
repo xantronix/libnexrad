@@ -214,6 +214,35 @@ error_image_create:
     return NULL;
 }
 
+void nexrad_map_tile_extents(nexrad_map_point *radar,
+                             float range,
+                             int zoom,
+                             nexrad_map_tile_index *extents) {
+    size_t world_size = NEXRAD_MAP_TILE_SIZE * pow(2, zoom);
+
+    nexrad_map_heading heading = {
+        .range = range
+    };
+
+    nexrad_map_point point;
+
+    heading.azimuth = 0.0;
+    nexrad_map_find_point(*radar, heading, &point);
+    extents[0].y = _mercator_find_y(point.lon, world_size) / NEXRAD_MAP_TILE_SIZE;
+
+    heading.azimuth = 270.0;
+    nexrad_map_find_point(*radar, heading, &point);
+    extents[0].x = _mercator_find_x(point.lat, world_size) / NEXRAD_MAP_TILE_SIZE;
+
+    heading.azimuth = 180.0;
+    nexrad_map_find_point(*radar, heading, &point);
+    extents[1].y = _mercator_find_y(point.lon, world_size) / NEXRAD_MAP_TILE_SIZE;
+
+    heading.azimuth = 90.0;
+    nexrad_map_find_point(*radar, heading, &point);
+    extents[1].x = _mercator_find_x(point.lat, world_size) / NEXRAD_MAP_TILE_SIZE;
+}
+
 nexrad_image *nexrad_map_tile_project_radial(nexrad_radial *radial,
                                              nexrad_map_point *radar,
                                              nexrad_color *colors,
