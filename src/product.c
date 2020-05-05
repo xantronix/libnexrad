@@ -49,9 +49,9 @@ static nexrad_product_spec specs[] = {
     {  99,  2, "base velocity",                    250.0, 1.0 },
     { 134, 39, "high resolution VIL",             1000.0, 1.0 },
     { 135, 41, "enhanced echo tops",              1000.0, 1.0 },
-    { 153,  1, "super resolution reflectivity",    460.0, 0.5 },
-    { 154,  2, "super resolution velocity",        460.0, 0.5 },
-    { 155,  3, "super resolution spectrum width",  460.0, 0.5 },
+    { 153,  1, "super resolution reflectivity",    250.0, 0.5 },
+    { 154,  2, "super resolution velocity",        250.0, 0.5 },
+    { 155,  3, "super resolution spectrum width",  250.0, 0.5 },
     {   0,  0, NULL,                                 0.0, 0.0 }
 };
 
