@@ -43,8 +43,8 @@
  * representations of radial radar data.
  */
 
-#pragma pack(1)
 #pragma pack(push)
+#pragma pack(1)
 
 typedef struct _nexrad_poly_point {
     double lon;

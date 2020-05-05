@@ -31,8 +31,8 @@
 
 #define NEXRAD_RASTER_RLE_FACTOR 16
 
-#pragma pack(1)
 #pragma pack(push)
+#pragma pack(1)
 
 typedef struct _nexrad_raster_packet {
     uint16_t type;         /* 0xba0f or 0xba07 */

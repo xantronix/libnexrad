@@ -49,8 +49,8 @@ enum nexrad_radial_type {
  * length-encoded format.
  */
 
-#pragma pack(1)
 #pragma pack(push)
+#pragma pack(1)
 
 typedef struct _nexrad_radial_packet {
     uint16_t type;           /* 16 or 0xaf1f */
