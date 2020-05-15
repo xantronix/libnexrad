@@ -57,6 +57,8 @@ create_darwin_build_mk() {
     cat <<'EOF' >> mk/build.mk
 LLFLAGS		= -dynamiclib -current_version $(VERSION)
 
+STATIC          = lib$(LIBNAME).a
+
 SONAME_SHORT	= lib$(LIBNAME).dylib
 SONAME		= lib$(LIBNAME).$(VERSION_MAJOR).dylib
 SONAME_FULL	= lib$(LIBNAME).$(VERSION).dylib
